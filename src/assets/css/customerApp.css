@@ -1,0 +1,26 @@
+.customer-app {
+    min-height: 100vh;
+    background: #f5f5f5;
+  }
+  
+  /* Reset styles for customer portal - ISOLATED TO CUSTOMER APP ONLY */
+  .customer-app * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Prevent customer portal styles from affecting table components */
+  .customer-app * table,
+  .customer-app * th,
+  .customer-app * td {
+    box-sizing: content-box !important;
+    margin: initial !important;
+    padding: initial !important;
+  }
+  
+  .customer-app body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+  }

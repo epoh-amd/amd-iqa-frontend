@@ -1,0 +1,84 @@
+.waiver-container{
+    max-width:900px;
+    margin:auto;
+    padding:30px;
+    background:white;
+  }
+  
+  .waiver-title{
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:20px;
+  }
+  
+  .form-section{
+    margin-bottom:20px;
+    display:flex;
+    flex-direction:column;
+  }
+  
+  .form-section-row{
+    display:flex;
+    gap:20px;
+  }
+  
+  .accordion{
+    border:1px solid #ccc;
+    margin-top:10px;
+  }
+  
+  .accordion-header{
+    padding:12px;
+    background:#222;
+    color:white;
+    cursor:pointer;
+  }
+  
+  .accordion-body{
+    padding:15px;
+  }
+  
+  .submit-btn{
+    margin-top:20px;
+    width:200px;
+    padding:12px;
+    background:black;
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+  }
+
+  .waiver-id-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 8px;
+  }
+  
+  .waiver-label{
+    font-weight: 600;
+  }
+  
+  .waiver-value{
+    font-weight: 500;
+  }
+
+  .field-inline{
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .field-inline label{
+    width: 200px; /* fixed width for alignment */
+    
+  }
+  
+  .field-inline input{
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+  }

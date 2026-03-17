@@ -1,0 +1,155 @@
+/* layout.css */
+:root {
+  --scale-factor: 0.90; /* 70% scale */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+body {
+  background-color: #000; /* Black background to prevent white flashes */
+}
+
+.wrapper {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  background-color: #000;
+}
+
+/* Apply the scale transformation to the entire layout */
+@media (min-width: 769px) {
+  .wrapper {
+    transform: scale(var(--scale-factor));
+    transform-origin: center center;
+    width: calc(100vw / var(--scale-factor));
+    height: calc(100vh / var(--scale-factor));
+    background-color: #f9f9f9;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: calc(-50vw / var(--scale-factor));
+    margin-top: calc(-50vh / var(--scale-factor));
+  }
+}
+
+.header-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  z-index: 1000;
+  background-color: var(--amd-black);
+}
+
+.main-container {
+  position: absolute;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background-color: #f9f9f9;
+}
+
+.sidebar-wrapper {
+  width: var(--sidebar-width);
+  height: 100%;
+  transition: width var(--transition-speed);
+  background-color: var(--amd-black);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sidebar-wrapper.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+.content-wrapper {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #f9f9f9;
+  position: relative;
+}
+
+.main-content {
+  padding: 20px;
+  min-height: 100%;
+  background-color: #f9f9f9;
+}
+
+/* Ensure no margins on direct children that could cause gaps */
+.main-content > *:first-child {
+  margin-top: 0;
+}
+
+.main-content > *:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  body {
+    background-color: #f9f9f9;
+  }
+  
+  .wrapper {
+    transform: none;
+    width: 100vw;
+    height: 100vh;
+    background-color: #f9f9f9;
+  }
+
+  .header-container {
+    position: fixed;
+  }
+
+  .main-container {
+    position: relative;
+    top: 0;
+    padding-top: var(--header-height);
+    min-height: 100vh;
+  }
+
+  .sidebar-wrapper {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+    transition: transform var(--transition-speed);
+    z-index: 999;
+  }
+  
+  .sidebar-wrapper.active {
+    transform: translateX(0);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .sidebar-wrapper.collapsed {
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+  }
+  
+  .content-wrapper,
+  .content-wrapper.expanded {
+    margin-left: 0;
+    width: 100%;
+    height: auto;
+    min-height: calc(100vh - var(--header-height));
+  }
+
+}

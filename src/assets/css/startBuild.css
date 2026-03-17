@@ -1,0 +1,2186 @@
+/* StartBuild Container Styles */
+.start-build-container {
+  padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: #343a40;
+  font-size: 28px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Progress Tracker */
+.progress-tracker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.step-indicator {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.progress-step.pending .step-indicator {
+  background-color: #e9ecef;
+  color: #6c757d;
+  border: 2px solid #dee2e6;
+}
+
+.progress-step.active .step-indicator {
+  background-color: #007bff;
+  color: white;
+  border: 2px solid #0056b3;
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25);
+}
+
+.progress-step.completed .step-indicator {
+  background-color: #28a745;
+  color: white;
+  border: 2px solid #1e7e34;
+}
+
+.step-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  text-align: center;
+  max-width: 120px;
+}
+
+.progress-line {
+  width: 100px;
+  height: 2px;
+  background-color: #dee2e6;
+  margin: 0 20px;
+  margin-bottom: 28px;
+}
+
+/* Global Messages */
+.global-errors {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.global-errors.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.global-errors.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.global-errors > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Sub-step Title */
+.sub-step-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.sub-step-title h2 {
+  color: #495057;
+  font-size: 22px;
+  margin: 0;
+}
+
+/* Table Container */
+.builds-table-container {
+  overflow-x: auto;
+  margin-bottom: 30px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Table Styles */
+.builds-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.builds-table th {
+  background-color: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.builds-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: top;
+  position: relative; /* Important for dropdown positioning */
+  overflow: visible; /* Allow dropdowns to extend outside cell */
+}
+
+.builds-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.builds-table tbody tr.success {
+  background-color: #d4edda;
+}
+
+.builds-table tbody tr.error {
+  background-color: #f8d7da;
+}
+
+/* Column Specific Styles */
+.row-actions {
+  width: 60px;
+  text-align: center;
+}
+
+/* CONSISTENT BUILD REFERENCE STYLING */
+.build-reference {
+  width: 120px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  background-color: #f8f9fa;
+  font-size: 14px;
+}
+
+/* Legacy support - keep for backward compatibility but use consistent styling */
+.build-number {
+  width: 120px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  background-color: #f8f9fa;
+  font-size: 14px;
+}
+
+.status-header,
+.save-header {
+  width: 100px;
+  text-align: center;
+}
+
+/* Form Controls in Table */
+.builds-table select,
+.builds-table input[type="text"],
+.builds-table input[type="number"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.builds-table select:focus,
+.builds-table input[type="text"]:focus,
+.builds-table input[type="number"]:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+}
+
+.builds-table select.error,
+.builds-table input.error {
+  border-color: #dc3545;
+}
+
+/* Scanner Input */
+.scanner-input {
+  position: relative;
+}
+
+.scanner-input input {
+  padding-right: 30px;
+}
+
+.scanner-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 14px;
+}
+
+/* Auto-populated Fields */
+.auto-populated {
+  background-color: #e9ecef;
+  color: #495057;
+  font-style: italic;
+}
+
+/* Test Field Styles */
+.test-field {
+  min-width: 200px;
+}
+
+.test-fail-inputs {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.test-fail-inputs textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.test-fail-inputs textarea.error {
+  border-color: #dc3545;
+}
+
+/* Photo Upload */
+.photo-upload {
+  margin-top: 8px;
+}
+
+.upload-btn-small {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.upload-btn-small:hover {
+  background-color: #0056b3;
+}
+
+.uploaded-files {
+  margin-top: 8px;
+}
+
+.uploaded-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
+.remove-photo-btn {
+  padding: 2px 6px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.remove-photo-btn:hover {
+  background-color: #c82333;
+}
+
+/* Field Errors */
+.field-error {
+  color: #dc3545;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+/* Buttons */
+.btn-icon {
+  padding: 6px 10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-icon:hover {
+  background-color: #c82333;
+}
+
+.btn-icon:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+/* Button styles removed - using global app.css styles */
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Save Button */
+.btn-save-single {
+  padding: 6px 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-save-single:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.btn-save-single:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Status and Save cells */
+.status-cell,
+.save-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.status-icon {
+  font-size: 18px;
+}
+
+.status-icon.success {
+  color: #28a745;
+}
+
+.status-icon.error {
+  color: #dc3545;
+}
+
+.status-text {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* BKC Details specific styles */
+.bmc-name-cell {
+  font-weight: 500;
+  color: #495057;
+}
+
+.extract-cell {
+  text-align: center;
+}
+
+.extract-btn {
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.extract-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.extract-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.extract-btn.extracting {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.extract-btn.extracted {
+  background-color: #28a745;
+}
+
+.extract-btn.error {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+.extract-btn.error:hover:not(:disabled) {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+.extract-error {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  color: #721c24;
+  font-size: 11px;
+  max-width: 250px;
+  word-wrap: break-word;
+  line-height: 1.3;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.extract-error .fa-exclamation-triangle {
+  color: #dc3545;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.extract-error span {
+  flex: 1;
+}
+
+/* Optional field styling */
+.optional-field {
+  background-color: #f8f9fa !important;
+  border-style: dashed !important;
+}
+
+.optional-field:focus {
+  background-color: white !important;
+  border-style: solid !important;
+}
+
+/* FIXED DROPDOWN STYLES - Proper positioning */
+.searchable-dropdown,
+.part-number-dropdown {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.searchable-dropdown input,
+.part-number-dropdown input {
+  width: 100%;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.part-number-dropdown input::placeholder {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.searchable-dropdown input:focus,
+.part-number-dropdown input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+  background-color: #f8f9ff;
+}
+
+.searchable-dropdown input.error,
+.part-number-dropdown input.error {
+  border-color: #dc3545;
+}
+
+.dropdown-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  pointer-events: none;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.part-number-dropdown:focus-within .dropdown-icon {
+  color: #007bff;
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* FIXED: Dropdown list positioning - using CSS positioning relative to parent */
+.dropdown-list,
+.part-dropdown-list {
+  position: absolute; /* Back to absolute positioning relative to parent */
+  top: 100%; /* Directly below the input */
+  left: 0; /* Aligned to the left edge of the input */
+  right: 0; /* Stretch to match input width */
+  background: white;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  margin: 0;
+  padding: 0;
+  min-width: 200px;
+  box-sizing: border-box;
+}
+
+/* Empty state styling for when no results are found */
+.dropdown-empty-state {
+  padding: 16px;
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* Loading state styling */
+.dropdown-loading {
+  padding: 16px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dropdown-item,
+.part-dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background-color: white !important;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  color: #212529 !important; /* Darker text for better contrast */
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+.dropdown-item:hover,
+.part-dropdown-item:hover,
+.dropdown-item:focus,
+.part-dropdown-item:focus {
+  background-color: #007bff !important;
+  color: white !important;
+  font-weight: 500 !important;
+  outline: none;
+}
+
+.dropdown-item:last-child,
+.part-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:active,
+.part-dropdown-item:active {
+  background-color: #0056b3;
+}
+
+/* Critical: Ensure parent containers support absolute positioning */
+.builds-table {
+  position: relative;
+  overflow: visible; /* Allow dropdowns to extend beyond table */
+}
+
+.builds-table td {
+  position: relative; /* This allows absolute positioning within the cell */
+  overflow: visible; /* Allow dropdowns to extend outside cell */
+}
+
+/* Ensure dropdown containers support absolute positioning */
+.searchable-dropdown,
+.part-number-dropdown {
+  position: relative !important; /* This is the positioning context for the dropdown */
+  display: inline-block;
+  width: 100%;
+  overflow: visible !important;
+}
+
+/* Ensure input fields don't interfere */
+.part-number-dropdown input {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+/* Step Navigation */
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #dee2e6;
+}
+
+.nav-left,
+.nav-right {
+  display: flex;
+  gap: 10px;
+}
+
+/* Detailed Errors */
+.detailed-errors {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.detailed-errors h3 {
+  margin-top: 0;
+  color: #721c24;
+}
+
+.build-errors {
+  margin-bottom: 15px;
+}
+
+.build-errors:last-child {
+  margin-bottom: 0;
+}
+
+.build-errors h4 {
+  margin: 10px 0 5px 0;
+  color: #721c24;
+}
+
+.build-errors ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.build-errors li {
+  color: #721c24;
+  margin-bottom: 3px;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* BKC Note */
+.bkc-note {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Tooltip styles */
+.extract-btn[title]:hover::after,
+.btn-save-single[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 4px;
+  max-width: 300px;
+  white-space: normal;
+  text-align: left;
+}
+
+.extract-btn[title]:hover::before,
+.btn-save-single[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #333;
+  z-index: 1000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .builds-table-container {
+    overflow-x: scroll;
+  }
+  
+  .dropdown-list,
+  .part-dropdown-list {
+    max-height: 120px;
+    font-size: 12px;
+  }
+  
+  .dropdown-item,
+  .part-dropdown-item {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  
+  .dropdown-icon {
+    font-size: 10px;
+    right: 6px;
+  }
+  
+  .build-reference,
+  .build-number {
+    width: 100px;
+    font-size: 12px;
+  }
+  
+  .extract-error {
+    font-size: 10px;
+    padding: 4px 6px;
+    max-width: 200px;
+  }
+  
+  .extract-btn[title]:hover::after,
+  .btn-save-single[title]:hover::after {
+    font-size: 10px;
+    max-width: 250px;
+  }
+}
+
+/* Additional CSS styles for Quality Indicator - Add to startBuild.css */
+
+/* Quality Indicator Header Actions */
+.quality-header-actions {
+  margin-bottom: 15px;
+  text-align: right;
+}
+
+/* FPY Status Styling */
+.fpy-status {
+  font-weight: 600;
+  border-width: 2px;
+}
+
+.fpy-status.pass {
+  background-color: #d4edda;
+  color: #155724;
+  border-color: #c3e6cb;
+}
+
+.fpy-status.fail {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+/* N/A Field Styling */
+.na-field {
+  color: #6c757d;
+  font-style: italic;
+  font-size: 13px;
+  text-align: center;
+  display: block;
+  padding: 6px 8px;
+}
+
+/* Radio Group Styling */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 250px;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.radio-group input[type="radio"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.radio-group span {
+  flex: 1;
+}
+
+/* Save Option Group Styling */
+.save-option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 150px;
+}
+
+.save-option-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.save-option-group label:hover {
+  background-color: #f8f9fa;
+}
+
+.save-option-group input[type="radio"] {
+  flex-shrink: 0;
+}
+
+.save-option-group span {
+  flex: 1;
+}
+
+/* Quality Note Styling */
+.quality-note {
+  background-color: #e7f3ff;
+  border: 1px solid #b8daff;
+  color: #004085;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-size: 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.quality-note .fa-exclamation-triangle {
+  color: #0056b3;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Failure Mode Table Columns */
+.builds-table th:nth-child(n+4):nth-child(-n+13) {
+  min-width: 150px;
+}
+
+/* Dynamic Column Styling */
+.builds-table td:has(select),
+.builds-table td:has(input[type="number"]) {
+  min-width: 120px;
+}
+
+/* Auto-populated failure category styling */
+.builds-table input.auto-populated {
+  background-color: #e9ecef !important;
+  color: #495057;
+  font-style: italic;
+  border-style: dashed;
+}
+
+/* Enhanced error styling for quality fields */
+.builds-table .radio-group.error {
+  border: 1px solid #dc3545;
+  border-radius: 4px;
+  padding: 8px;
+  background-color: #f8d7da;
+}
+
+.builds-table .save-option-group.error {
+  border: 1px solid #dc3545;
+  border-radius: 4px;
+  padding: 8px;
+  background-color: #f8d7da;
+}
+
+/* Progress tracker adjustment for 4 steps */
+.progress-tracker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  min-width: 120px;
+}
+
+.step-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #495057;
+  text-align: center;
+  max-width: 120px;
+  line-height: 1.2;
+}
+
+/* Responsive adjustments for quality indicator */
+@media (max-width: 1400px) {
+  .radio-group {
+    min-width: 200px;
+  }
+  
+  .radio-group label {
+    font-size: 11px;
+  }
+  
+  .save-option-group {
+    min-width: 120px;
+  }
+  
+  .save-option-group label {
+    font-size: 11px;
+  }
+  
+  .quality-note {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .radio-group {
+    min-width: 180px;
+  }
+  
+  .save-option-group {
+    min-width: 100px;
+  }
+  
+  .builds-table th:nth-child(n+4):nth-child(-n+13) {
+    min-width: 120px;
+  }
+  
+  .progress-tracker {
+    padding: 15px;
+  }
+  
+  .step-label {
+    font-size: 11px;
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .progress-tracker {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .progress-line {
+    width: 2px;
+    height: 30px;
+    margin: 0;
+  }
+  
+  .quality-header-actions {
+    text-align: center;
+  }
+  
+  .radio-group,
+  .save-option-group {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+/* Add to frontend/src/assets/css/startBuild.css */
+
+/* Rework Mode Styles */
+.rework-mode-container {
+  padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.rework-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.rework-header h2 {
+  margin: 0;
+  color: #343a40;
+  font-size: 24px;
+}
+
+.rework-notice {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Rework History */
+.rework-history {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.rework-history h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #495057;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.history-item {
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 15px;
+}
+
+.history-header {
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.history-details {
+  font-size: 13px;
+  color: #6c757d;
+  line-height: 1.6;
+}
+
+.history-details > div {
+  margin-bottom: 5px;
+}
+
+/* Rework Table */
+.rework-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.rework-table th {
+  background-color: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  font-size: 14px;
+}
+
+.rework-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: middle;
+}
+
+.rework-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.original-value {
+  font-weight: 500;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.change-btn {
+  padding: 6px 12px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.change-btn:hover {
+  background-color: #5a6268;
+}
+
+.change-btn.active {
+  background-color: #007bff;
+}
+
+.change-btn.active:hover {
+  background-color: #0056b3;
+}
+
+.no-change {
+  color: #6c757d;
+  font-style: italic;
+  font-size: 13px;
+}
+
+.rework-table input[type="text"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.rework-table input[type="text"]:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+}
+
+.rework-table input.error {
+  border-color: #dc3545;
+}
+
+/* Testing Section */
+.testing-section {
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.test-row {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.test-row:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.test-row > label {
+  display: block;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.test-row select {
+  width: 200px;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.test-row select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+}
+
+.test-row select.error {
+  border-color: #dc3545;
+}
+
+/* Rework Actions */
+.rework-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #dee2e6;
+}
+
+/* Rework in QualityIndicatorTable */
+.rework-info {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rework-info .fa-exclamation-triangle {
+  color: #ffc107;
+}
+
+/* Status badge for rework */
+.builds-table tr.rework-mode {
+  background-color: #fff3cd !important;
+}
+
+.builds-table tr.rework-mode td {
+  border-bottom-color: #ffeaa7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .rework-table {
+    overflow-x: auto;
+    display: block;
+  }
+  
+  .rework-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .rework-actions {
+    justify-content: center;
+  }
+}
+
+/* Add to frontend/src/assets/css/startBuild.css */
+
+/* Rework Information Banner */
+.rework-info-banner {
+  background-color: #e7f3ff;
+  border: 1px solid #b8daff;
+  color: #004085;
+  padding: 12px;
+  margin: 10px 0 20px 0;
+  border-radius: 4px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.rework-info-banner .fa-exclamation-triangle {
+  color: #0056b3;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Rework Save Container Styles */
+.rework-save-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  min-width: 140px;
+}
+
+.rework-warning {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 3px;
+  color: #856404;
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 140px;
+}
+
+.rework-warning .fa-exclamation-triangle {
+  color: #ffc107;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+/* Rework Button Styles */
+.btn-rework {
+  padding: 6px 12px;
+  background-color: #fd7e14;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.btn-rework:hover:not(:disabled) {
+  background-color: #e8590c;
+}
+
+.btn-rework:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Adjust save button in rework container */
+.rework-save-container .btn-save-single {
+  min-width: 120px;
+  justify-content: center;
+}
+
+/* Save cell adjustments for rework container */
+.save-cell {
+  text-align: center;
+  vertical-align: middle;
+  min-width: 150px;
+}
+
+/* Tooltip improvements for rework buttons */
+.btn-rework[title]:hover::after,
+.rework-save-container .btn-save-single[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 4px;
+  max-width: 200px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.btn-rework[title]:hover::before,
+.rework-save-container .btn-save-single[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #333;
+  z-index: 1000;
+}
+
+/* Rework Information Banner */
+.rework-info-banner {
+  background-color: #e7f3ff;
+  border: 1px solid #b8daff;
+  color: #004085;
+  padding: 12px;
+  margin: 10px 0 20px 0;
+  border-radius: 4px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.rework-info-banner .fa-exclamation-triangle {
+  color: #0056b3;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments for rework container */
+@media (max-width: 1200px) {
+  .rework-save-container {
+    min-width: 120px;
+  }
+  
+  .rework-warning {
+    font-size: 10px;
+    max-width: 120px;
+    padding: 3px 6px;
+  }
+  
+  .btn-rework,
+  .rework-save-container .btn-save-single {
+    min-width: 100px;
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+  
+  .rework-info-banner {
+    font-size: 13px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .rework-save-container {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .btn-rework,
+  .rework-save-container .btn-save-single {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .rework-info-banner {
+    font-size: 12px;
+    padding: 8px;
+    flex-direction: column;
+    text-align: center;
+    gap: 6px;
+  }
+}
+
+/* Add to frontend/src/assets/css/startBuild.css */
+
+/* Quality Indicator Table - New Save Logic Styles */
+.save-actions-header {
+  min-width: 200px;
+  text-align: center;
+}
+
+.save-actions-cell {
+  text-align: center;
+  vertical-align: middle;
+  padding: 10px;
+}
+
+/* Save Build Button (FPY Pass) */
+.btn-save-build {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.btn-save-build:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-save-build:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Save & Rework Button */
+.btn-save-rework {
+  padding: 10px 20px;
+  background-color: #fd7e14;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.btn-save-rework:hover:not(:disabled) {
+  background-color: #e8590c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-save-rework:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Continue Later Button */
+.btn-continue-later {
+  padding: 8px 16px;
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-continue-later:hover:not(:disabled) {
+  background-color: #138496;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-continue-later:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Save as Failed Button */
+.btn-save-failed {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-save-failed:hover:not(:disabled) {
+  background-color: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-save-failed:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Fail Actions Container */
+.fail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Fail Save Options Container */
+.fail-save-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Messages */
+.select-option-message,
+.calculate-fpy-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #856404;
+  font-size: 13px;
+  font-style: italic;
+  padding: 6px 10px;
+  background-color: #fff3cd;
+  border-radius: 4px;
+  border: 1px solid #ffeaa7;
+}
+
+.select-option-message .fa-exclamation-triangle,
+.calculate-fpy-message .fa-exclamation-triangle {
+  color: #ffc107;
+  font-size: 14px;
+}
+
+/* Success animation for saved builds */
+@keyframes fadeOutSuccess {
+  0% {
+    opacity: 1;
+    background-color: #d4edda;
+  }
+  50% {
+    opacity: 1;
+    background-color: #c3e6cb;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+  }
+}
+
+.builds-table tr.fade-out {
+  animation: fadeOutSuccess 3s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Warning message style */
+.global-errors.warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+/* Remove the old save column styles */
+.save-option-group {
+  display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .save-actions-header {
+    min-width: 150px;
+  }
+  
+  .btn-save-build,
+  .btn-save-rework {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  
+  .btn-continue-later,
+  .btn-save-failed {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .fail-save-options {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .fail-save-options button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .save-actions-cell {
+    padding: 8px 4px;
+  }
+  
+  .fail-actions {
+    gap: 6px;
+  }
+  
+  .select-option-message,
+  .calculate-fpy-message {
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+}
+
+/* Problem Description field styling */
+.problem-description {
+  width: 100%;
+  min-width: 200px;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 40px;
+}
+
+.problem-description:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+}
+
+.problem-description.error {
+  border-color: #dc3545;
+}
+
+/* Adjust table layout for problem description column */
+.builds-table th:nth-child(3),
+.builds-table td:nth-child(3) {
+  min-width: 250px;
+}
+
+/* Rework General Error Styling */
+.rework-general-error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.rework-general-error .fa-exclamation-triangle {
+  color: #dc3545;
+  font-size: 16px;
+}
+
+/* Responsive adjustments for problem description */
+@media (max-width: 1400px) {
+  .problem-description {
+    min-width: 180px;
+    font-size: 12px;
+  }
+  
+  .builds-table th:nth-child(3),
+  .builds-table td:nth-child(3) {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .problem-description {
+    min-width: 150px;
+    font-size: 11px;
+    min-height: 35px;
+  }
+  
+  .builds-table th:nth-child(3),
+  .builds-table td:nth-child(3) {
+    min-width: 150px;
+  }
+  
+  .rework-general-error {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  .rework-general-error .fa-exclamation-triangle {
+    font-size: 14px;
+  }
+}
+
+/* Add these CSS rules to your existing startBuild.css file */
+
+/* Enhanced scanner input focus for better visual feedback */
+.scanner-input input:focus {
+  background-color: #f8f9ff !important;
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15) !important;
+}
+
+/* Scanner icon animation when field is focused */
+.scanner-input input:focus + .scanner-icon {
+  color: #007bff;
+  animation: scannerPulse 2s infinite;
+}
+
+@keyframes scannerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Visual feedback for active scanning */
+.scanner-input input[data-scanning="true"] {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+  border-color: #ffc107 !important;
+  animation: scannerActive 1s ease-in-out infinite alternate;
+}
+
+@keyframes scannerActive {
+  from { box-shadow: 0 0 5px rgba(255, 193, 7, 0.5); }
+  to { box-shadow: 0 0 15px rgba(255, 193, 7, 0.8); }
+}
+
+/* Improve readability for scanner fields */
+.scanner-input input {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+/* Enhanced error styling for scanner fields */
+.scanner-input input.error {
+  background-color: #fff5f5 !important;
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.15) !important;
+}
+
+/* Hover effect for scanner fields */
+.scanner-input:hover .scanner-icon {
+  color: #007bff;
+  transform: translateY(-50%) scale(1.1);
+  transition: all 0.3s ease;
+}
+
+/* Focus trap for better scanner workflow */
+.scanner-input input:focus {
+  position: relative;
+  z-index: 1;
+}
+
+/* Better visual separation for scanner fields */
+.scanner-input {
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.scanner-input:focus-within {
+  background-color: rgba(0, 123, 255, 0.05);
+  border-radius: 6px;
+  padding: 1px;
+}
+
+/* Build Engineer column styling */
+.builds-table th:nth-child(4) {
+  min-width: 150px;
+}
+
+/* CPU Vendor dropdown styling */
+.builds-table select[value*="Tyco"],
+.builds-table select[value*="Foxconn"],
+.builds-table select[value*="Lotes"] {
+  min-width: 120px;
+}
+
+/* Jira Ticket No input styling */
+.builds-table input[placeholder*="Jira"] {
+  min-width: 140px;
+}
+
+/* Adjust table layout for new columns */
+.builds-table th:nth-child(n+5) {
+  min-width: 130px;
+}
+
+
+/* Consistent font for all input placeholders in builds-table */
+.builds-table input::placeholder {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  color: #adb5bd;
+  font-size: 13px;
+  opacity: 1;
+}
+
+/* Make ethernet mac field styling less prominent since it's optional */
+.builds-table input[placeholder*="Ethernet MAC"] {
+  background-color: #f8f9fa;
+  border-style: dashed;
+  border-color: #6c757d;
+}
+
+/* Custom P/N input styling */
+.custom-pn-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.custom-pn-input .scanner-input {
+  flex: 1;
+}
+
+.change-selection-btn {
+  padding: 8px 12px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.change-selection-btn:hover {
+  background-color: #5a6268;
+  transform: scale(1.05);
+}
+
+/* Other option styling in dropdown */
+.part-dropdown-item.other-option {
+  background-color: #f8f9fa;
+  border-top: 2px solid #dee2e6;
+  font-weight: 600;
+  color: #0066cc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  position: relative;
+}
+
+.part-dropdown-item.other-option::before {
+  content: "➕";
+  font-size: 14px;
+  color: #28a745;
+}
+
+.part-dropdown-item.other-option:hover {
+  background-color: #28a745;
+  color: white;
+}
+
+.other-icon {
+  font-size: 12px;
+  color: #0066cc;
+}
+
+/* Faster dropdown animation */
+.part-dropdown-list {
+  animation: dropdownSlide 0.15s ease-out; /* Reduced from default */
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Add these styles to your existing CSS file */
+
+/* Custom P/N input container */
+.custom-pn-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.custom-pn-input .scanner-input {
+  flex: 1;
+}
+
+.custom-pn-input .scanner-field {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.custom-pn-input .scanner-field.error {
+  border-color: #dc3545;
+}
+
+/* Change selection button */
+.change-selection-btn {
+  padding: 8px 12px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.3s;
+}
+
+.change-selection-btn:hover {
+  background-color: #5a6268;
+}
+
+/* Part dropdown list improvements */
+.part-dropdown-list {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 9999;
+  min-width: 200px;
+}
+
+/* SystemInfoTable dropdown positioning - hovers above card */
+.systeminfo-dropdown-container {
+  position: relative !important;
+}
+
+.systeminfo-dropdown {
+  z-index: 10000 !important;
+  position: fixed !important;
+  background: white;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  height: 200px !important;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.part-dropdown-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.part-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+
+/* Style for "Other" option */
+.part-dropdown-item.other-option {
+  background-color: #f8f9fa;
+  font-weight: 500;
+  color: #0066cc;
+  border-top: 2px solid #e9ecef;
+}
+
+
+/* Scanner icon styling */
+.scanner-input {
+  position: relative;
+  width: 100%;
+}
+
+.scanner-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .builds-table th:nth-child(4),
+  .builds-table input[placeholder*="Jira"],
+  .builds-table select[value*="Tyco"],
+  .builds-table select[value*="Foxconn"],
+  .builds-table select[value*="Lotes"] {
+    min-width: 110px;
+  }
+}
+

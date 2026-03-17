@@ -1,0 +1,193 @@
+/* sidebar.css */  
+/* Professional Corporate Sidebar */
+.sidebar {
+  background: linear-gradient(180deg, #23272e 0%, #181b20 100%);
+  color: #f4f6fa;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 8px 0 rgba(0,0,0,0.08);
+  border-right: 1px solid #23272e;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+}
+  
+/* Optional: Sidebar header if needed */
+.sidebar-header {
+  padding: 18px 20px;
+  background: rgba(255,255,255,0.03);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid #23272e;
+  min-height: 60px;
+  transition: all 0.18s;
+}
+.sidebar-header h3 {
+  color: #f4f6fa;
+  font-size: 1.1em;
+  margin: 0;
+  white-space: nowrap;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  transition: opacity 0.18s, font-size 0.18s;
+}
+.sidebar-wrapper.collapsed .sidebar-header {
+  padding: 18px 0;
+  justify-content: center;
+}
+.sidebar-wrapper.collapsed .sidebar-header h3 {
+  font-size: 1.3em;
+  opacity: 0.7;
+  color: #b0b6c3;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: 0.1em;
+  margin: 0;
+  display: block;
+}
+.sidebar-wrapper.collapsed .sidebar-header h3:before {
+  content: "";
+  display: block;
+  height: 8px;
+}
+  
+/* Sidebar menu styling */
+.sidebar-menu {
+  flex-grow: 1;
+  padding: 18px 0 0 0;
+  list-style-type: none;
+  margin: 0;
+}
+  
+/* Sidebar menu item */
+.sidebar-menu li {
+  position: relative;
+  margin-bottom: 2px;
+}
+  
+/* Sidebar link */
+.sidebar-menu li a {
+  padding: 12px 22px;
+  display: flex;
+  align-items: center;
+  color: #f4f6fa;
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s;
+  margin: 0 8px;
+  border-radius: 8px;
+  font-size: 1.2em;
+  font-weight: bold;
+  letter-spacing: 0.01em;
+}
+  
+/* Sidebar icon */
+.sidebar-menu li a svg {
+  min-width: 22px;
+  margin-right: 14px;
+  color: #b0b6c3;
+  transition: color 0.18s;
+}
+  
+/* Hover and active states */
+.sidebar-menu li a:hover,
+.sidebar-menu li.active a {
+  background: linear-gradient(90deg, #e6f2ff 0%, #dae8f7 100%);
+  color: #1e5cb8;
+}
+.sidebar-menu li a:hover svg,
+.sidebar-menu li.active a svg {
+  color: #1e5cb8;
+}
+.sidebar-menu li.active a {
+  background: linear-gradient(90deg, #e6f0ff 0%, #d9e7ff 100%);
+  color: #1347a3;
+}
+/* Sidebar section header */
+.sidebar-section-header {
+  padding: 20px 22px 12px 22px;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #ffffff;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 1;
+  margin-top: 25px;
+  margin-bottom: 8px;
+  text-align: center;
+  background: linear-gradient(98deg, rgba(30, 92, 184, 0.5) 50%, rgba(30, 92, 184, 0.808) 100%);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Sidebar footer */
+.sidebar-footer {
+  padding: 12px 0 10px 0;
+  font-size: 0.8em;
+  text-align: center;
+  background: rgba(0,0,0,0.08);
+  color: #b0b6c3;
+  border-top: 1px solid #23272e;
+}
+
+/* User category info styling */
+.sidebar-user-info {
+  padding: 12px 20px;
+  background: rgba(30, 92, 184, 0.1);
+  border-bottom: 1px solid rgba(30, 92, 184, 0.2);
+  border-left: 3px solid #1e5cb8;
+}
+
+.sidebar-user-info .user-category {
+  color: #1e5cb8;
+  font-size: 0.85em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* No access message styling */
+.sidebar-no-access {
+  padding: 20px;
+  text-align: center;
+  color: #8a91a0;
+  font-style: italic;
+  border: 1px dashed #3a3f48;
+  margin: 20px;
+  border-radius: 4px;
+}
+
+.sidebar-no-access span {
+  font-size: 0.9em;
+  line-height: 1.4;
+  font-weight: bold;
+}
+    
+/* Collapsed state */
+.sidebar-wrapper.collapsed .sidebar {
+  align-items: center;
+  overflow-x: hidden;
+}
+.sidebar-wrapper.collapsed .sidebar-header {
+  padding: 15px 0;
+  justify-content: center;
+}
+.sidebar-wrapper.collapsed .sidebar-header h3 {
+  display: none;
+}
+.sidebar-wrapper.collapsed .sidebar-menu li a span {
+  display: none;
+}
+.sidebar-wrapper.collapsed .sidebar-menu li a {
+  justify-content: center;
+  padding: 12px 0;
+}
+.sidebar-wrapper.collapsed .sidebar-menu li a svg {
+  margin-right: 0;
+  font-size: 1.2em;
+}
+.sidebar-wrapper.collapsed .sidebar-footer {
+  display: none;
+}
