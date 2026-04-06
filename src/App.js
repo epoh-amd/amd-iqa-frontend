@@ -102,6 +102,7 @@ function App() {
                           </ProtectedRoute>
                         } />
 
+
                         <Route
                           path="/waiver-form"
                           element={
@@ -110,6 +111,7 @@ function App() {
                             </ProtectedRoute>
                           }
                         />
+                        
 
                         {/* Admin Routes */}
                         <Route path="/admin/*" element={

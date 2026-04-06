@@ -44,6 +44,7 @@ const TableRow = ({
           <td className="read-only-cell col-standard">{build.manufacturer || '-'}</td>
           <td className="read-only-cell col-standard">{build.chassis_sn}</td>
           <td className="read-only-cell col-standard">{build.chassis_type || '-'}</td>
+          <td className="read-only-cell col-standard">{build.po || '-'}</td>
           <td className="read-only-cell col-standard">{build.bmc_mac || '-'}</td>
           <td className="read-only-cell col-standard">{build.mb_sn || '-'}</td>
           <td className="read-only-cell col-standard">{build.ethernet_mac || '-'}</td>

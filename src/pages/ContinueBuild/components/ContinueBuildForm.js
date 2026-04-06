@@ -65,6 +65,8 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
       failureCategories.push(failure.failure_category);
     });
 
+    console.log("📦 RAW buildData:");
+    console.log(buildData);
     return {
       id: Date.now(),
       generalInfo: {
@@ -87,6 +89,7 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
         cpuVendor: buildData.cpu_vendor || buildData.cpuVendor || buildData.cpu_vendor_from_build || '',
         buildEngineer: buildData.build_engineer || buildData.buildEngineer || buildData.build_engineer_from_build || '',
         jiraTicketNo: buildData.jira_ticket_no || buildData.jiraTicketNo || buildData.jira_ticket_no_from_build || '',
+        po: buildData.po || '',
         cpuP0SN: buildData.cpu_p0_sn || '',
         cpuP1SN: buildData.cpu_p1_sn || '',
         cpuProgramName: buildData.cpu_program_name || '',

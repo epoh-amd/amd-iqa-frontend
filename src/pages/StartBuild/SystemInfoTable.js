@@ -168,6 +168,7 @@ useEffect(() => {
                 <th>System P/N</th>
                 <th>Chassis S/N</th>
                 <th>Jira Ticket No</th>
+                <th>PO</th>
                 <th>BMC MAC</th>
                 <th>MB S/N</th>
                 <th>Ethernet MAC</th>
@@ -308,6 +309,28 @@ useEffect(() => {
                     />
                     {build.errors.jiraTicketNo && (
                       <div className="field-error">{build.errors.jiraTicketNo}</div>
+                    )}
+                  </td>
+
+                  <td>
+                    <div className="scanner-input">
+                      <input
+                        ref={scannerRefs.current[`po-${buildIndex}`]}
+                        type="text"
+                        value={build.systemInfo.po}
+                        onChange={(e) => handleScannerInput(buildIndex, 'po', e.target.value, e)}
+                        onFocus={() => handleScannerFocus(buildIndex, 'po')}
+                        onKeyDown={(e) => handleKeyDown(e, buildIndex, 'po')}
+                        placeholder="Scan PO"
+                        className={`scanner-field ${build.errors.po ? 'error' : ''}`}
+                        autoComplete="off"
+                        inputMode="text"
+                        spellCheck="false"
+                      />
+                      <FontAwesomeIcon icon={faBarcode} className="scanner-icon" />
+                    </div>
+                    {build.errors.po && (
+                      <div className="field-error">{build.errors.po}</div>
                     )}
                   </td>
                   

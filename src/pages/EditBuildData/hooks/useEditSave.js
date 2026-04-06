@@ -75,6 +75,7 @@ export const useEditSave = (builds, setBuilds, allStepsCompleted, onComplete) =>
         // Chassis Information (editable)
         projectName: build.systemInfo.projectName,
         jiraTicketNo: build.systemInfo.jiraTicketNo,
+        po: build.systemInfo.po,
         bmcMac: build.systemInfo.bmcMac,
         mbSN: build.systemInfo.mbSN,
         ethernetMac: build.systemInfo.ethernetMac,

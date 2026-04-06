@@ -74,6 +74,7 @@ export const exportMasterBuildsToExcel = async (selectedBuilds) => {
           { header: 'Manufacturer', key: 'manufacturer' },
           { header: 'Chassis S/N', key: 'chassis_sn' },
           { header: 'Chassis Type', key: 'chassis_type' },
+          { header: 'PO', key: 'po' },
           { header: 'BMC Name', key: 'bmc_name' },
           { header: 'BMC MAC', key: 'bmc_mac' },
           { header: 'MB S/N', key: 'mb_sn' },

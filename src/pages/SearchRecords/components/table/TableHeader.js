@@ -156,6 +156,7 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
             <th className="col-standard">Manufacturer</th>
             <th className="col-standard">Chassis S/N</th>
             <th className="col-standard">Chassis Type</th>
+            <th className="col-standard">PO</th>
             <th className="col-standard">BMC MAC</th>
             <th className="col-standard">MB S/N</th>
             <th className="col-standard">Ethernet MAC</th>

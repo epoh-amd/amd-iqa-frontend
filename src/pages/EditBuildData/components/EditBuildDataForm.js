@@ -90,6 +90,7 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
         cpuVendor: buildData.cpu_vendor || buildData.cpuVendor || '',
         buildEngineer: buildData.build_engineer || buildData.buildEngineer || '',
         jiraTicketNo: buildData.jira_ticket_no || buildData.jiraTicketNo || '',
+        po: buildData.po || '',
         cpuP0SN: buildData.cpu_p0_sn || '',
         cpuP0SocketDateCode: buildData.cpu_p0_socket_date_code || '',
         cpuP1SN: buildData.cpu_p1_sn || '',

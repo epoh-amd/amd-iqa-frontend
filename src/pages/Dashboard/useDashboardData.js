@@ -159,6 +159,7 @@ export const useDashboardData = () => {
     }
   };
 
+  /*
   // Save configuration to database
   const saveConfiguration = async (type, configData) => {
     try {
@@ -189,6 +190,58 @@ export const useDashboardData = () => {
     }
   };
 
+  */
+
+  const saveConfiguration = async (type, configData) => {
+    try {
+      setConfigLoading(true);
+  
+      // Ensure correct sizes
+      const smartTargets = ensurePorTargetsSize(
+        configData.smartTargets,
+        configData.startDate,
+        configData.endDate
+      );
+  
+      const nonSmartTargets = ensurePorTargetsSize(
+        configData.nonSmartTargets,
+        configData.startDate,
+        configData.endDate
+      );
+  
+      // 🔥 Compute total (porTargets)
+      const porTargets = smartTargets.map((val, idx) => {
+        return val + (nonSmartTargets[idx] || 0);
+      });
+  
+      // Prepare backend data
+      const backendData = {
+        startDate: configData.startDate,
+        endDate: configData.endDate,
+        afeDate: configData.afeDate || null,
+        tvDate: configData.tvDate || null,
+        iodDate: configData.iodDate || null,
+        uuDate: configData.uuDate || null,
+        milestones: configData.milestones || [],
+  
+        // ✅ ALL THREE
+        smartTargets,
+        nonSmartTargets,
+        porTargets
+      };
+  
+      await api.saveForecastConfig(selectedProject, type, backendData);
+      console.log('Configuration saved successfully');
+  
+    } catch (err) {
+      console.error('Error saving configuration:', err);
+      setError('Failed to save configuration');
+    } finally {
+      setConfigLoading(false);
+    }
+  };
+
+  
   const retryOperation = () => {
     setError(null);
     if (selectedProject) {

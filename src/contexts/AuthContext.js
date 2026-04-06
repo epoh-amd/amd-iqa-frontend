@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
   // Set up axios defaults
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-  axios.defaults.baseURL = apiUrl;
+  //axios.defaults.baseURL = apiUrl;
 
   // Initialize authentication on mount
   useEffect(() => {
