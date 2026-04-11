@@ -3,6 +3,8 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../../../../contexts/AuthContext.js';
+
 
 const TableRow = ({
   build,
@@ -22,6 +24,11 @@ const TableRow = ({
   getStatusBadgeClass,
   onRemoveBuild
 }) => {
+
+  const { user } = useAuth();
+
+  const canEditFinanceFields = user?.department === 'Systems Design Eng';
+  const isRestricted = !canEditFinanceFields;
   const isSelected = selectedRows.includes(build.chassis_sn);
   const isSource = sourceRow === build.chassis_sn;
 
@@ -727,6 +734,8 @@ const TableRow = ({
       {collapsedSections.buildInfo && (
         <td className="collapsed-cell master-section col-collapsed"></td>
       )}
+
+
       
       {/* MISC */}
       {!collapsedSections.misc && (
@@ -750,22 +759,28 @@ const TableRow = ({
             />
           </td>
           <td className="col-standard">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <input
               type="text"
               value={masterData.builds?.[build.chassis_sn]?.costCenter || build.cost_center || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'costCenter', e.target.value)}
               placeholder="Cost Center"
+              disabled={isRestricted}
               onClick={(e) => e.stopPropagation()}
             />
+            </div>
           </td>
           <td className="col-standard">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <input
               type="text"
               value={masterData.builds?.[build.chassis_sn]?.capitalization || build.capitalization || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'capitalization', e.target.value)}
               placeholder="Capitalization"
+              disabled={!canEditFinanceFields}
               onClick={(e) => e.stopPropagation()}
             />
+            </div>
           </td>
           <td className="col-standard">
             <input

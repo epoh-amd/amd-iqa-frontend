@@ -188,11 +188,28 @@ const LocationAllocationChart = ({ selectedProject, projects }) => {
   // Function to calculate Y-axis domain for a specific platform
   // Rounds up to next 50 to create even gaps of 50 on Y-axis
   const calculateYAxisMax = (platformType) => {
+    //REMOVE AFTER PRESENTATION
+    /*
     const chartData = prepareChartData(platformType);
     if (chartData.length === 0) return 50;
     const maxValue = Math.max(...chartData.map(item => item.total));
     // Round up to nearest 50, then add 50 for spacing above highest bar
     return Math.ceil((maxValue + 50) / 50) * 50;
+    */
+
+    const chartData = prepareChartData(platformType);
+
+  if (chartData.length === 0) return selectedProject === 'Weisshorn SP8' ? 20 : 50;
+
+  const maxValue = Math.max(...chartData.map(item => item.total));
+
+  // 🔥 Special scaling for Weisshorn SP8
+  if (selectedProject === 'Weisshorn SP8') {
+    return Math.max(Math.ceil(maxValue / 10) * 10, 20); // step 10, min 20
+  }
+
+  // Default logic
+  return Math.ceil((maxValue + 50) / 50) * 50;
   };
 
   // Custom label component factory that shows individual team values
@@ -303,8 +320,15 @@ const LocationAllocationChart = ({ selectedProject, projects }) => {
     const yAxisMax = calculateYAxisMax(platformType);
 
     // Generate Y-axis ticks at intervals of 50
-    const yAxisTicks = Array.from({ length: Math.floor(yAxisMax / 50) + 1 }, (_, i) => i * 50);
+    //uncomment after present
+    //const yAxisTicks = Array.from({ length: Math.floor(yAxisMax / 50) + 1 }, (_, i) => i * 50);
+    const step = selectedProject === 'Weisshorn SP8' ? 10 : 50;
 
+const yAxisTicks = Array.from(
+  { length: Math.floor(yAxisMax / step) + 1 },
+  (_, i) => i * step
+);
+    
     console.log(`${platformType} Y-axis:`, { yAxisMax, yAxisTicks });
     console.log(`${platformType} Bar render order:`, allTeams);
 
