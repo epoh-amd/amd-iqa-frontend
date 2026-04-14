@@ -170,16 +170,20 @@ const SearchFilters = ({
                 value={filters.masterStatus}
                 onChange={(e) => onFilterChange('masterStatus', e.target.value)}
               >
-                <option value="">All Statuses</option>
+               <option value="">All Status (excludes Delivered & Incomplete)</option>
                 <option value="Build Completed">Build Completed</option>
-                <option value="Incomplete">Incomplete</option>
-                <option value="Bad">Bad</option>
-                <option value="Delivered">Delivered</option>
-                <option value="Ready for Delivery">Ready for Delivery</option>
                 <option value="Missing Information">Missing Information</option>
+                <option value="Incomplete">Incomplete</option>
                 <option value="Need Paperwork">Need Paperwork</option>
+                <option value="Ready for Pick up">Ready for Pick up</option>
                 <option value="Need CG Update">Need CG Update</option>
-                <option value="Delivered - Need CG Update">Delivered - Need CG Update</option>
+                <option value="Delivered Need CG Update">Delivered Need CG Update</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Pending Rework">Pending Rework</option>
+                <option value="Sent for Rework">Sent for Rework</option>
+                <option value="Back from Rework">Back from Rework</option>
+                <option value="Reclaimed">Reclaimed</option>
+                <option value="Bad">Bad</option>
               </select>
             </div>
             {/* 10. Failure Category */}
@@ -231,7 +235,7 @@ const SearchFilters = ({
           </div>
 
           {/* ADVANCED FILTERS TOGGLE */}
-          <div style={{margin: '15px 0'}}>
+          <div style={{ margin: '15px 0' }}>
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}

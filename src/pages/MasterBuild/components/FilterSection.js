@@ -8,7 +8,7 @@ import '../../../components/common/MultiSelectDropdown.css';
 import api from '../../../services/api';
 
 const FilterSection = ({ filters, onFilterChange, onReset, isCollapsed, onToggle, systemPNOptions = [], buildTechnicianOptions = [] }) => {
-  
+
   // Auto-populate location from user profile
   useEffect(() => {
     const initializeUserLocation = async () => {
@@ -16,15 +16,15 @@ const FilterSection = ({ filters, onFilterChange, onReset, isCollapsed, onToggle
         const profileResponse = await api.getProfile();
         if (profileResponse.success && profileResponse.data) {
           const userData = profileResponse.data;
-          
+
           // Map location code to display name
           const locationMapping = {
             'MY.PNG': 'Penang',
             'US.ATX': 'Austin'
           };
-          
+
           const mappedLocation = locationMapping[userData.location] || userData.location || '';
-          
+
           // Set location filter if we have a valid location
           if (mappedLocation) {
             onFilterChange('location', mappedLocation);
@@ -34,7 +34,7 @@ const FilterSection = ({ filters, onFilterChange, onReset, isCollapsed, onToggle
         console.error('Failed to fetch user profile for location filter:', error);
       }
     };
-    
+
     // Always initialize location to ensure it reflects current user profile
     initializeUserLocation();
   }, [filters.location, onFilterChange]);
@@ -45,7 +45,7 @@ const FilterSection = ({ filters, onFilterChange, onReset, isCollapsed, onToggle
           <FontAwesomeIcon icon={faFilter} /> Filters
         </h3>
       </div>
-      
+
       {!isCollapsed && (
         <>
           <div className="filter-content">
@@ -239,19 +239,23 @@ const FilterSection = ({ filters, onFilterChange, onReset, isCollapsed, onToggle
                 onChange={(e) => onFilterChange('masterStatus', e.target.value)}
               >
                 <option value="">All Status (excludes Delivered & Incomplete)</option>
-                <option value="Delivered">Delivered</option>
-                <option value="Bad">Bad</option>
-                <option value="Missing Information">Missing Information</option>
-                <option value="Ready for Delivery">Ready for Delivery</option>
-                <option value="Need Paperwork">Need Paperwork</option>
-                <option value="Need CG Update">Need CG Update</option>
-                <option value="Delivered - Need CG Update">Delivered - Need CG Update</option>
                 <option value="Build Completed">Build Completed</option>
+                <option value="Missing Information">Missing Information</option>
                 <option value="Incomplete">Incomplete</option>
+                <option value="Need Paperwork">Need Paperwork</option>
+                <option value="Ready for Pick up">Ready for Pick up</option>
+                <option value="Need CG Update">Need CG Update</option>
+                <option value="Delivered Need CG Update">Delivered Need CG Update</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Pending Rework">Pending Rework</option>
+                <option value="Sent for Rework">Sent for Rework</option>
+                <option value="Back from Rework">Back from Rework</option>
+                <option value="Reclaimed">Reclaimed</option>
+                <option value="Bad">Bad</option>
               </select>
             </div>
           </div>
-          
+
           <div className="filter-actions">
             <button className="btn-secondary" onClick={onReset}>
               <FontAwesomeIcon icon={faRotateLeft} /> Reset Filters

@@ -55,7 +55,7 @@ const TableRow = ({
       <td className={`read-only-cell col-created-date ${hasCollapsedSections ? 'with-collapsed' : ''}`}>
         {build.created_at ? new Date(build.created_at).toLocaleDateString() : '-'}
       </td>
-      
+
       {/* General Information */}
       {!collapsedSections.general && (
         <>
@@ -66,7 +66,7 @@ const TableRow = ({
       {collapsedSections.general && (
         <td className="collapsed-cell col-collapsed"></td>
       )}
-      
+
       {/* System Information */}
       {!collapsedSections.systemInfo && (
         <>
@@ -86,14 +86,14 @@ const TableRow = ({
       {collapsedSections.systemInfo && (
         <td className="collapsed-cell col-collapsed"></td>
       )}
-      
+
       {/* CPU Information */}
       {!collapsedSections.cpuInfo && (
         <>
           <td className="read-only-cell col-standard">{build.cpu_program_name || '-'}</td>
           <td className="read-only-cell col-standard column-group-separator">
             {getCpuQty(build) > 0 ? (
-              <span 
+              <span
                 className="qty-link"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -111,7 +111,7 @@ const TableRow = ({
       {collapsedSections.cpuInfo && (
         <td className="collapsed-cell col-collapsed"></td>
       )}
-      
+
       {/* Component Information */}
       {!collapsedSections.componentInfo && (
         <>
@@ -120,7 +120,7 @@ const TableRow = ({
           <td className="read-only-cell col-standard">{build.dimm_pn || '-'}</td>
           <td className="read-only-cell col-standard column-group-separator">
             {build.dimm_qty > 0 ? (
-              <span 
+              <span
                 className="qty-link"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -138,13 +138,13 @@ const TableRow = ({
       {collapsedSections.componentInfo && (
         <td className="collapsed-cell col-collapsed"></td>
       )}
-      
+
       {/* Testing */}
       {!collapsedSections.testing && (
         <>
           <td className="read-only-cell col-standard">
             {build.visual_inspection_status === 'Fail' ? (
-              <span 
+              <span
                 className="status-badge fail clickable"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -161,7 +161,7 @@ const TableRow = ({
           </td>
           <td className="read-only-cell col-standard">
             {build.boot_status === 'No' ? (
-              <span 
+              <span
                 className="status-badge fail clickable"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -178,7 +178,7 @@ const TableRow = ({
           </td>
           <td className="read-only-cell col-standard">
             {build.dimms_detected_status === 'No' ? (
-              <span 
+              <span
                 className="status-badge fail clickable"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -195,7 +195,7 @@ const TableRow = ({
           </td>
           <td className="read-only-cell col-standard column-group-separator">
             {build.lom_working_status === 'No' ? (
-              <span 
+              <span
                 className="status-badge fail clickable"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -215,7 +215,7 @@ const TableRow = ({
       {collapsedSections.testing && (
         <td className="collapsed-cell col-collapsed"></td>
       )}
-      
+
       {/* BKC Details */}
       {!collapsedSections.bkcDetails && (
         <>
@@ -228,7 +228,7 @@ const TableRow = ({
       {collapsedSections.bkcDetails && (
         <td className="collapsed-cell col-collapsed"></td>
       )}
-      
+
       {/* Quality Indicator */}
       {!collapsedSections.qualityIndicator && (
         <>
@@ -245,7 +245,7 @@ const TableRow = ({
           <td className="read-only-cell col-wide">{build.problem_description || '-'}</td>
           <td className="read-only-cell col-standard">
             {build.fpy_status === 'Fail' && (
-              <span 
+              <span
                 className="link-text"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -258,7 +258,7 @@ const TableRow = ({
           </td>
           <td className="read-only-cell col-standard column-group-separator">
             {build.has_rework === 'Yes' ? (
-              <span 
+              <span
                 className="link-text"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -277,7 +277,7 @@ const TableRow = ({
       {collapsedSections.qualityIndicator && (
         <td className="collapsed-cell col-collapsed"></td>
       )}
-      
+
       {/* Master Build Fields - Editable - REMOVED ALL ERROR CLASSES */}
       {/* Team & Location */}
       {!collapsedSections.teamLocation && (
@@ -290,7 +290,7 @@ const TableRow = ({
               style={{ maxHeight: '200px', overflowY: 'auto' }}
             >
               <option value="">Select Location</option>
-              
+
               {/* Major Cities */}
               <optgroup label="Major Locations">
                 <option value="Austin">Austin</option>
@@ -342,7 +342,7 @@ const TableRow = ({
 
               {/* MetCenter Racks - B800.1C.102.xxx */}
               <optgroup label="MetCenter B800.1C.102 (001-185)">
-                {Array.from({length: 185}, (_, i) => {
+                {Array.from({ length: 185 }, (_, i) => {
                   const num = String(i + 1).padStart(3, '0');
                   const value = `B800.1C.102.${num}`;
                   return <option key={value} value={value}>{value}</option>;
@@ -351,7 +351,7 @@ const TableRow = ({
 
               {/* MetCenter Racks - B800.1C.103.xxx */}
               <optgroup label="MetCenter B800.1C.103 (001-030)">
-                {Array.from({length: 30}, (_, i) => {
+                {Array.from({ length: 30 }, (_, i) => {
                   const num = String(i + 1).padStart(3, '0');
                   const value = `B800.1C.103.${num}`;
                   return <option key={value} value={value}>{value}</option>;
@@ -360,7 +360,7 @@ const TableRow = ({
 
               {/* MetCenter Racks - B800.1C.503.xxx */}
               <optgroup label="MetCenter B800.1C.503 (001-023)">
-                {Array.from({length: 23}, (_, i) => {
+                {Array.from({ length: 23 }, (_, i) => {
                   const num = String(i + 1).padStart(3, '0');
                   const value = `B800.1C.503.${num}`;
                   return <option key={value} value={value}>{value}</option>;
@@ -369,7 +369,7 @@ const TableRow = ({
 
               {/* MetCenter Server Racks - B800.1C.502.SRxxx */}
               <optgroup label="MetCenter B800.1C.502.SR (001-040)">
-                {Array.from({length: 40}, (_, i) => {
+                {Array.from({ length: 40 }, (_, i) => {
                   const num = String(i + 1).padStart(3, '0');
                   const value = `B800.1C.502.SR${num}`;
                   return <option key={value} value={value}>{value}</option>;
@@ -378,7 +378,7 @@ const TableRow = ({
 
               {/* MetCenter Server Racks - B800.1C.100.SRxxx */}
               <optgroup label="MetCenter B800.1C.100.SR (102-243)">
-                {Array.from({length: 142}, (_, i) => {
+                {Array.from({ length: 142 }, (_, i) => {
                   const num = String(i + 102).padStart(3, '0');
                   const value = `B800.1C.100.SR${num}`;
                   return <option key={value} value={value}>{value}</option>;
@@ -387,7 +387,7 @@ const TableRow = ({
 
               {/* MetCenter Server Racks - B800.1C.506.SRxxx */}
               <optgroup label="MetCenter B800.1C.506.SR (001-040)">
-                {Array.from({length: 40}, (_, i) => {
+                {Array.from({ length: 40 }, (_, i) => {
                   const num = String(i + 1).padStart(3, '0');
                   const value = `B800.1C.506.SR${num}`;
                   return <option key={value} value={value}>{value}</option>;
@@ -396,7 +396,7 @@ const TableRow = ({
 
               {/* MetCenter Racks - B800.1C.500.xxx */}
               <optgroup label="MetCenter B800.1C.500 (001-070)">
-                {Array.from({length: 70}, (_, i) => {
+                {Array.from({ length: 70 }, (_, i) => {
                   const num = String(i + 1).padStart(3, '0');
                   const value = `B800.1C.500.${num}`;
                   return <option key={value} value={value}>{value}</option>;
@@ -499,7 +499,7 @@ const TableRow = ({
               style={{ maxHeight: '200px', overflowY: 'auto' }}
             >
               <option value="">Select Department</option>
-              
+
               {/* AMD PG Site */}
               <optgroup label="AMD PG Site">
                 <option value="AMD PG Site">AMD PG Site</option>
@@ -683,7 +683,7 @@ const TableRow = ({
       {collapsedSections.teamLocation && (
         <td className="collapsed-cell master-section col-collapsed"></td>
       )}
-      
+
       {/* Build & ChangeGear */}
       {!collapsedSections.buildInfo && (
         <>
@@ -736,7 +736,7 @@ const TableRow = ({
       )}
 
 
-      
+
       {/* MISC */}
       {!collapsedSections.misc && (
         <>
@@ -759,27 +759,27 @@ const TableRow = ({
             />
           </td>
           <td className="col-standard">
-          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
-            <input
-              type="text"
-              value={masterData.builds?.[build.chassis_sn]?.costCenter || build.cost_center || ''}
-              onChange={(e) => handleFieldChange(build.chassis_sn, 'costCenter', e.target.value)}
-              placeholder="Cost Center"
-              disabled={isRestricted}
-              onClick={(e) => e.stopPropagation()}
-            />
+            <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
+              <input
+                type="text"
+                value={masterData.builds?.[build.chassis_sn]?.costCenter || build.cost_center || ''}
+                onChange={(e) => handleFieldChange(build.chassis_sn, 'costCenter', e.target.value)}
+                placeholder="Cost Center"
+                disabled={isRestricted}
+                onClick={(e) => e.stopPropagation()}
+              />
             </div>
           </td>
           <td className="col-standard">
-          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
-            <input
-              type="text"
-              value={masterData.builds?.[build.chassis_sn]?.capitalization || build.capitalization || ''}
-              onChange={(e) => handleFieldChange(build.chassis_sn, 'capitalization', e.target.value)}
-              placeholder="Capitalization"
-              disabled={!canEditFinanceFields}
-              onClick={(e) => e.stopPropagation()}
-            />
+            <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
+              <input
+                type="text"
+                value={masterData.builds?.[build.chassis_sn]?.capitalization || build.capitalization || ''}
+                onChange={(e) => handleFieldChange(build.chassis_sn, 'capitalization', e.target.value)}
+                placeholder="Capitalization"
+                disabled={!canEditFinanceFields}
+                onClick={(e) => e.stopPropagation()}
+              />
             </div>
           </td>
           <td className="col-standard">
@@ -796,16 +796,20 @@ const TableRow = ({
               onChange={(e) => handleFieldChange(build.chassis_sn, 'masterStatus', e.target.value)}
               onClick={(e) => e.stopPropagation()}
             >
-              <option value="">Select Status</option>
-              <option value="Delivered">Delivered</option>
-              <option value="Bad">Bad</option>
-              <option value="Missing Information">Missing Information</option>
-              <option value="Ready for Delivery">Ready for Delivery</option>
-              <option value="Need Paperwork">Need Paperwork</option>
-              <option value="Need CG Update">Need CG Update</option>
-              <option value="Delivered - Need CG Update">Delivered - Need CG Update</option>
-              <option value="Build Completed">Build Completed</option>
-              <option value="Incomplete">Incomplete</option>
+              <option value="">All Status (excludes Delivered & Incomplete)</option>
+                <option value="Build Completed">Build Completed</option>
+                <option value="Missing Information">Missing Information</option>
+                <option value="Incomplete">Incomplete</option>
+                <option value="Need Paperwork">Need Paperwork</option>
+                <option value="Ready for Pick up">Ready for Pick up</option>
+                <option value="Need CG Update">Need CG Update</option>
+                <option value="Delivered Need CG Update">Delivered Need CG Update</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Pending Rework">Pending Rework</option>
+                <option value="Sent for Rework">Sent for Rework</option>
+                <option value="Back from Rework">Back from Rework</option>
+                <option value="Reclaimed">Reclaimed</option>
+                <option value="Bad">Bad</option>
             </select>
           </td>
         </>
@@ -813,20 +817,20 @@ const TableRow = ({
       {collapsedSections.misc && (
         <td className="collapsed-cell master-section col-collapsed"></td>
       )}
-      
+
       {/* Remove Button - At the end */}
-        <td style={{ width: '50px', textAlign: 'center', backgroundColor: 'white', borderLeft: '2px solid #dee2e6' }}>
+      <td style={{ width: '50px', textAlign: 'center', backgroundColor: 'white', borderLeft: '2px solid #dee2e6' }}>
         <button
-            className="btn-remove"
-            onClick={(e) => {
+          className="btn-remove"
+          onClick={(e) => {
             e.stopPropagation();
             onRemoveBuild(build.chassis_sn);
-            }}
-            title="Remove from bulk entry"
+          }}
+          title="Remove from bulk entry"
         >
-            <FontAwesomeIcon icon={faTrash} />
+          <FontAwesomeIcon icon={faTrash} />
         </button>
-        </td>
+      </td>
     </tr>
   );
 };
