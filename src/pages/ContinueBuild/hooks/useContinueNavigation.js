@@ -66,7 +66,7 @@ export const useContinueNavigation = (
     };
   
     // Navigate to previous step
-    const navigatePrevious = () => {
+    const navigatePrevious = () => {    
       const prev = getPreviousStep();
       if (prev) {
         setCurrentStep(prev.step);

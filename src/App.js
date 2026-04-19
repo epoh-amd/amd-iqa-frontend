@@ -12,6 +12,7 @@ const StartBuild = React.lazy(() => import('./pages/StartBuild'));
 const ContinueBuild = React.lazy(() => import('./pages/ContinueBuild'));
 const EditBuildData = React.lazy(() => import('./pages/EditBuildData'));
 const MasterBuild = React.lazy(() => import('./pages/MasterBuild'));
+const Rma = React.lazy(() => import('./pages/RMA'));
 const SearchRecords = React.lazy(() => import('./pages/SearchRecords'));
 const CustomerEscalation = React.lazy(() => import('./pages/CustomerEscalation'));
 const CustomerPortal = React.lazy(() => import('./pages/CustomerPortal'));
@@ -84,6 +85,12 @@ function App() {
                           </ProtectedRoute>
                         } />
 
+                        <Route path="/rma" element={
+                          <ProtectedRoute requiredPermissions={['allocation']}>
+                            <Rma />
+                          </ProtectedRoute>
+                        } />
+
                         <Route path="/search-records" element={
                           <ProtectedRoute requiredPermissions={['search']}>
                             <SearchRecords />
@@ -111,7 +118,7 @@ function App() {
                             </ProtectedRoute>
                           }
                         />
-                        
+
 
                         {/* Admin Routes */}
                         <Route path="/admin/*" element={

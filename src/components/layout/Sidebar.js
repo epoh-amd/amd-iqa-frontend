@@ -12,7 +12,8 @@ import {
   Clipboard,
   Users,
   Headphones,
-  Edit
+  Edit,
+  RotateCcw 
 } from 'lucide-react';  
   
 const Sidebar = ({ collapsed }) => {  
@@ -70,6 +71,12 @@ const Sidebar = ({ collapsed }) => {
       label: 'Allocation',
       icon: Clipboard,
       show: canViewBuilds()
+    },
+    {
+      path: '/rma',
+      label: 'RMA',
+      icon: RotateCcw,
+      show: canStartBuild() // or create canAccessRMA()
     },
   ].filter(item => item.show);
 

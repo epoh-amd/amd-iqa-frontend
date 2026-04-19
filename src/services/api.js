@@ -272,6 +272,54 @@ getProjects: async () => {
   },
 
   /**
+ * Save rework pass notes
+ * Inserts into rework_pass table
+ * 
+ * @param {string} chassisSN
+ * @param {string} notes
+ */
+saveReworkPass: async (chassisSN, notes) => {
+  try {
+    if (!chassisSN) {
+      throw new Error('Chassis SN is required');
+    }
+
+    const response = await axios.post(`${API_URL}/rework-pass`, {
+      chassis_sn: chassisSN,
+      notes: notes
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error saving rework pass:', error);
+    throw error;
+  }
+},
+
+updateRMA: async (rmaData) => {
+  try {
+    const response = await axios.post(`${API_URL}/rma`, rmaData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating RMA:', error);
+    throw error;
+  }
+},
+
+
+// GET existing rework
+getReworkPass: async (chassisSN) => {
+  const res = await axios.get(`${API_URL}/rework-pass/${chassisSN}`);
+  return res.data;
+},
+
+// GET existing rework
+getRma: async (chassisSN) => {
+  const res = await axios.get(`${API_URL}/rma/${chassisSN}`);
+  return res.data;
+},
+
+  /**
  * Add new part number to database
  * Used when user selects "Other" and enters a custom part number
  * 

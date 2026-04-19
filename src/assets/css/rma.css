@@ -1,0 +1,80 @@
+/* Table Container */
+.builds-table-container {
+    overflow-x: auto;
+    margin-bottom: 30px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  /* Table Styles */
+  .builds-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+  }
+  
+  .builds-table th {
+    background-color: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+  
+  .builds-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: top;
+    position: relative; /* Important for dropdown positioning */
+    overflow: visible; /* Allow dropdowns to extend outside cell */
+  }
+  
+  .builds-table tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .builds-table tbody tr.success {
+    background-color: #d4edda;
+  }
+  
+  .builds-table tbody tr.error {
+    background-color: #f8d7da;
+  }
+  
+  /* Column Specific Styles */
+  .row-actions {
+    width: 60px;
+    text-align: center;
+  }
+  
+  /* CONSISTENT BUILD REFERENCE STYLING */
+  .build-reference {
+    width: 120px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+    font-size: 14px;
+  }
+
+  /* Enhanced scanner input focus for better visual feedback */
+  .scanner-input {
+    display: flex;
+    align-items: center;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    padding: 4px 8px;
+    background: #fff;
+  }
+  
+  .scanner-input input {
+    border: none;
+    outline: none;
+    width: 100%;
+    background: transparent;
+  }

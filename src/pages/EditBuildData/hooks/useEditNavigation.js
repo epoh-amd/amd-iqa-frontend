@@ -69,6 +69,10 @@ export const useEditNavigation = (
 
   // Navigate to previous step
   const navigatePrevious = () => {
+    if (currentStep === 'rework') {
+      setCurrentStep('qualityIndicator');
+      return;
+    }
     const prev = getPreviousStep();
     if (prev) {
       setCurrentStep(prev.step);

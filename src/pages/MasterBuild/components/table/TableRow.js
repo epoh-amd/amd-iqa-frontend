@@ -27,7 +27,7 @@ const TableRow = ({
 
   const { user } = useAuth();
 
-  const canEditFinanceFields = user?.department === 'SPSE datacenter';
+  const canEditFinanceFields = user?.department === 'Systems Design Eng';
   const isRestricted = !canEditFinanceFields;
   const isSelected = selectedRows.includes(build.chassis_sn);
   const isSource = sourceRow === build.chassis_sn;
@@ -283,10 +283,12 @@ const TableRow = ({
       {!collapsedSections.teamLocation && (
         <>
           <td className="col-standard">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <select
               value={masterData.builds?.[build.chassis_sn]?.location || build.master_location || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'location', e.target.value)}
               onClick={(e) => e.stopPropagation()}
+              disabled={!canEditFinanceFields}
               style={{ maxHeight: '200px', overflowY: 'auto' }}
             >
               <option value="">Select Location</option>
@@ -403,21 +405,27 @@ const TableRow = ({
                 })}
               </optgroup>
             </select>
+            </div>
           </td>
           <td className="col-standard">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <input
               type="text"
               value={masterData.builds?.[build.chassis_sn]?.customLocation || build.custom_location || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'customLocation', e.target.value)}
               placeholder="Custom location"
               onClick={(e) => e.stopPropagation()}
+              disabled={!canEditFinanceFields}
             />
+            </div>
           </td>
           <td className="col-standard">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <select
               value={masterData.builds?.[build.chassis_sn]?.teamSecurity || build.team_security || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'teamSecurity', e.target.value)}
               onClick={(e) => e.stopPropagation()}
+              disabled={!canEditFinanceFields}
               style={{ maxHeight: '200px', overflowY: 'auto' }}
             >
               <option value="">Select Team</option>
@@ -490,12 +498,15 @@ const TableRow = ({
               <option value="Volume Validation">Volume Validation</option>
               <option value="VV Automation">VV Automation</option>
             </select>
+            </div>
           </td>
           <td className="col-standard column-group-separator">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <select
               value={masterData.builds?.[build.chassis_sn]?.department || build.department || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'department', e.target.value)}
               onClick={(e) => e.stopPropagation()}
+              disabled={!canEditFinanceFields}
               style={{ maxHeight: '200px', overflowY: 'auto' }}
             >
               <option value="">Select Department</option>
@@ -677,6 +688,7 @@ const TableRow = ({
                 <option value="Stress Capabilities">Stress Capabilities</option>
               </optgroup>
             </select>
+            </div>
           </td>
         </>
       )}
@@ -700,15 +712,19 @@ const TableRow = ({
             </div>
           </td>
           <td className="col-standard">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <input
               type="text"
               value={masterData.builds?.[build.chassis_sn]?.buildName || build.build_name || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'buildName', e.target.value)}
               placeholder="Build Name"
               onClick={(e) => e.stopPropagation()}
+              disabled={!canEditFinanceFields}
             />
+            </div>
           </td>
           <td className="col-standard">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             {/* UPDATED: Jira Ticket No - READ-ONLY */}
             <div className="read-only-field" title="Jira Ticket No">
               <input
@@ -719,15 +735,19 @@ const TableRow = ({
                 placeholder="Jira Ticket No"
               />
             </div>
+            </div>
           </td>
           <td className="col-standard column-group-separator">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <input
               type="text"
               value={masterData.builds?.[build.chassis_sn]?.changegearAssetId || build.changegear_asset_id || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'changegearAssetId', e.target.value)}
               placeholder="CG Asset ID"
               onClick={(e) => e.stopPropagation()}
+              disabled={!canEditFinanceFields}
             />
+            </div>
           </td>
         </>
       )}
@@ -741,60 +761,65 @@ const TableRow = ({
       {!collapsedSections.misc && (
         <>
           <td className="col-notes">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <textarea
               value={masterData.builds?.[build.chassis_sn]?.notes || build.master_notes || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'notes', e.target.value)}
               placeholder="Notes"
               rows="2"
               onClick={(e) => e.stopPropagation()}
+              disabled={!canEditFinanceFields}
             />
+            </div>
           </td>
           <td className="col-standard">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <input
               type="text"
               value={masterData.builds?.[build.chassis_sn]?.smsOrder || build.sms_order || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'smsOrder', e.target.value)}
               placeholder="SMS Order"
               onClick={(e) => e.stopPropagation()}
+              disabled={!canEditFinanceFields}
             />
+          </div>
           </td>
           <td className="col-standard">
-            <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
               <input
                 type="text"
                 value={masterData.builds?.[build.chassis_sn]?.costCenter || build.cost_center || ''}
                 onChange={(e) => handleFieldChange(build.chassis_sn, 'costCenter', e.target.value)}
                 placeholder="Cost Center"
-                disabled={isRestricted}
                 onClick={(e) => e.stopPropagation()}
               />
-            </div>
           </td>
           <td className="col-standard">
-            <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
               <input
                 type="text"
                 value={masterData.builds?.[build.chassis_sn]?.capitalization || build.capitalization || ''}
                 onChange={(e) => handleFieldChange(build.chassis_sn, 'capitalization', e.target.value)}
                 placeholder="Capitalization"
-                disabled={!canEditFinanceFields}
                 onClick={(e) => e.stopPropagation()}
               />
-            </div>
           </td>
           <td className="col-standard">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <input
               type="date"
               value={masterData.builds?.[build.chassis_sn]?.deliveryDate || build.delivery_date || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'deliveryDate', e.target.value)}
               onClick={(e) => e.stopPropagation()}
+              disabled={!canEditFinanceFields}
             />
+            </div>
           </td>
           <td className="col-standard">
+          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
             <select
               value={masterData.builds?.[build.chassis_sn]?.masterStatus || build.master_status || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'masterStatus', e.target.value)}
               onClick={(e) => e.stopPropagation()}
+              disabled={!canEditFinanceFields}
             >
               <option value="">All Status (excludes Delivered & Incomplete)</option>
                 <option value="Build Completed">Build Completed</option>
@@ -811,6 +836,7 @@ const TableRow = ({
                 <option value="Reclaimed">Reclaimed</option>
                 <option value="Bad">Bad</option>
             </select>
+            </div>
           </td>
         </>
       )}

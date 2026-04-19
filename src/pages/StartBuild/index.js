@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faPlus, 
+import {
+  faPlus,
   faEye,
   faExclamationTriangle,
   faCheck
@@ -14,6 +14,7 @@ import GeneralInfoTable from './GeneralInfoTable';
 import SystemInfoTable from './SystemInfoTable';
 import BkcDetailsTable from './BkcDetailsTable';
 import QualityIndicatorTable from './QualityIndicatorTable';
+import ReworkTable from './ReworkTable';
 import StepNavigation from './StepNavigation';
 import SaveResults from './SaveResults';
 import ReworkMode from './ReworkMode';
@@ -76,11 +77,11 @@ const StartBuild = () => {
     setBuilds,
     validation.validateBeforeQualityIndicator,
     setShowReview,
-{
-    validateChassisInfo: validation.validateChassisInfo,
-    validateCpuInfo: validation.validateCpuInfo,
-    validateComponentInfo: validation.validateComponentInfo
-}
+    {
+      validateChassisInfo: validation.validateChassisInfo,
+      validateCpuInfo: validation.validateCpuInfo,
+      validateComponentInfo: validation.validateComponentInfo
+    }
   );
 
   // ============ AUTO-SAVE & DRAFT MANAGEMENT ============
@@ -142,7 +143,7 @@ const StartBuild = () => {
   // Save single build with specific option
   const saveSingleBuildWithOption = async (buildIndex, saveOption) => {
     const build = builds[buildIndex];
-    
+
     // Validate based on save option
     if (!validation.validateForSave(build, saveOption)) {
       save.setSaveResults([{
@@ -152,9 +153,9 @@ const StartBuild = () => {
       setTimeout(() => save.setSaveResults([]), 5000);
       return;
     }
-  
+
     save.setSaving(true);
-  
+
     try {
       // Determine final status based on saveOption
       let finalStatus;
@@ -171,9 +172,9 @@ const StartBuild = () => {
         default:
           finalStatus = 'In Progress';
       }
-  
+
       console.log(`Saving build ${buildIndex + 1} with status: ${finalStatus}`);
-  
+
       const buildData = {
         location: build.generalInfo.location,
         buildEngineer: build.generalInfo.buildEngineer,
@@ -187,7 +188,7 @@ const StartBuild = () => {
         },
         status: finalStatus // Explicitly set the status
       };
-  
+
       // Upload photos if any
       const allPhotos = [
         ...(build.systemInfo.visualInspectionPhotos || []),
@@ -195,7 +196,7 @@ const StartBuild = () => {
         ...(build.systemInfo.dimmsDetectedPhotos || []),
         ...(build.systemInfo.lomWorkingPhotos || [])
       ];
-  
+
       if (allPhotos.length > 0) {
         const uploadedPhotos = await fileHandling.uploadPhotosForBuild(allPhotos);
         buildData.systemInfo = {
@@ -207,14 +208,14 @@ const StartBuild = () => {
           lomWorkingPhotos: undefined
         };
       }
-  
+
       await api.saveBuild(buildData);
       await api.saveBkcDetails(build.systemInfo.chassisSN, build.bkcDetails);
       await api.saveQualityDetails(build.systemInfo.chassisSN, {
         ...build.qualityDetails,
         saveOption: saveOption
       });
-  
+
       // Show success message
       const buildReference = build.systemInfo?.bmcName || `Build ${buildIndex + 1}`;
       save.setSaveResults([{
@@ -245,7 +246,7 @@ const StartBuild = () => {
         }
         save.setSaveResults([]);
       }, 3000);
-  
+
     } catch (error) {
       console.error('Error saving build:', error);
       save.setSaveResults([{
@@ -263,6 +264,10 @@ const StartBuild = () => {
     await saveSingleBuildWithOption(buildIndex, 'complete');
   };
 
+  const ggg = async (buildIndex) => {
+    await saveSingleBuildWithOption(buildIndex, 'complete');
+  };
+
   // Handle Continue Later
   const handleContinueLater = async (buildIndex) => {
     await saveSingleBuildWithOption(buildIndex, 'continue');
@@ -276,7 +281,7 @@ const StartBuild = () => {
   // Handle Save & Rework
   const handleSaveAndRework = async (buildIndex) => {
     const build = builds[buildIndex];
-    
+
     // For 2nd+ rework, don't save again if already saved
     if (build.savedToDatabase && build.status === 'success') {
       // Just enter rework mode without saving again
@@ -284,11 +289,11 @@ const StartBuild = () => {
       setReworkMode(true);
       return;
     }
-    
+
     // First time save & rework
     try {
       save.setSaving(true);
-      
+
       const buildData = {
         location: build.generalInfo.location,
         buildEngineer: build.generalInfo.buildEngineer,
@@ -353,10 +358,10 @@ const StartBuild = () => {
     try {
       // IMPORTANT: Rework mode UPDATES existing build records, never creates new ones
       // This ensures no duplicate chassis S/Ns are created during rework operations
-      
+
       // Calculate new FPY based on rework testing
       const newFpyStatus = calculateFpyStatus(reworkBuild);
-      
+
       // Update build with new FPY
       const updatedReworkBuild = {
         ...reworkBuild,
@@ -365,7 +370,7 @@ const StartBuild = () => {
           fpyStatus: newFpyStatus
         }
       };
-  
+
       // Upload photos
       const allPhotos = [
         ...(updatedReworkBuild.systemInfo.visualInspectionPhotos || []),
@@ -373,9 +378,9 @@ const StartBuild = () => {
         ...(updatedReworkBuild.systemInfo.dimmsDetectedPhotos || []),
         ...(updatedReworkBuild.systemInfo.lomWorkingPhotos || [])
       ];
-  
+
       const uploadedPhotos = await fileHandling.uploadPhotosForBuild(allPhotos);
-      
+
       // Prepare rework data
       const reworkData = {
         systemInfo: {
@@ -383,26 +388,26 @@ const StartBuild = () => {
           uploadedPhotos: uploadedPhotos
         }
       };
-      
+
       // Save rework to database - this PATCHES/UPDATES the existing build record
       await api.updateBuildAfterRework(updatedReworkBuild.systemInfo.chassisSN, reworkData);
-      
+
       // Exit rework mode
       setReworkMode(false);
       setReworkBuildIndex(null);
-      
+
       // Determine final status based on rework results
       if (newFpyStatus === 'Pass') {
         // Rework successful - mark as Complete and remove from UI
         try {
           // Update status to Complete in database
           await api.updateBuildStatus(updatedReworkBuild.systemInfo.chassisSN, 'Complete');
-          
+
           save.setSaveResults([{
             type: 'success',
             message: `Build ${reworkBuildIndex + 1}: Rework successful - Build completed`
           }]);
-          
+
           // Remove build from UI after delay
           setTimeout(() => {
             const remainingBuilds = builds.filter((_, idx) => idx !== reworkBuildIndex);
@@ -430,11 +435,11 @@ const StartBuild = () => {
           savedToDatabase: true,
           status: 'success'
         };
-        
+
         // Reset canRework so user can select again
         updatedBuilds[reworkBuildIndex].qualityDetails.canRework = '';
         setBuilds(updatedBuilds);
-        
+
         save.setSaveResults([{
           type: 'warning',
           message: `Build ${reworkBuildIndex + 1}: Rework complete but FPY still Fail - Please select can rework option again`
@@ -462,7 +467,7 @@ const StartBuild = () => {
     systemInfo: {
       projectName: '', systemPN: '', platformType: '', manufacturer: '',
       chassisSN: '', chassisType: '', bmcName: '', bmcMac: '', mbSN: '',
-      ethernetMac: '', cpuSocket: '', cpuProgramName: '', cpuP0SN: '', 
+      ethernetMac: '', cpuSocket: '', cpuProgramName: '', cpuP0SN: '',
       cpuP0SocketDateCode: '', cpuP1SN: '', cpuP1SocketDateCode: '', m2PN: '', m2SN: '', dimmPN: '', dimmQty: '', dimmSNs: [],
       visualInspection: '', visualInspectionNotes: '', visualInspectionPhotos: [],
       bootStatus: '', bootNotes: '', bootPhotos: [],
@@ -540,7 +545,7 @@ const StartBuild = () => {
   // ============ COMPUTED VALUES ============
   const getProgressStatus = () => {
     const generalInfoComplete = builds.every(b => b.stepCompleted.generalInfo);
-    const allSystemInfoComplete = builds.every(b => 
+    const allSystemInfoComplete = builds.every(b =>
       b.stepCompleted.chassisInfo &&
       b.stepCompleted.cpuInfo &&
       b.stepCompleted.componentInfo &&
@@ -548,7 +553,7 @@ const StartBuild = () => {
     );
     const bkcDetailsComplete = builds.every(b => b.stepCompleted.bkcDetails);
     const qualityDetailsComplete = builds.every(b => b.stepCompleted.qualityDetails);
-  
+
     return {
       generalInfo: generalInfoComplete ? 'completed' : 'pending',
       systemInfo: allSystemInfoComplete ? 'completed' : 'pending',
@@ -596,7 +601,7 @@ const StartBuild = () => {
       <div className="page-header">
         <h1>Start Build</h1>
         <div className="header-actions">
-          <button 
+          <button
             className="btn-secondary"
             onClick={() => setShowReview(!showReview)}
           >
@@ -605,9 +610,13 @@ const StartBuild = () => {
         </div>
       </div>
 
-      <ProgressTracker 
+      <ProgressTracker
         progressStatus={progressStatus}
         currentStep={currentStep}
+        showRework={currentStep === 'qualityIndicator'}
+        onReworkClick={() => setCurrentStep('rework')}
+
+
       />
 
       <SaveResults saveResults={navigation.saveResults.concat(save.saveResults)} />
@@ -616,9 +625,9 @@ const StartBuild = () => {
       {(currentStep === 'systemInfo' || currentStep === 'bkcDetails' || currentStep === 'qualityIndicator') && (
         <div className="sub-step-title">
           <h2>
-            {currentStep === 'bkcDetails' ? 'BKC Details' : 
-             currentStep === 'qualityIndicator' ? 'Quality Indicator' : 
-             getSubStepTitle()}
+            {currentStep === 'bkcDetails' ? 'BKC Details' :
+              currentStep === 'qualityIndicator' ? 'Quality Indicator' :
+                getSubStepTitle()}
           </h2>
         </div>
       )}
@@ -664,7 +673,7 @@ const StartBuild = () => {
             extractFirmwareVersions={bkcManagement.extractFirmwareVersions}
             handleBkcFieldChange={bkcManagement.handleBkcFieldChange}
           />
-          
+
           {/* BKC Note */}
           <div className="bkc-note">
             <FontAwesomeIcon icon={faExclamationTriangle} />
@@ -691,6 +700,16 @@ const StartBuild = () => {
           onContinueLater={handleContinueLater}
           onSaveAsFailed={handleSaveAsFailed}
           onSaveAsComplete={handleSaveAsComplete}
+        />
+      )}
+
+      {/* 🔥 Rework Table */}
+      {currentStep === 'rework' && (
+        <ReworkTable
+          builds={builds}
+          saving={save.saving}
+          onSave={ggg}
+          onBack={() => setCurrentStep('qualityIndicator')}
         />
       )}
 

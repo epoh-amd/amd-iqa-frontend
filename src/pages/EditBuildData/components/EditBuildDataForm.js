@@ -19,6 +19,7 @@ import QualityIndicatorTableEdit from './QualityIndicatorTableEdit'; // Custom v
 import ReworkMode from '../../StartBuild/ReworkMode'; // Import Rework component
 import StepNavigation from '../../StartBuild/StepNavigation';
 import SaveResults from '../../StartBuild/SaveResults';
+import ReworkTable from '../../StartBuild/ReworkTable';
 
 // Import hooks
 import { useQualityManagement } from '../../StartBuild/hooks/useQualityManagement';
@@ -30,6 +31,9 @@ import api from '../../../services/api';
 import '../../../assets/css/startBuild.css';
 
 const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
+
+  const [savingIndex, setSavingIndex] = useState(null);
+  const [savedIndex, setSavedIndex] = useState(null);
   // Initialize build state from loaded data
   const initializeBuildFromData = () => {
     console.log('initializeBuildFromData - buildData:', buildData);
@@ -158,11 +162,43 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
 
   // State management
   const [builds, setBuilds] = useState([initializeBuildFromData()]);
+  const [reworkData, setReworkData] = useState([]);
   const [currentStep, setCurrentStep] = useState('systemInfo');
   const [systemInfoSubStep, setSystemInfoSubStep] = useState('chassisInfo');
   const [showReview, setShowReview] = useState(false);
   const [confirmSave, setConfirmSave] = useState(false);
   const [showReworkMode, setShowReworkMode] = useState(false);
+
+  useEffect(() => {
+    const loadReworkData = async () => {
+      const newData = {};
+  
+      for (let i = 0; i < builds.length; i++) {
+        const chassisSN = builds[i]?.systemInfo?.chassisSN;
+  
+        if (!chassisSN) continue;
+  
+        try {
+          const res = await api.getReworkPass(chassisSN);
+  
+          if (res) {
+            newData[i] = {
+              status: 'Yes', // since record exists
+              notes: res.notes || ''
+            };
+          }
+        } catch (err) {
+          console.error('Error loading rework:', err);
+        }
+      }
+  
+      setReworkData(newData);
+    };
+  
+    if (builds?.length) {
+      loadReworkData();
+    }
+  }, [builds]);
 
   // Part number search state
   const [partNumberSuggestions, setPartNumberSuggestions] = useState({
@@ -353,6 +389,31 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
     }));
   };
 
+  const saveReworkPass = async (buildIndex) => {
+    try {
+      setSavingIndex(buildIndex);
+  
+      const chassisSN = builds[buildIndex]?.systemInfo?.chassisSN;
+      const notes = reworkData[buildIndex]?.notes || '';
+      const status = reworkData[buildIndex]?.status;
+  
+      if (status !== 'Yes') return;
+  
+      await api.saveReworkPass(chassisSN, notes);
+  
+      setSavedIndex(buildIndex);
+  
+      setTimeout(() => {
+        setSavedIndex(null);
+      }, 2000);
+  
+    } catch (error) {
+      console.error('Failed to save rework pass:', error);
+    } finally {
+      setSavingIndex(null);
+    }
+  };
+
   // Handle save action
   const handleSave = () => {
     setConfirmSave(true);
@@ -530,6 +591,8 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
       <ProgressTracker
         progressStatus={progressStatus}
         currentStep={currentStep}
+        showRework={currentStep === 'qualityIndicator'}
+        onReworkClick={() => setCurrentStep('rework')}
       />
 
       <SaveResults saveResults={saveResults} />
@@ -640,6 +703,20 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
             setShowPartNumberDropdown={setShowPartNumberDropdown}
           />
         </div>
+      )}
+
+        {/* 🔥 Rework Table */}
+        {currentStep === 'rework' && (
+        <ReworkTable
+          builds={builds}
+          //saving={save.saving}
+          setReworkData={setReworkData}
+          reworkData={reworkData}
+          onSave={saveReworkPass}
+          savingIndex={savingIndex}
+          savedIndex={savedIndex}
+          onBack={() => setCurrentStep('qualityIndicator')}
+        />
       )}
 
       {/* Navigation - No Save button here, it's in Quality Indicator Actions column */}

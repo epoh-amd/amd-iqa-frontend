@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faCircle, faWrench } from '@fortawesome/free-solid-svg-icons';
 
-const ProgressTracker = ({ progressStatus, currentStep }) => {
+const ProgressTracker = ({ progressStatus, currentStep, onReworkClick }) => {
   return (
     <div className="progress-tracker">
       <div className={`progress-step ${progressStatus.generalInfo === 'completed' ? 'completed' : currentStep === 'generalInfo' ? 'active' : 'pending'}`}>
@@ -52,7 +52,25 @@ const ProgressTracker = ({ progressStatus, currentStep }) => {
         </div>
         <span className="step-label">Quality Indicator</span>
       </div>
+            {/* 🔥 Rework Step (ONLY SHOW HERE) */}
+            {currentStep === 'qualityIndicator' && (
+        <>
+          <div className="progress-line"></div>
+
+          <div 
+            className="progress-step rework clickable"
+            onClick={onReworkClick}
+          >
+            <div className="step-indicator">
+              <FontAwesomeIcon icon={faWrench} />
+            </div>
+            <span className="step-label">Rework</span>
+          </div>
+        </>
+      )}
     </div>
+
+    
   );
 };
 

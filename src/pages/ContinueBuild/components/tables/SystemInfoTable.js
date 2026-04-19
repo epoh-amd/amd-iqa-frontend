@@ -56,7 +56,7 @@ const SystemInfoTable = ({
         <thead>
           <tr>
             <th className="build-reference">Build Reference</th>
-            {/* Chassis Information */}
+            {/*  */}
             {systemInfoSubStep === 'chassisInfo' && (
               <>
                 <th>Project Name</th>
