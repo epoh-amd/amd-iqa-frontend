@@ -14,13 +14,14 @@ import SearchFilterSection from './components/SearchFilterSection';
 import BuildEditList from './components/BuildEditList';
 import EditRMAForm from './components/EditRMAForm';
 import MessageDisplay from '../ContinueBuild/components/MessageDisplay';
-
+import { useNavigate } from 'react-router-dom';
 import { useEditBuildState } from './hooks/useEditBuildState';
 
 import api from '../../services/api';
 import '../../assets/css/editBuildData.css';
 
 const EditRMAData = () => {
+  const navigate = useNavigate(); 
   // State Management
   const {
     builds,
