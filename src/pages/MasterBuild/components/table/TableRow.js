@@ -27,7 +27,7 @@ const TableRow = ({
 
   const { user } = useAuth();
 
-  const canEditFinanceFields = user?.department === 'Systems Design Eng';
+  const canEditFinanceFields = user?.department === 'SPSE datacenter';
   const isRestricted = !canEditFinanceFields;
   const isSelected = selectedRows.includes(build.chassis_sn);
   const isSource = sourceRow === build.chassis_sn;
@@ -803,23 +803,23 @@ const TableRow = ({
               />
           </td>
           <td className="col-standard">
-          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
+      
             <input
               type="date"
               value={masterData.builds?.[build.chassis_sn]?.deliveryDate || build.delivery_date || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'deliveryDate', e.target.value)}
               onClick={(e) => e.stopPropagation()}
-              disabled={!canEditFinanceFields}
+              
             />
-            </div>
+          
           </td>
           <td className="col-standard">
-          <div className="input-wrapper" title={isRestricted ? "Only department SPSE Data Center can edit" : ""}>
+          
             <select
               value={masterData.builds?.[build.chassis_sn]?.masterStatus || build.master_status || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'masterStatus', e.target.value)}
               onClick={(e) => e.stopPropagation()}
-              disabled={!canEditFinanceFields}
+             
             >
               <option value="">All Status (excludes Delivered & Incomplete)</option>
                 <option value="Build Completed">Build Completed</option>
@@ -836,7 +836,7 @@ const TableRow = ({
                 <option value="Reclaimed">Reclaimed</option>
                 <option value="Bad">Bad</option>
             </select>
-            </div>
+            
           </td>
         </>
       )}
