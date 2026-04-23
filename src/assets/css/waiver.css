@@ -1,0 +1,113 @@
+.waiver-container{
+    max-width:900px;
+    margin:auto;
+    padding:30px;
+    background-color: #f3f4f6; /* light gray */;
+  }
+  
+  .waiver-title{
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:20px;
+  }
+  
+  .form-section{
+    margin-bottom:20px;
+    display:flex;
+    flex-direction:column;
+  }
+  
+  .form-section-row{
+    display:flex;
+    gap:20px;
+  }
+  
+  .accordion{
+    border:1px solid #ccc;
+    margin-top:10px;
+  }
+  
+  .accordion-header{
+    padding:12px;
+    background:#222;
+    color:white;
+    cursor:pointer;
+  }
+
+  .title-header{
+    padding:2px;
+    background:#222;
+    color:white;
+    margin: -30px -30px 20px -30px; 
+  }
+  
+  .accordion-body{
+    padding:15px;
+  }
+  
+  .submit-btn{
+    margin-top:20px;
+    width:200px;
+    padding:12px;
+    background:black;
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+  }
+
+  .waiver-id-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 8px;
+  }
+  
+  .waiver-label{
+    font-weight: 600;
+  }
+  
+  .waiver-value{
+    font-weight: 500;
+  }
+
+  .field-inline{
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 5px;
+  }
+  
+  .field-inline label{
+    width: 200px; /* fixed width for alignment */
+    
+  }
+  
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 8px;
+    border-radius: 6px;
+    resize: vertical; /* user can drag to expand */
+  }
+
+  .field-inline input{
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+  }
+
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: medium;
+  }

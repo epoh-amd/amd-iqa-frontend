@@ -1,0 +1,122 @@
+:root {
+  --amd-black: #000000;
+  --amd-red: #ED1C24;
+  --amd-dark-gray: #333333;
+  --amd-medium-gray: #666666;
+  --amd-light-gray: #EEEEEE;
+  --amd-white: #FFFFFF;
+  --sidebar-width: 200px;
+  --sidebar-collapsed-width: 60px;
+  --header-height: 60px;
+  --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --border-radius: 4px;
+  --transition-speed: 0.3s;
+  
+  /* Standardized font sizes */
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 28px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 48px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #000; /* Black to prevent white flash during scaling */
+  color: var(--amd-dark-gray);
+  line-height: 1.6;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  overflow: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style-type: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+.btn-primary, .btn-secondary, .btn-sm {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: var(--border-radius);
+  transition: all var(--transition-speed);
+  border: none;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: var(--amd-red);
+  color: var(--amd-white);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #c1151c;
+}
+
+.btn-primary:disabled {
+  background-color: #f5a5a7;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: var(--amd-light-gray);
+  color: var(--amd-dark-gray);
+}
+
+.btn-secondary:hover {
+  background-color: #ddd;
+}
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: var(--font-size-sm);
+  background-color: var(--amd-red);
+  color: var(--amd-white);
+}
+
+.btn-sm:hover {
+  background-color: #c1151c;
+}
+
+.button-group {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
