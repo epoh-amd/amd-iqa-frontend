@@ -9,12 +9,14 @@ import {
 import RMAInfoTable from './RMAInfoTable';
 import api from '../../../services/api';
 import '../../../assets/css/startBuild.css';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const EditRMAForm = ({ buildData, onComplete, onCancel, onShowHistory }) => {
   useEffect(() => {
     const fetchRMA = async () => {
       try {
         const res = await api.getRma(buildData.chassis_sn);
+
 
         if (res) {
           setBuilds([{
@@ -58,6 +60,7 @@ const EditRMAForm = ({ buildData, onComplete, onCancel, onShowHistory }) => {
   }]);
 
   const [saving, setSaving] = useState(false);
+  const { user } = useAuth();
   const [message, setMessage] = useState(null);
 
   const [showHistory, setShowHistory] = useState(false);
@@ -74,10 +77,10 @@ const EditRMAForm = ({ buildData, onComplete, onCancel, onShowHistory }) => {
     if (!showHistory) {
       try {
         setLoadingHistory(true);
-  
+
         const res = await api.getRmaHistory(buildData.chassis_sn);
         setHistoryData(res);
-  
+
       } catch (err) {
         console.error(err);
       } finally {
@@ -88,6 +91,7 @@ const EditRMAForm = ({ buildData, onComplete, onCancel, onShowHistory }) => {
   };
 
   const handleSave = async () => {
+
     setSaving(true);
     setMessage(null);
 
@@ -104,7 +108,8 @@ const EditRMAForm = ({ buildData, onComplete, onCancel, onShowHistory }) => {
         liquid_cooler: data.liquidCooler,
         location: data.location_rma,
         rma: data.rma,
-        status: data.status_rma
+        status: data.status_rma,
+        updated_by: user.full_name
       });
 
       setMessage({
@@ -153,55 +158,59 @@ const EditRMAForm = ({ buildData, onComplete, onCancel, onShowHistory }) => {
         </div>
       )}
 
-{showHistory && (
-  <div style={{ margin: '20px 0' }}>
-    <h3>RMA History</h3>
+      {showHistory && (
+        <div style={{ margin: '20px 0' }}>
+          <h3>RMA History</h3>
 
-    {loadingHistory ? (
-      <p>Loading...</p>
-    ) : historyData.length === 0 ? (
-      <p>No history found</p>
-    ) : (
-      <table className="builds-table">
-        <thead>
-          <tr>
-            <th>Updated At</th>
-            <th>Pass/Fail</th>
-            <th>Notes</th>
-            <th>DIMM</th>
-            <th>BMC</th>
-            <th>M2</th>
-            <th>Liquid Cooler</th>
-            <th>Location</th>
-            <th>RMA</th>
-            <th>Status</th>
-          </tr>
-        </thead>
+          {loadingHistory ? (
+            <p>Loading...</p>
+          ) : historyData.length === 0 ? (
+            <p>No history found</p>
+          ) : (
+            <table className="builds-table">
+              <thead>
+                <tr>
+                  <th>Updated At</th>
+                  <th>Updated By</th>
+                  <th>Pass/Fail</th>
+                  <th>Notes</th>
+                  <th>DIMM</th>
+                  <th>BMC</th>
+                  <th>M2</th>
+                  <th>Liquid Cooler</th>
+                  <th>Location</th>
+                  <th>RMA</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
 
-        <tbody>
-          {historyData.map((item, index) => (
-            <tr key={index}>
-              <td>
-                {item.updated_at
-                  ? new Date(item.updated_at).toLocaleString()
-                  : '-'}
-              </td>
-              <td>{item.pass_fail || '-'}</td>
-              <td>{item.notes || '-'}</td>
-              <td>{item.dimm || '-'}</td>
-              <td>{item.bmc || '-'}</td>
-              <td>{item.m2 || '-'}</td>
-              <td>{item.liquid_cooler || '-'}</td>
-              <td>{item.location || '-'}</td>
-              <td>{item.rma || '-'}</td>
-              <td>{item.status || '-'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    )}
-  </div>
-)}
+              <tbody>
+                {historyData.map((item, index) => (
+                  <tr key={index}>
+                    <td>
+                      {item.updated_at
+                        ? new Date(item.updated_at).toLocaleString('en-US', {
+                          timeZone: 'America/Chicago'
+                        })
+                        : '-'}
+                    </td>
+                    <td>{item.updated_by || '-'}</td>
+                    <td>{item.pass_fail || '-'}</td>
+                    <td>{item.notes || '-'}</td>
+                    <td>{item.dimm || '-'}</td>
+                    <td>{item.bmc || '-'}</td>
+                    <td>{item.m2 || '-'}</td>
+                    <td>{item.liquid_cooler || '-'}</td>
+                    <td>{item.location || '-'}</td>
+                    <td>{item.rma || '-'}</td>
+                    <td>{item.status || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
 
       {/* 🔥 RMA TABLE (same layout as system info) */}
       <br></br>
