@@ -27,7 +27,10 @@ const TableRow = ({
 
   const { user } = useAuth();
 
-  const canEditFinanceFields = user?.department === 'Systems Design Eng';
+  const canEditFinanceFields =
+  user?.department === 'Systems Design Eng' ||
+  user?.department === 'SPSE datacenter';
+
   const isRestricted = !canEditFinanceFields;
   const isSelected = selectedRows.includes(build.chassis_sn);
   const isSource = sourceRow === build.chassis_sn;
