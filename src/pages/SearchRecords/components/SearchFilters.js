@@ -28,7 +28,8 @@ const SearchFilters = ({
   loading,
   systemPNOptions = [],
   buildTechnicianOptions = [],
-  searchResults = []
+  searchResults = [],
+  changeGearOptions = []
 }) => {
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [exporting, setExporting] = React.useState(false);
@@ -170,12 +171,12 @@ const SearchFilters = ({
                 value={filters.masterStatus}
                 onChange={(e) => onFilterChange('masterStatus', e.target.value)}
               >
-               <option value="">All Status (excludes Delivered & Incomplete)</option>
+                <option value="">All Status (excludes Delivered & Incomplete)</option>
                 <option value="Build Completed">Build Completed</option>
                 <option value="Missing Information">Missing Information</option>
                 <option value="Incomplete">Incomplete</option>
                 <option value="Need Paperwork">Need Paperwork</option>
-                <option value="Ready for Pick up">Ready for Pick up</option>
+                <option value="Ready for Delivery">Ready for Delivery</option>
                 <option value="Need CG Update">Need CG Update</option>
                 <option value="Delivered Need CG Update">Delivered Need CG Update</option>
                 <option value="Delivered">Delivered</option>
@@ -186,6 +187,22 @@ const SearchFilters = ({
                 <option value="Bad">Bad</option>
               </select>
             </div>
+
+
+            {/* 10. changegear asset id */}
+            <div className="filter-group">
+              <label>ChangeGear Asset ID</label>
+              <MultiSelectDropdown
+                options={changeGearOptions}
+                selectedValues={filters.changegearAssetId}
+                onSelectionChange={(selectedValues) =>
+                  onFilterChange('changegearAssetId', selectedValues)
+                }
+                placeholder="Search & select ChangeGear IDs..."
+                className="changegear-dropdown"
+              />
+            </div>
+
             {/* 10. Failure Category */}
             <div className="filter-group">
               <label>Failure Category</label>

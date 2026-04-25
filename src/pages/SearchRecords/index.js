@@ -39,6 +39,9 @@ const SearchRecords = () => {
   // System P/N options state
   const [systemPNOptions, setSystemPNOptions] = useState([]);
   const [buildTechnicianOptions, setBuildTechnicianOptions] = useState([]);
+  const [changeGearOptions, setChangeGearOptions] = useState([]);
+
+
 
   // On mount, restore filters from localStorage if present
   useEffect(() => {
@@ -60,6 +63,26 @@ const SearchRecords = () => {
       }
     }
     // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    const fetchChangeGearOptions = async () => {
+      try {
+        const data = await api.getChangeGearOptions();
+        setChangeGearOptions(
+          data.map(item => ({
+            label: item,
+            value: item
+          }))
+        );
+        console.log("RAW DATA change gear:", data);
+        //console.log('changeGearOptions:', changeGearOptions);
+      } catch (error) {
+        console.error('Failed to load ChangeGear options:', error);
+      }
+    };
+  
+    fetchChangeGearOptions();
   }, []);
 
   // Save filters to localStorage whenever they change
@@ -147,6 +170,7 @@ const SearchRecords = () => {
         systemPNOptions={systemPNOptions}
         buildTechnicianOptions={buildTechnicianOptions}
         searchResults={searchResults}
+        changeGearOptions={changeGearOptions}
       />
 
       {/* Search Results */}

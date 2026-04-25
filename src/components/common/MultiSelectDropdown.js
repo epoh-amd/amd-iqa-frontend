@@ -77,10 +77,14 @@ const MultiSelectDropdown = ({
   };
 
   // Filter options based on search term
-  const filteredOptions = options.filter(option =>
-    option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    option.value.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOptions = options.filter(option => {
+    const label = option.label || '';
+    const value = option.value || '';
+    return (
+      label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      value.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
     <div className={`multi-select-dropdown ${className}`} ref={dropdownRef}>

@@ -199,17 +199,9 @@ const BuildForecastChart = ({
   );
 
   // Set Y-axis domain to be 1000 points higher than the maximum value to provide space for info card
-  //const yAxisMax = maxValue > 0 ? maxValue + 1000 : 'auto';
+  const yAxisMax = maxValue > 0 ? maxValue + 1000 : 'auto';
 
  //REMOVE THIS AFTER PRESENT
-  const step = 20;
-
-  const yAxisMax = Math.ceil(maxValue / step) * step;
-
-  const ticks = [];
-  for (let i = 0; i <= yAxisMax; i += step) {
-    ticks.push(i);
-  }
 
 
   // Get the data slice based on zoom state
@@ -554,7 +546,6 @@ const BuildForecastChart = ({
               tick={{ fontSize: 12, fontWeight: 600, fill: '#64748b' }}
               allowDecimals={false}
               domain={[0, yAxisMax]}
-              ticks={ticks} //REMOVE THIS AFTERWARDS
               axisLine={{ stroke: '#64748b', strokeWidth: 2 }}
               tickCount={yTickCount}
             />

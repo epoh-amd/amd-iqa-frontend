@@ -27,7 +27,7 @@ const TableRow = ({
 
   const { user } = useAuth();
 
-  const canEditFinanceFields = user?.department === 'SPSE datacenter';
+  const canEditFinanceFields = user?.department === 'Systems Design Eng';
   const isRestricted = !canEditFinanceFields;
   const isSelected = selectedRows.includes(build.chassis_sn);
   const isSource = sourceRow === build.chassis_sn;
@@ -826,7 +826,7 @@ const TableRow = ({
                 <option value="Missing Information">Missing Information</option>
                 <option value="Incomplete">Incomplete</option>
                 <option value="Need Paperwork">Need Paperwork</option>
-                <option value="Ready for Pick up">Ready for Pick up</option>
+                <option value="Ready for Delivery">Ready for Delivery</option>
                 <option value="Need CG Update">Need CG Update</option>
                 <option value="Delivered Need CG Update">Delivered Need CG Update</option>
                 <option value="Delivered">Delivered</option>

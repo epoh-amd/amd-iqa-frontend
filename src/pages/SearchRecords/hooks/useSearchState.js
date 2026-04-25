@@ -24,6 +24,11 @@ export const useSearchState = () => {
         if (parsed.buildEngineer && !Array.isArray(parsed.buildEngineer)) {
           parsed.buildEngineer = parsed.buildEngineer ? [parsed.buildEngineer] : [];
         }
+        if (parsed.changegearAssetId && !Array.isArray(parsed.changegearAssetId)) {
+          parsed.changegearAssetId = parsed.changegearAssetId
+            ? [parsed.changegearAssetId]
+            : [];
+        }
         return {
           // Build Information
           dateFrom: '',
@@ -151,7 +156,8 @@ export const useSearchState = () => {
       costCenter: '',
       capitalization: '',
       deliveryDateFrom: '',
-      deliveryDateTo: ''
+      deliveryDateTo: '',
+      changegearAssetId: [],
     };
   };
 

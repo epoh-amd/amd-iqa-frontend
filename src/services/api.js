@@ -831,6 +831,16 @@ searchBuilds: async (filters) => {
     }
   },
 
+  getChangeGearOptions: async () => {
+    try {
+      const response = await axios.get(`${API_URL}/changegear-options`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching ChangeGear options:', error);
+      throw error;
+    }
+  },
+
   // Get monthly failure mode statistics (missing from new API)
   getMonthlyFailureModeStats: async () => {
     try {
