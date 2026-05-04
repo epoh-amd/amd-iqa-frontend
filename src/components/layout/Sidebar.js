@@ -105,6 +105,7 @@ const Sidebar = ({ collapsed }) => {
   // Admin menu if user can manage users
   const adminMenu = canManageUsers() ? [
     { path: '/admin/users', label: 'User Management', icon: Users },
+     { path: '/admin/edit-data', label: 'Edit Data', icon: Edit },
   ] : [];
 
   return (

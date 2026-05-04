@@ -16,30 +16,32 @@ const EditRMAForm = ({ buildData, onComplete, onCancel, onShowHistory }) => {
     const fetchRMA = async () => {
       try {
         const res = await api.getRma(buildData.chassis_sn);
-
-
-        if (res) {
+  
+        const rma = Array.isArray(res) ? res[0] : res;
+  
+        if (rma) {
           setBuilds([{
             systemInfo: {
               bmcName: buildData?.bmc_name || '',
               partNumber: buildData?.system_pn || '',
-              passFail: res.pass_fail || '',
-              notes: res.notes || '',
-              dimm: res.dimm || '',
-              bmc: res.bmc || '',
-              m2: res.m2 || '',
-              liquidCooler: res.liquid_cooler || '',
-              location_rma: res.location || '',
-              rma: res.rma || '',
-              status_rma: res.status || ''
+              passFail: rma.pass_fail || '',
+              notes: rma.notes || '',
+              dimm: rma.dimm || '',
+              bmc: rma.bmc || '',
+              m2: rma.m2 || '',
+              liquidCooler: rma.liquid_cooler || '',
+              location_rma: rma.location || '',
+              rma: rma.rma || '',
+              status_rma: rma.status || ''
             }
           }]);
         }
+  
       } catch (err) {
         console.error('Error fetching RMA:', err);
       }
     };
-
+  
     fetchRMA();
   }, [buildData.chassis_sn]);
 
@@ -91,7 +93,6 @@ const EditRMAForm = ({ buildData, onComplete, onCancel, onShowHistory }) => {
   };
 
   const handleSave = async () => {
-
     setSaving(true);
     setMessage(null);
 

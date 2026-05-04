@@ -346,6 +346,14 @@ const TableEntryView = ({
           }
         }
         
+        if (!matchedCgAssetId) {
+          console.log("NOT MATCHED:", {
+            buildValue: bmcName,
+            normalized: normalizedBmcName,
+            availableKeys: Object.keys(cgMapping).slice(0, 10)
+          });
+        }
+        
         if (matchedCgAssetId) {
           if (!updatedMasterData.builds[build.chassis_sn]) {
             updatedMasterData.builds[build.chassis_sn] = {};

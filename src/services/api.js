@@ -30,6 +30,16 @@ const api = {
       throw new Error(errorInfo.message);  
     }  
   },  
+
+  getPlatform: async () => {
+    try {
+      const response = await axios.get(`${API_URL}/platform`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching platform info:', error);
+      throw error;
+    }
+  },
     
   /**
    * Search part numbers with autocomplete functionality
@@ -163,6 +173,35 @@ getProjects: async () => {
     throw error;
   }
 },
+
+addProject: async (data) => {
+  try {
+    const response = await axios.post(`${API_URL}/addprojects`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding project:', error);
+    throw error;
+  }
+},
+
+/**
+ * Bulk update builds
+ *
+ * @param {Object} updates - edited rows object
+ * @returns {Promise<Object>}
+ */
+bulkUpdateBuilds: async (updates) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/builds/bulk-update`,
+      { updates }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error bulk updating builds:', error);
+    throw error;
+  }
+},
     
   /**
    * Get complete build details with quality data and failure information
@@ -181,7 +220,55 @@ getProjects: async () => {
       throw error;  
     }  
   },  
+
+  getDraftDetails: async (userId) => {
+    try {
+      const response = await axios.get(`${API_URL}/waiver/draft/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching waiver draft:", error);
+      throw error;
+    }
+  },
+
+  saveDraftDetails: async (payload) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/waiver/draft`,
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error saving waiver draft:", error);
+      throw error;
+    }
+  },
+
+  uploadDraft: async (formData) => {
+    try {
+      const res = await axios.post(`${API_URL}/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Upload file error:", error);
+      throw error;
+    }
+  },
     
+  deleteDraftFile: async (payload) => {
+    const response = await axios.post(
+      `${API_URL}/delete-draft-file`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+  
+    return response.data;
+  },
   /**
    * Get manufacturer information based on platform prefix
    * Used for auto-populating manufacturer field from system part number
@@ -1531,6 +1618,14 @@ getLocationAllocationData: async (startDate, endDate, projectName = null) => {
    */
   getOfflineTemplateUrl: () => {
     return `${API_URL}/offline/template/download`;
+  },
+
+   /**
+   * Get offline template download URL
+   * @returns {string} - Template download URL
+   */
+   getChangegearTemplateUrl: () => {
+    return `${API_URL}/changegear/template/download`;
   },
 
   // ============================================================================

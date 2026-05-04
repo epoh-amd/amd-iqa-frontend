@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import UserManagement from './UserManagement';
+import EditDataPage from './EditDataPage';
 import '../../assets/css/admin.css';
 
 const AdminDashboard = () => {
@@ -24,6 +25,13 @@ const AdminDashboard = () => {
       description: 'Manage user accounts, roles, and permissions',
       permission: 'user.management',
       icon: '�'
+    },
+    {
+      path: '/admin/edit-data', 
+      name: 'Edit Data',
+      description: 'Modify and manage build or system data',
+      permission: 'edit.data',
+      icon: '✏️'
     }
   ];
 
@@ -65,6 +73,7 @@ const AdminDashboard = () => {
         } />
         
         <Route path="/users" element={<UserManagement />} />
+        <Route path="edit-data" element={<EditDataPage />} />
         
         <Route path="/system" element={
           <div className="admin-placeholder">

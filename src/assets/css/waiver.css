@@ -1,5 +1,5 @@
 .waiver-container{
-    max-width:900px;
+    max-width:90%;
     margin:auto;
     padding:30px;
     background-color: #f3f4f6; /* light gray */;
@@ -111,3 +111,113 @@
     gap: 4px;
     font-size: medium;
   }
+
+  .table-wrapper {
+    overflow-x: auto;
+    margin-top: 10px;
+  }
+  
+  .material-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  
+  .material-table th {
+    background: #f5f7fa;
+    padding: 10px;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+    font-weight: 600;
+  }
+  
+  .material-table td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+  
+  /* Inputs */
+  .table-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  
+  /* Dropdown */
+  .table-select {
+    width: 100%;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  
+  /* Textarea */
+  .table-textarea {
+    width: 100%;
+    min-height: 60px;
+    resize: vertical;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 13px;
+  }
+  
+  /* Buttons */
+  .add-btn {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .add-btn:hover {
+    background: #0056b3;
+  }
+  
+  .delete-btn {
+    background: transparent;
+    border: none;
+    color: #dc3545;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .delete-btn:hover {
+    color: #a71d2a;
+  }
+  
+  .table-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .file-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .file-link {
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  
+  .replace-btn {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  
+  .replace-btn:hover {
+    background: #e0e0e0;
+  }
+  
