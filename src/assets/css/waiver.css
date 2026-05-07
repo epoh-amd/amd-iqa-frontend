@@ -220,4 +220,605 @@
   .replace-btn:hover {
     background: #e0e0e0;
   }
+
+  /* ============================================================
+   Waiver Management Page
+   ============================================================ */
+
+.wm-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+.wm-column-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.wm-column-title h2 {
+  margin: 0;
+  font-size: 16px;
+  color: #495057;
+  font-weight: 600;
+}
+
+.wm-column-title span {
+  font-size: 18px;
+}
+
+/* Card */
+.wm-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e9ecef;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* Card header */
+.wm-card-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom-width: 3px;
+  border-bottom-style: solid;
+}
+
+.wm-card-header-text {
+  flex: 1;
+}
+
+.wm-card-header-text h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.wm-card-header-text p {
+  margin: 4px 0 0 0;
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.wm-card-icon {
+  font-size: 22px;
+}
+
+.wm-badge-count {
+  color: white;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.wm-badge-saved {
+  background: #d4edda;
+  color: #155724;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* Card body */
+.wm-card-body {
+  padding: 18px 20px;
+}
+
+/* Input row */
+.wm-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.wm-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.wm-input:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
+}
+
+.wm-input.wm-input-error {
+  border-color: #dc3545;
+}
+
+.wm-add-btn {
+  padding: 8px 20px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.wm-add-btn:hover:not(:disabled) {
+  background: #2980b9;
+}
+
+.wm-add-btn:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+}
+
+.wm-error {
+  color: #dc3545;
+  font-size: 12px;
+  margin: 0 0 10px 0;
+}
+
+/* Empty state */
+.wm-empty {
+  text-align: center;
+  padding: 24px;
+  color: #adb5bd;
+  font-size: 13px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px dashed #dee2e6;
+  margin-top: 8px;
+}
+
+/* Tag list */
+.wm-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.wm-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2c3e50;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.wm-tag-icon {
+  font-size: 12px;
+}
+
+.wm-tag-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #adb5bd;
+  font-size: 14px;
+  padding: 0;
+  line-height: 1;
+  font-weight: 700;
+  transition: color 0.2s;
+}
+
+.wm-tag-remove:hover {
+  color: #dc3545;
+}
+
+/* Page subtitle */
+.wm-page-subtitle {
+  margin: 0;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+/* ============================================================
+   Delete Confirm Modal
+   ============================================================ */
+
+.waiver-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.waiver-modal {
+  background: white;
+  border-radius: 10px;
+  padding: 32px;
+  width: 380px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.waiver-modal h3 {
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+  font-size: 18px;
+}
+
+.waiver-modal p {
+  margin: 0 0 24px 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.waiver-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.waiver-modal-cancel {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #f0f0f0;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.waiver-modal-cancel:hover {
+  background: #e0e0e0;
+}
+
+.waiver-modal-delete {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  background: #dc3545;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.waiver-modal-delete:hover {
+  background: #b02a37;
+}
+
+/* ============================================================
+   Page Message (success / error banner)
+   ============================================================ */
+
+.waiver-page-message {
+  margin: 16px 0 0 0;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.waiver-page-message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.waiver-page-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* ============================================================
+   Approvals Section
+   ============================================================ */
+
+.wm-approvals-btn {
+  padding: 8px 20px;
+  background: #222;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.wm-approvals-btn:hover {
+  background: #444;
+}
+
+.wm-approvals-section {
+  margin-top: 24px;
+}
+
+.wm-approvals-section h2 {
+  font-size: 16px;
+  color: #495057;
+  font-weight: 600;
+  margin: 0 0 14px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.wm-approvals-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  border: 1px solid #e9ecef;
+}
+
+.wm-approvals-table th {
+  background: #f8f9fa;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.wm-approvals-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #2c3e50;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+
+.wm-approvals-table tr:last-child td {
+  border-bottom: none;
+}
+
+.wm-action-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wm-btn-approve {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  background: #28a745;
+  color: white;
+  transition: background 0.2s;
+}
+
+.wm-btn-approve:hover { background: #218838; }
+
+.wm-btn-reject {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  background: #dc3545;
+  color: white;
+  transition: background 0.2s;
+}
+
+.wm-btn-reject:hover { background: #b02a37; }
+
+.wm-btn-cancel {
+  padding: 5px 14px;
+  border: 1px solid #adb5bd;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f8f9fa;
+  color: #495057;
+  transition: background 0.2s;
+}
+
+.wm-btn-cancel:hover { background: #e2e6ea; }
+
+.wm-cancel-expand {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wm-cancel-expand textarea {
+  width: 100%;
+  min-height: 70px;
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.wm-cancel-confirm-btn {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  background: #6c757d;
+  color: white;
+  align-self: flex-start;
+}
+
+.wm-cancel-confirm-btn:hover { background: #5a6268; }
+
+.wm-approvals-empty {
+  text-align: center;
+  padding: 40px;
+  color: #adb5bd;
+  font-size: 13px;
+}
+
+.wm-waiver-link {
+  color: #3498db;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.wm-waiver-link:hover {
+  color: #2980b9;
+}
+
+/* Waiver View (read-only) */
+.wv-value {
   
+  padding: 6px 8px;
+  font-size: 14px;
+  color: #2c3e50;
+  border-bottom: 1px solid #eee;
+}
+
+.wv-multiline {
+  display: block;
+  white-space: pre-wrap;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.wv-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #e7f3ff;
+  color: #0056b3;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 2px 4px 2px 0;
+  border: 1px solid #b3d9ff;
+}
+
+.waiver-view-badge {
+  display: inline-block;
+  margin: 16px 0;
+  padding: 6px 16px;
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.wm-approvals-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px;
+  background: #f1f1f1;
+  border: 1px dashed #dee2e6;
+  border-radius: 8px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.wm-lock-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.wm-approvals-locked p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.wv-download-btn {
+  padding: 7px 18px;
+  background: #2c3e50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.wv-download-btn:hover {
+  background: #1a252f;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  /* Hide layout chrome */
+  nav, header, aside, footer,
+  .sidebar, .layout-sidebar, .layout-header,
+  .wv-download-btn, .waiver-view-badge,
+  .submit-btn, button {
+    display: none !important;
+  }
+
+  /* Let waiver content fill the page naturally */
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  .waiver-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  /* Always show accordion bodies */
+  .accordion-body {
+    display: block !important;
+  }
+
+  /* Avoid cutting sections mid-page */
+  .accordion,
+  .form-section,
+  .form-section-row,
+  tr {
+    page-break-inside: avoid;
+  }
+
+  /* Preserve dark backgrounds */
+  .title-header,
+  .accordion-header {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Ensure table borders print */
+  .material-table th,
+  .material-table td {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    border: 1px solid #ddd !important;
+  }
+}
+
+

@@ -21,6 +21,11 @@ const Login = React.lazy(() => import('./pages/Login'));
 const AuthCallback = React.lazy(() => import('./pages/AuthCallback'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const AdminDashboard = React.lazy(() => import('./pages/Admin'));
+const WaiverManagement = React.lazy(() => import('./pages/WaiverForm/waiverManagement'));
+const WaiverView = React.lazy(() => import('./pages/WaiverForm/waiverView'));
+
+
+
 
 // Loading component
 const LoadingSpinner = () => (
@@ -118,6 +123,23 @@ function App() {
                             </ProtectedRoute>
                           }
                         />
+
+                        <Route
+                          path="/waiver-management"
+                          element={
+                            <ProtectedRoute requiredPermissions={['customer_portal']}>
+                              <WaiverManagement />
+                            </ProtectedRoute>
+                          }
+                        />
+
+                        <Route path="/waiver-view" element={
+                          <ProtectedRoute requiredPermissions={['customer_portal']}>
+                            <WaiverView />
+                          </ProtectedRoute>
+                        } />
+
+
 
 
                         {/* Admin Routes */}

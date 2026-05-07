@@ -100,6 +100,13 @@ const Sidebar = ({ collapsed }) => {
       icon: FileText, 
       show: canAccessCustomerPortal()   // or create a new permission if needed
     },
+    {                                          // ← ADD THIS
+    path: '/waiver-management',
+    label: 'Waiver Management',
+    icon: Clipboard,
+    show: canAccessCustomerPortal()
+  }
+
   ].filter(item => item.show);
 
   // Admin menu if user can manage users

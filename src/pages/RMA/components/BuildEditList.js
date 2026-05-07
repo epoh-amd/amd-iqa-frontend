@@ -62,6 +62,7 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading }
             <tr>
               <th>Select</th>
               <th>BMC Name</th>
+              <th>Jira Ticket No</th>
               <th>Chassis S/N</th>
               <th>Project Name</th>
               <th>System P/N</th>
@@ -76,7 +77,7 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading }
           <tbody>
             {builds.length === 0 ? (
               <tr>
-                <td colSpan="11" className="no-data">
+                <td colSpan="12" className="no-data">
                   No builds found
                 </td>
               </tr>
@@ -96,6 +97,7 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading }
                     />
                   </td>
                   <td>{build.bmc_name || '-'}</td>
+                 <td>{build.jira_ticket_no || '-'}</td>
                   <td>{build.chassis_sn}</td>
                   <td>{build.project_name || '-'}</td>
                   <td>{build.system_pn || '-'}</td>

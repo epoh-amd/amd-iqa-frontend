@@ -21,7 +21,7 @@ import api from '../../services/api';
 import '../../assets/css/editBuildData.css';
 
 const EditRMAData = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   // State Management
   const {
     builds,
@@ -39,24 +39,27 @@ const EditRMAData = () => {
   const [buildData, setBuildData] = useState(null);
   const [searchFilters, setSearchFilters] = useState({
     bmcNames: [],
-    chassisSNs: []
+    chassisSNs: [],
+    jiraTickets: []
   });
 
   // Search for builds based on filters
   const searchBuilds = async (filters) => {
-    if (filters.bmcNames.length === 0 && filters.chassisSNs.length === 0) {
+    if (filters.bmcNames.length === 0 && filters.chassisSNs.length === 0 && filters.jiraTickets.length === 0) {
       setMessages([{
         type: 'warning',
-        text: 'Please enter at least one BMC Name or Chassis S/N to search.'
+        text: 'Please enter at least one BMC Name, Chassis S/N, or Jira Ticket No to search.'
       }]);
       return;
     }
 
+
     setLoading(true);
     try {
-      const response = await api.searchBuildsForEdit({
+      const response = await api.searchBuildsForEditRma({
         bmcNames: filters.bmcNames,
-        chassisSNs: filters.chassisSNs
+        chassisSNs: filters.chassisSNs,
+        jiraTickets: filters.jiraTickets
       });
 
       setBuilds(response);
@@ -142,9 +145,10 @@ const EditRMAData = () => {
     }]);
     exitEditMode();
     // Re-search with current filters
-    if (searchFilters.bmcNames.length > 0 || searchFilters.chassisSNs.length > 0) {
+    if (searchFilters.bmcNames.length > 0 || searchFilters.chassisSNs.length > 0 || searchFilters.jiraTickets.length > 0) {
       searchBuilds(searchFilters);
     }
+
   };
 
   return (

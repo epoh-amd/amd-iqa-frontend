@@ -221,9 +221,9 @@ bulkUpdateBuilds: async (updates) => {
     }  
   },  
 
-  getDraftDetails: async (userId) => {
+  getDraftDetails: async (userId, waiverId) => {
     try {
-      const response = await axios.get(`${API_URL}/waiver/draft/${userId}`);
+      const response = await axios.get(`${API_URL}/waiver/draft/${userId}/${waiverId}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching waiver draft:", error);
@@ -392,6 +392,92 @@ updateRMA: async (rmaData) => {
     throw error;
   }
 },
+
+// ============================================================
+// WAIVER CONFIG API METHODS
+// ============================================================
+
+getWaiverConfig: async () => {
+  try {
+    const response = await axios.get(`${API_URL}/waiver-config`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching waiver config:', error);
+    throw error;
+  }
+},
+
+saveWaiverConfig: async (key, value) => {
+  try {
+    const response = await axios.post(`${API_URL}/waiver-config-save`, { key, value });
+    return response.data;
+  } catch (error) {
+    console.error('Error saving waiver config:', error);
+    throw error;
+  }
+},
+
+// ============================================================
+// WAIVER SUBMIT
+// ============================================================
+
+submitWaiver: async (payload) => {
+  try {
+    const response = await axios.post(`${API_URL}/waivers/submit`, payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error submitting waiver:', error);
+    throw error;
+  }
+},
+
+getWaiverDrafts: async (userId) => {
+  try {
+    const response = await axios.get(`${API_URL}/waiver/drafts/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching waiver drafts:', error);
+    throw error;
+  }
+},
+
+deleteWaiver: async (waiverId) => {
+  try {
+    const response = await axios.delete(`${API_URL}/waivers/${waiverId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting waiver:', error);
+    throw error;
+  }
+},
+
+getWaiversForApproval: async () => {
+  try {
+    const response = await axios.get(`${API_URL}/waivers/pending`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching approvals:', error);
+    throw error;
+  }
+},
+
+updateWaiverStatus: async (waiverId, status, reason = null) => {
+  try {
+    const response = await axios.patch(`${API_URL}/waivers/${waiverId}/status`, { status, reason });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating waiver status:', error);
+    throw error;
+  }
+},
+
+
+getWaiverDetails: async (waiverId) => {
+  const response = await axios.get(`${API_URL}/waiver/details/${waiverId}`);
+  return response.data;
+},
+
+
 
 
 getRmaHistory: async (chassis_sn) => {
@@ -672,6 +758,24 @@ updateBuild: async (chassisSN, updateData) => {
 searchBuildsForEdit: async (filters) => {
   try {
     const response = await axios.post(`${API_URL}/builds/search-for-edit`, filters);
+    return response.data;
+  } catch (error) {
+    console.error('Error searching builds for edit:', error);
+    throw error;
+  }
+},
+
+
+/**
+ * Search builds for editing by BMC Names and/or Chassis S/Ns
+ * Returns builds matching the search criteria
+ *
+ * @param {object} filters - Search filters {bmcNames: [], chassisSNs: []}
+ * @returns {Promise<array>} - Array of matching builds
+ */
+searchBuildsForEditRma: async (filters) => {
+  try {
+    const response = await axios.post(`${API_URL}/builds/search-for-edit-rma`, filters);
     return response.data;
   } catch (error) {
     console.error('Error searching builds for edit:', error);

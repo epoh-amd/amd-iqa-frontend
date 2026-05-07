@@ -7,6 +7,7 @@ import { faSearch, faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
 const SearchFilterSection = ({ searchFilters, setSearchFilters, onSearch, loading }) => {
   const [bmcNameInput, setBmcNameInput] = useState('');
   const [chassisSNInput, setChassisSNInput] = useState('');
+  const [jiraTicketInput, setJiraTicketInput] = useState('');
 
   // Add BMC Name to filter
   const addBmcName = () => {
@@ -48,6 +49,32 @@ const SearchFilterSection = ({ searchFilters, setSearchFilters, onSearch, loadin
     });
   };
 
+  const addJiraTicket = () => {
+    const trimmed = jiraTicketInput.trim();
+    if (trimmed && !searchFilters.jiraTickets.includes(trimmed)) {
+      setSearchFilters({
+        ...searchFilters,
+        jiraTickets: [...searchFilters.jiraTickets, trimmed]
+      });
+      setJiraTicketInput('');
+    }
+  };
+
+  const removeJiraTicket = (ticket) => {
+    setSearchFilters({
+      ...searchFilters,
+      jiraTickets: searchFilters.jiraTickets.filter(t => t !== ticket)
+    });
+  };
+
+  const handleJiraTicketKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addJiraTicket();
+    }
+  };
+
+
   // Handle Enter key press
   const handleBmcNameKeyPress = (e) => {
     if (e.key === 'Enter') {
@@ -72,10 +99,12 @@ const SearchFilterSection = ({ searchFilters, setSearchFilters, onSearch, loadin
   const clearAllFilters = () => {
     setSearchFilters({
       bmcNames: [],
-      chassisSNs: []
+      chassisSNs: [],
+      jiraTickets: []
     });
     setBmcNameInput('');
     setChassisSNInput('');
+    setJiraTicketInput('');
   };
 
   return (
@@ -164,6 +193,45 @@ const SearchFilterSection = ({ searchFilters, setSearchFilters, onSearch, loadin
             </div>
           )}
         </div>
+        {/* Jira Ticket No Filter */}
+        <div className="filter-group">
+          <label>Jira Ticket No(s)</label>
+          <div className="multi-input-group">
+            <input
+              type="text"
+              value={jiraTicketInput}
+              onChange={(e) => setJiraTicketInput(e.target.value)}
+              onKeyPress={handleJiraTicketKeyPress}
+              placeholder="Enter Jira Ticket No and press Enter or click Add"
+              className="filter-input"
+            />
+            <button
+              className="btn-add-filter"
+              onClick={addJiraTicket}
+              disabled={!jiraTicketInput.trim()}
+            >
+              <FontAwesomeIcon icon={faPlus} /> Add
+            </button>
+          </div>
+
+          {searchFilters.jiraTickets.length > 0 && (
+            <div className="filter-tags">
+              {searchFilters.jiraTickets.map((ticket, index) => (
+                <span key={index} className="filter-tag">
+                  {ticket}
+                  <button
+                    className="remove-tag"
+                    onClick={() => removeJiraTicket(ticket)}
+                    aria-label="Remove"
+                  >
+                    <FontAwesomeIcon icon={faTimes} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
 
       {/* Action Buttons */}
@@ -171,14 +239,14 @@ const SearchFilterSection = ({ searchFilters, setSearchFilters, onSearch, loadin
         <button
           className="btn-search"
           onClick={handleSearch}
-          disabled={loading || (searchFilters.bmcNames.length === 0 && searchFilters.chassisSNs.length === 0)}
+          disabled={loading || (searchFilters.bmcNames.length === 0 && searchFilters.chassisSNs.length === 0 && searchFilters.jiraTickets.length === 0)}
         >
           <FontAwesomeIcon icon={faSearch} /> Search Builds
         </button>
         <button
           className="btn-clear"
           onClick={clearAllFilters}
-          disabled={loading || (searchFilters.bmcNames.length === 0 && searchFilters.chassisSNs.length === 0)}
+         disabled={loading || (searchFilters.bmcNames.length === 0 && searchFilters.chassisSNs.length === 0 && searchFilters.jiraTickets.length === 0)}
         >
           Reset Filters
         </button>
