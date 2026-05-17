@@ -161,19 +161,32 @@ const ManageSection = ({ configKey, label, description, type, icon, color, bg, i
   );
 };
 
+const ALLOWED_USER_MANAGEMENT_EMAILS = [
+  'ErnQi.Poh@amd.com',
+  'LayLing.Chew@amd.com',
+  'SLTeh.Teh@amd.com',
+  'BeowHwa.Yap@amd.com'
+
+];
+
 const WaiverManagement = () => {
   const { user } = useAuth();
+
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showApprovals, setShowApprovals] = useState(true);
   const [approvals, setApprovals] = useState([]);
   const [approvalsLoading, setApprovalsLoading] = useState(false);
+  const [approvalsFilter, setApprovalsFilter] = useState('New');
+  const [approvalsSearch, setApprovalsSearch] = useState('');
+   const [expandedCancelReason, setExpandedCancelReason] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null); // { waiverId, reason }
   const [actionLoading, setActionLoading] = useState(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const navigate = useNavigate();
 
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchConfig = async () => {
       const data = await getAllConfig();
       setConfig(data);
@@ -209,7 +222,8 @@ const WaiverManagement = () => {
   const handleAction = async (waiverId, status, reason = null) => {
     setActionLoading(waiverId);
     try {
-      await api.updateWaiverStatus(waiverId, status, reason);
+      const cancelledBy = status === 'Cancelled' ? `Approver: ${user?.full_name || ''}` : null;
+      await api.updateWaiverStatus(waiverId, status, reason, cancelledBy);
       setApprovals(prev => prev.filter(w => w.waiver_id !== waiverId));
       setCancelTarget(null);
     } catch (err) {
@@ -232,136 +246,283 @@ const WaiverManagement = () => {
           <h1>Waiver Management</h1>
         </div>
         <button className="wm-approvals-btn" onClick={handleApprovalsBtn}>
-        {showApprovals ? 'User Management' : '← Back to Approvals'}
-      </button>
+          {showApprovals ? 'User Management' : '← Back to Approvals'}
+        </button>
 
       </div>
 
-         {/* Approvals Section */}
-    {showApprovals && (() => {
-      const isApprover = Array.isArray(config?.approvers) &&
-        config.approvers.some(email => email.toLowerCase() === (user?.email || '').toLowerCase());
+      {/* Approvals Section */}
+      {showApprovals && (() => {
+        const isApprover = Array.isArray(config?.approvers) &&
+          config.approvers.some(email => email.toLowerCase() === (user?.email || '').toLowerCase());
 
-      return (
-      <div className="wm-approvals-section">
-        <h2>Waiver Approvals</h2>
-        {!isApprover ? (
-          <div className="wm-approvals-locked">
+        return (
+          <div className="wm-approvals-section">
+            <h2>Waiver Approvals</h2>
+            {!isApprover ? (
+              <div className="wm-approvals-locked">
+                <span className="wm-lock-icon">🔒</span>
+                <p>Access restricted. Only designated approvers can view this section.</p>
+              </div>
+            ) : approvalsLoading ? (
+              <p>Loading...</p>
+            ) : (
+              <>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search by Waiver ID, Part Number or Submitted By..."
+                    value={approvalsSearch}
+                    onChange={(e) => setApprovalsSearch(e.target.value)}
+                    style={{
+                      flex: 1, padding: '8px 14px', border: '1px solid #ccc',
+                      borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box'
+                    }}
+                  />
+                  <select
+                    value={approvalsFilter}
+                    onChange={(e) => setApprovalsFilter(e.target.value)}
+                    style={{
+                      padding: '8px 14px', border: '1px solid #ccc',
+                      borderRadius: '6px', fontSize: '14px', cursor: 'pointer'
+                    }}
+                  >
+                    <option value="all">All Status</option>
+                    <option value="New">New</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Closed">Closed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+                {approvals.filter(w => {
+                  const q = approvalsSearch.toLowerCase();
+                  const matchSearch = !q ||
+                    (w.waiver_id || '').toLowerCase().includes(q) ||
+                    (w.part_number || '').toLowerCase().includes(q) ||
+                    (w.submitted_by || '').toLowerCase().includes(q);
+                  const matchStatus = approvalsFilter === 'all' || w.status === approvalsFilter;
+                  return matchSearch && matchStatus;
+                }).length === 0 ? (
+                  <div className="wm-approvals-empty">No records found.</div>
+                ) : (
+                  <table className="wm-approvals-table">
+                    <thead>
+
+                      <tr>
+                        <th>Waiver ID</th>
+                        <th>Product Part Number</th>
+                        <th>Submitted By</th>
+                        <th>Submitted Date</th>
+                       <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {approvals.filter(w => {
+                        const q = approvalsSearch.toLowerCase();
+                        const matchSearch = !q ||
+                          (w.waiver_id || '').toLowerCase().includes(q) ||
+                          (w.part_number || '').toLowerCase().includes(q) ||
+                          (w.submitted_by || '').toLowerCase().includes(q);
+                        const matchStatus = approvalsFilter === 'all' || w.status === approvalsFilter;
+                        return matchSearch && matchStatus;
+                      }).map((w) => (
+
+                        <tr key={w.waiver_id}>
+                          <td>
+                            <span
+                              className="wm-waiver-link"
+                              onClick={() => navigate(`/waiver-view?id=${w.waiver_id}`)}
+
+                            >
+                              {w.waiver_id}
+                            </span>
+                          </td>
+
+
+                          <td>{w.part_number || '-'}</td>
+                          <td>{w.submitted_by || '-'}</td>
+                          <td>{w.submitted_at ? new Date(w.submitted_at).toLocaleDateString() : '-'}</td>
+                                                                   <td>
+                        {w.status === 'Cancelled' ? (() => {
+                          const cancelledBy = w.cancelled_by || '';
+                          const cancelReason = w.cancel_reason || '';
+                          const cancellerName = cancelledBy.includes(':')
+                            ? cancelledBy.split(':').slice(1).join(':').trim()
+                            : cancelledBy;
+                          const isExpanded = expandedCancelReason === w.waiver_id;
+                          return (
+                            <div>
+                              <span style={{ fontSize: '13px', color: '#555' }}>
+                                {cancellerName ? `Cancelled by ${cancellerName}` : '-'}
+                              </span>
+                              {cancelReason && (
+                                <div>
+                                  <span
+                                    className="mf-cancel-toggle"
+                                    onClick={() => setExpandedCancelReason(isExpanded ? null : w.waiver_id)}
+                                  >
+                                    {isExpanded ? 'Hide reason ▲' : 'View reason ▼'}
+                                  </span>
+                                  {isExpanded && (
+                                    <div style={{
+                                      marginTop: '4px', padding: '8px 12px',
+                                      background: '#eeeeee', border: '1px solid #ccc',
+                                      borderLeft: '3px solid #aaa', borderRadius: '4px',
+                                      fontSize: '12px', color: '#444',
+                                      maxWidth: '220px', lineHeight: '1.5'
+                                    }}>
+                                      {cancelReason}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })() : w.status === 'Closed' ? (
+                          <span style={{ color: '#aaa' }}>-</span>
+                        ) : (
+                          <div className="wm-action-btns">
+                            {w.status === 'New' && (
+                              <button
+                                className="add-btn"
+                                style={{ padding: '4px 12px', fontSize: '13px' }}
+                                onClick={() => navigate(`/waiver-form?approverEdit=true&id=${w.waiver_id}`)}
+                              >
+                                Edit
+                              </button>
+                            )}
+                            {w.status === 'New' && (
+                              <button
+                                className="wm-btn-approve"
+                                disabled={actionLoading === w.waiver_id}
+                                onClick={() => handleAction(w.waiver_id, 'Approved')}
+                              >
+                                Approve
+                              </button>
+                            )}
+                            {w.status === 'Approved' && (
+                              <button
+                                className="wm-btn-cancel"
+                                disabled={actionLoading === w.waiver_id}
+                                onClick={() => handleAction(w.waiver_id, 'Closed')}
+                              >
+                                Closed
+                              </button>
+                            )}
+                            {(w.status === 'New' || w.status === 'Approved') && (
+                              <button
+                                className="wm-btn-reject"
+                                onClick={() =>
+                                  setCancelTarget(
+                                    cancelTarget?.waiverId === w.waiver_id
+                                      ? null
+                                      : { waiverId: w.waiver_id, reason: '' }
+                                  )
+                                }
+                              >
+                                Cancel
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+
+
+                            {/* Cancel expand */}
+                            {cancelTarget?.waiverId === w.waiver_id && (
+                              <div className="wm-cancel-expand">
+                                <textarea
+                                  placeholder="Enter cancellation reason..."
+                                  value={cancelTarget.reason}
+                                  onChange={(e) =>
+                                    setCancelTarget({ ...cancelTarget, reason: e.target.value })
+                                  }
+                                />
+                                <button
+                                  className="wm-cancel-confirm-btn"
+                                  disabled={!cancelTarget.reason.trim() || actionLoading === w.waiver_id}
+                                  onClick={() => setShowCancelConfirm(true)}
+                                >
+                                  Confirm Cancel
+                                </button>
+
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </>
+            )}
+          </div>
+        );
+      })()}
+
+
+      {/* Config Layout - hidden when approvals is shown */}
+      {!showApprovals && (() => {
+        const canManage = ALLOWED_USER_MANAGEMENT_EMAILS.some(
+          email => email.toLowerCase() === (user?.email || '').toLowerCase()
+        );
+
+        if (!canManage) return (
+          <div className="wm-approvals-locked" style={{ marginTop: '24px' }}>
             <span className="wm-lock-icon">🔒</span>
-            <p>Access restricted. Only designated approvers can view this section.</p>
+            <p>Access restricted. You do not have permission to manage waiver settings.</p>
           </div>
-        ) : approvalsLoading ? (
-          <p>Loading...</p>
-        ) : approvals.length === 0 ? (
-          <div className="wm-approvals-empty">No pending approvals.</div>
-        ) : (
+        );
 
-            <table className="wm-approvals-table">
-              <thead>
-                <tr>
-                  <th>Waiver ID</th>
-                  <th>Product Part Number</th>
-                  <th>Submitted By</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {approvals.map((w) => (
-                  <tr key={w.waiver_id}>
-                    <td>
-                      <span
-                        className="wm-waiver-link"
-                       onClick={() => navigate(`/waiver-view?id=${w.waiver_id}`)}
+        return (
+          <div className="wm-layout">
 
-                      >
-                        {w.waiver_id}
-                      </span>
-                    </td>
-
-
-                    <td>{w.part_number || '-'}</td>
-                    <td>{w.submitted_by || '-'}</td>
-                    <td>
-                      <div className="wm-action-btns">
-                        <button
-                          className="wm-btn-approve"
-                          disabled={actionLoading === w.waiver_id}
-                          onClick={() => handleAction(w.waiver_id, 'Approved')}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          className="wm-btn-reject"
-                          disabled={actionLoading === w.waiver_id}
-                          onClick={() => handleAction(w.waiver_id, 'Rejected')}
-                        >
-                          Reject
-                        </button>
-                        <button
-                          className="wm-btn-cancel"
-                          onClick={() =>
-                            setCancelTarget(
-                              cancelTarget?.waiverId === w.waiver_id
-                                ? null
-                                : { waiverId: w.waiver_id, reason: '' }
-                            )
-                          }
-                        >
-                          Cancel
-                        </button>
-                      </div>
-
-                      {/* Cancel expand */}
-                      {cancelTarget?.waiverId === w.waiver_id && (
-                        <div className="wm-cancel-expand">
-                          <textarea
-                            placeholder="Enter cancellation reason..."
-                            value={cancelTarget.reason}
-                            onChange={(e) =>
-                              setCancelTarget({ ...cancelTarget, reason: e.target.value })
-                            }
-                          />
-                          <button
-                            className="wm-cancel-confirm-btn"
-                            disabled={!cancelTarget.reason.trim() || actionLoading === w.waiver_id}
-                            onClick={() => handleAction(w.waiver_id, 'Cancelled', cancelTarget.reason)}
-                          >
-                            Confirm Cancel
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-                  )}
-      </div>
-      );
-    })()}
-
-    {/* Config Layout */}
-
-      {!showApprovals && (
-        <div className="wm-layout">
-          <div>
-            <div className="wm-column-title"><span>👥</span><h2>People</h2></div>
-            {people.map((s) => (
-              <ManageSection key={s.configKey} {...s} initialItems={config[s.configKey]} onUpdate={handleUpdate} />
-            ))}
+            <div>
+              <div className="wm-column-title"><span>👥</span><h2>People</h2></div>
+              {people.map((s) => (
+                <ManageSection key={s.configKey} {...s} initialItems={config[s.configKey]} onUpdate={handleUpdate} />
+              ))}
+            </div>
+            <div>
+              <div className="wm-column-title"><span>⚙️</span><h2>Form Options</h2></div>
+              {formOpts.map((s) => (
+                <ManageSection key={s.configKey} {...s} initialItems={config[s.configKey]} onUpdate={handleUpdate} />
+              ))}
+            </div>
           </div>
-          <div>
-            <div className="wm-column-title"><span>⚙️</span><h2>Form Options</h2></div>
-            {formOpts.map((s) => (
-              <ManageSection key={s.configKey} {...s} initialItems={config[s.configKey]} onUpdate={handleUpdate} />
-            ))}
+        );
+      })()}
+
+      {showCancelConfirm && (
+        <div className="waiver-modal-overlay">
+          <div className="waiver-modal">
+            <h3>Cancel Waiver</h3>
+            <p>Confirm cancel — <strong>this action cannot be undone.</strong></p>
+            <div className="waiver-modal-actions">
+              <button
+                className="waiver-modal-cancel"
+                onClick={() => setShowCancelConfirm(false)}
+              >
+                Go Back
+              </button>
+              <button
+                className="waiver-modal-delete"
+                onClick={() => {
+                  setShowCancelConfirm(false);
+                  handleAction(cancelTarget.waiverId, 'Cancelled', cancelTarget.reason);
+                }}
+              >
+                Yes, Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
-
     </div>
   );
+
 
 };
 
 export default WaiverManagement;
+

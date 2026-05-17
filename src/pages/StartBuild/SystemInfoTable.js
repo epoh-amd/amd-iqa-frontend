@@ -20,6 +20,7 @@ const SystemInfoTable = ({
   systemInfoSubStep,
   showReview,
   handleInputChange,
+  onExtractLog,
   partNumberSuggestions,
   scannerRefs,
   selectedField,
@@ -218,6 +219,7 @@ useEffect(() => {
                 <th>Boot to OS/Shell</th>
                 <th>DIMMs Detected</th>
                 <th>LOM Working</th>
+                
               </>
             )}
           </tr>
@@ -992,11 +994,14 @@ useEffect(() => {
                           )}
                         </div>
                       )}
-                    </div>
+                                   </div>
                   </td>
+
+                
                 </>
               )}
             </tr>
+
           ))}
         </tbody>
       </table>

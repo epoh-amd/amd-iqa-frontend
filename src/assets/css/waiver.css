@@ -819,6 +819,37 @@
     print-color-adjust: exact;
     border: 1px solid #ddd !important;
   }
+
+ /* ============================================================
+   My Forms - Status Badge & Cancel Reason
+   ============================================================ */
+
+.mf-status-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.mf-cancel-toggle {
+  font-size: 11px;
+  color: #888;
+  cursor: pointer;
+  text-decoration: underline;
+  display: inline-block;
+  margin-top: 3px;
+}
+
+.mf-cancel-toggle:hover {
+  color: #555;
+}
+
+
+
+
+
 }
 
 

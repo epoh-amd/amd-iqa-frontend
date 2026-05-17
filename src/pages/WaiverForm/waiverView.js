@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../../assets/css/waiver.css';
 import api from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 
 const WAIVER_TYPE_TO_SECTION = {
     'Material Waiver': 'material',
@@ -18,6 +19,7 @@ const Field = ({ label, value }) => (
 );
 
 const WaiverView = () => {
+    const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -226,13 +228,23 @@ const WaiverView = () => {
                 <h4 className="waiver-title" style={{ textAlign: 'center' }}>AMD Waiver Request Form</h4>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '16px 0' }}>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '16px 0' }}>
+                <button
+                    onClick={() => navigate(-1)}
+                    style={{
+                        padding: '8px 16px', cursor: 'pointer',
+                        background: '#f0f0f0', border: '1px solid #ccc',
+                        borderRadius: '6px', fontSize: '13px', fontWeight: 500
+                    }}
+                >
+                    ← Back
+                </button>
                 <div className="waiver-view-badge">View Only</div>
                 <button className="wv-download-btn" onClick={handleDownloadPDF} disabled={downloading}>
                     {downloading ? 'Generating...' : '⬇ Download PDF'}
                 </button>
-
             </div>
+
 
 
             {/* Waiver ID */}

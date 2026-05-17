@@ -16,37 +16,28 @@ export const exportMasterBuildsToExcel = async (selectedBuilds) => {
 
   try {
     // Fetch additional data for builds that might be missing details
-    const buildsWithDetails = await Promise.all(
-      selectedBuilds.map(async (build) => {
-        try {
-          // Get failure details for each build if FPY status is Fail
-          let failures = [];
-          if (build.fpy_status === 'Fail') {
-            const buildDetails = await api.getBuildDetails(build.chassis_sn);
-            failures = buildDetails.failures || [];
-          }
+    // AFTER — one single batch call
+const chassisList = selectedBuilds.map(b => b.chassis_sn);
+const batchDetails = await api.getBatchBuildDetailsForExport(chassisList);
 
-          // Get DIMM serial numbers
-          let dimmSNs = [];
-          if (build.dimm_sns) {
-            dimmSNs = build.dimm_sns.split(',').filter(sn => sn && sn.trim());
-          }
+const buildsWithDetails = selectedBuilds.map(build => {
+  const detail = batchDetails.find(d => d.chassis_sn === build.chassis_sn) || {};
+  return {
+    ...build,
+    visual_inspection_status: detail.visual_inspection_status ?? build.visual_inspection_status,
+    visual_inspection_notes:  detail.visual_inspection_notes  ?? build.visual_inspection_notes,
+    boot_status:              detail.boot_status              ?? build.boot_status,
+    boot_notes:               detail.boot_notes               ?? build.boot_notes,
+    dimms_detected_status:    detail.dimms_detected_status    ?? build.dimms_detected_status,
+    dimms_detected_notes:     detail.dimms_detected_notes     ?? build.dimms_detected_notes,
+    lom_working_status:       detail.lom_working_status       ?? build.lom_working_status,
+    lom_working_notes:        detail.lom_working_notes        ?? build.lom_working_notes,
+    problem_description:      detail.problem_description      ?? build.problem_description,
+    failures: detail.failures || [],
+    dimmSNs:  detail.dimmSNs  || (build.dimm_sns ? build.dimm_sns.split(',').filter(Boolean) : []),
+  };
+});
 
-          return {
-            ...build,
-            failures,
-            dimmSNs
-          };
-        } catch (error) {
-          console.error(`Error fetching details for build ${build.chassis_sn}:`, error);
-          return {
-            ...build,
-            failures: [],
-            dimmSNs: []
-          };
-        }
-      })
-    );
 
     // Create workbook
     const wb = XLSX.utils.book_new();

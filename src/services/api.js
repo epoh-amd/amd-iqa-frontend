@@ -221,6 +221,8 @@ bulkUpdateBuilds: async (updates) => {
     }  
   },  
 
+  
+
   getDraftDetails: async (userId, waiverId) => {
     try {
       const response = await axios.get(`${API_URL}/waiver/draft/${userId}/${waiverId}`);
@@ -269,6 +271,56 @@ bulkUpdateBuilds: async (updates) => {
   
     return response.data;
   },
+
+  // getBuildDetailsForExport: async (chassisSN) => {
+  //   try {
+  //     const response = await axios.get(`${API_URL}/builds/${chassisSN}/complete/export`);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('Error fetching build details:', error);
+  //     throw error;
+  //   }
+  // },
+
+  
+  getBatchBuildDetailsForExport: async (chassisList) => {
+  const response = await axios.post(`${API_URL}/builds/batch/export`, { chassisList });
+  return response.data;
+},
+
+  getMyWaivers: async (full_name) => {
+  try {
+    const response = await axios.get(`${API_URL}/waivers/my/${encodeURIComponent(full_name)}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching my waivers:', error);
+    throw error;
+  }
+},
+sendNewWaiverNotification: async ({ waiverId, partNumber, submittedBy, approvers }) => {
+  try {
+    const response = await axios.post(`${API_URL}/email/waiver/notify`, {
+      waiverId,
+      partNumber,
+      submittedBy,
+      approvers,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to send waiver notification:', error);
+  }
+},
+
+extractLog: async (chassisSN, bmcName) => {
+  const response = await axios.post(`${BACKEND_URL}/api/extract-log`, { chassisSN, bmcName });
+  return response.data;
+},
+
+
+
+
+
+
   /**
    * Get manufacturer information based on platform prefix
    * Used for auto-populating manufacturer field from system part number
@@ -461,9 +513,9 @@ getWaiversForApproval: async () => {
   }
 },
 
-updateWaiverStatus: async (waiverId, status, reason = null) => {
+updateWaiverStatus: async (waiverId, status, reason = null, cancelledBy=null) => {
   try {
-    const response = await axios.patch(`${API_URL}/waivers/${waiverId}/status`, { status, reason });
+    const response = await axios.patch(`${API_URL}/waivers/${waiverId}/status`, { status, reason, cancelledBy });
     return response.data;
   } catch (error) {
     console.error('Error updating waiver status:', error);
@@ -475,6 +527,16 @@ updateWaiverStatus: async (waiverId, status, reason = null) => {
 getWaiverDetails: async (waiverId) => {
   const response = await axios.get(`${API_URL}/waiver/details/${waiverId}`);
   return response.data;
+},
+
+approverEditWaiver: async (payload, modifiedBy) => {
+  try {
+    const response = await axios.put(`${API_URL}/waivers/${payload.waiverId}/edit`, { ...payload, modifiedBy });
+    return response.data;
+  } catch (error) {
+    console.error('Error saving approver edit:', error);
+    throw error;
+  }
 },
 
 
@@ -823,6 +885,8 @@ getAllBuilds: async () => {
     throw error;
   }
 },
+
+
 
 /**
  * Save master build data for a specific chassis

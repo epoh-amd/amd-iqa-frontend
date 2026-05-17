@@ -30,6 +30,7 @@ import { useAutoSave } from './hooks/useAutoSave';
 
 import { DraftRestoreBanner } from './DraftRestoreBanner';
 import { AutoSaveIndicator } from './AutoSaveIndicator';
+import * as XLSX from 'xlsx';
 import api from '../../services/api';
 import '../../assets/css/startBuild.css';
 
@@ -43,6 +44,8 @@ const StartBuild = () => {
   const [reworkBuildIndex, setReworkBuildIndex] = useState(null);
   const [savingIndex, setSavingIndex] = useState(null);
   const [savedIndex, setSavedIndex] = useState(null);
+  const [bulkImportStatus, setBulkImportStatus] = useState(null);
+  const bulkImportRef = useRef(null);
 
   // ============ BUILDS STATE HOOK ============
   const {
@@ -184,6 +187,8 @@ const StartBuild = () => {
         // Also add build_engineer for backend compatibility
         build_engineer: build.generalInfo.buildEngineer,
         isCustomConfig: build.generalInfo.isCustomConfig === 'Yes',
+        assetId: build.systemInfo.assetId || null,
+        extractLogFile: build.systemInfo.extractLogFile || null,
         systemInfo: build.systemInfo,
         qualityDetails: {
           ...build.qualityDetails,
@@ -276,6 +281,26 @@ const StartBuild = () => {
       save.setSaving(false);
     }
   };
+
+
+    const handleExtractLog = async (buildIndex) => {
+    const chassisSN = builds[buildIndex]?.systemInfo?.chassisSN;
+
+    handleInputChange(buildIndex, 'systemInfo', 'extractLogStatus', 'extracting');
+    handleInputChange(buildIndex, 'systemInfo', 'extractLogError', '');
+
+    try {
+      const bmcName = builds[buildIndex]?.systemInfo?.bmcName;
+      const result = await api.extractLog(chassisSN, bmcName);
+
+      handleInputChange(buildIndex, 'systemInfo', 'extractLogStatus', 'done');
+      handleInputChange(buildIndex, 'systemInfo', 'extractLogFile', result.filename);
+    } catch (err) {
+      handleInputChange(buildIndex, 'systemInfo', 'extractLogStatus', '');
+      handleInputChange(buildIndex, 'systemInfo', 'extractLogError', err.message || 'Failed to extract log.');
+    }
+  };
+
 
   /*
   const saveReworkPass = async (buildIndex) => {
@@ -371,6 +396,7 @@ const StartBuild = () => {
         // Also add build_engineer for backend compatibility
         build_engineer: build.generalInfo.buildEngineer,
         isCustomConfig: build.generalInfo.isCustomConfig === 'Yes',
+        assetId: build.systemInfo.assetId || null,
         systemInfo: build.systemInfo,
         qualityDetails: {
           ...build.qualityDetails,
@@ -545,11 +571,93 @@ const StartBuild = () => {
     setReworkBuildIndex(null);
   };
 
+  // Handle bulk import from XLSX
+  // Handle bulk import from XLSX/XLS
+  const handleBulkImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';
+
+    setBulkImportStatus({ type: 'loading', message: 'Reading file...' });
+
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+      let skipped = 0;
+      const newBuilds = [];
+
+      for (const row of rows) {
+        const chassisSN = String(row['Chassis S/N'] || '').trim();
+        const mbSN = String(row['MotherBoard Serial Number'] || '').trim();
+        const assetName = String(row['Asset Name'] || '').trim();
+        const assetId = String(row['Asset ID'] || '').trim();
+        const projectName = String(row['Project name'] || '').trim();
+        const socket = String(row['Socket'] || '').trim();
+
+
+        if (!chassisSN) { skipped++; continue; }
+
+        try {
+          const existing = await api.getBuild(chassisSN);
+          if (existing) { skipped++; continue; }
+        } catch {
+          // Not found — safe to add
+        }
+
+            const PROJECT_NAME_MAP = {
+          'venice': 'Weisshorn SP8',
+        };
+        const mappedProjectName = PROJECT_NAME_MAP[projectName.toLowerCase()] || projectName;
+
+        const emptyBuild = createEmptyBuild();
+        newBuilds.push({
+          ...emptyBuild,
+          generalInfo: {
+            location: builds[0]?.generalInfo?.location || '',
+            buildEngineer: builds[0]?.generalInfo?.buildEngineer || '',
+            isCustomConfig: 'No',
+          },
+          systemInfo: {
+            ...emptyBuild.systemInfo,
+            assetId,
+            chassisSN,
+            mbSN,
+            bmcName: assetName,
+            projectName: mappedProjectName,
+            cpuSocket: socket,
+          }
+        });
+
+
+      }
+
+      if (newBuilds.length > 0) {
+        setBuilds(prev => {
+          const hasOnlyEmptyBuild = prev.length === 1 && !prev[0].systemInfo.chassisSN;
+          return hasOnlyEmptyBuild ? newBuilds : [...prev, ...newBuilds];
+        });
+      }
+
+      setBulkImportStatus({ type: 'success', message: `Imported ${newBuilds.length} build(s). ${skipped} skipped (duplicate or missing chassis S/N).` });
+      setTimeout(() => setBulkImportStatus(null), 5000);
+    } catch (err) {
+      console.error('Bulk import error:', err);
+      setBulkImportStatus({ type: 'error', message: 'Failed to read file. Ensure it is a valid .xls or .xlsx file.' });
+      setTimeout(() => setBulkImportStatus(null), 5000);
+    }
+  };
+
+
+
   // Create empty build helper
   const createEmptyBuild = () => ({
     id: Date.now(),
     generalInfo: { location: '', buildEngineer: '', isCustomConfig: '' },
     systemInfo: {
+      assetId: '',
       projectName: '', systemPN: '', platformType: '', manufacturer: '',
       chassisSN: '', chassisType: '', bmcName: '', bmcMac: '', mbSN: '',
       ethernetMac: '', cpuSocket: '', cpuProgramName: '', cpuP0SN: '',
@@ -692,7 +800,34 @@ const StartBuild = () => {
           >
             <FontAwesomeIcon icon={faEye} /> {showReview ? 'Hide' : 'Show'} Review
           </button>
+          <button
+            className="btn-secondary"
+            onClick={() => bulkImportRef.current?.click()}
+          >
+            Import Bulk
+          </button>
+          <input
+            ref={bulkImportRef}
+            type="file"
+            accept=".xls,.xlsx"
+            style={{ display: 'none' }}
+            onChange={handleBulkImport}
+          />
         </div>
+        {bulkImportStatus && (
+          <div style={{
+            margin: '8px 0',
+            padding: '10px 16px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            background: bulkImportStatus.type === 'success' ? '#eafaf1' : bulkImportStatus.type === 'error' ? '#fdedec' : '#eaf4fb',
+            color: bulkImportStatus.type === 'success' ? '#1e8449' : bulkImportStatus.type === 'error' ? '#c0392b' : '#2471a3',
+            border: `1px solid ${bulkImportStatus.type === 'success' ? '#a9dfbf' : bulkImportStatus.type === 'error' ? '#f1948a' : '#85c1e9'}`
+          }}>
+            {bulkImportStatus.message}
+          </div>
+        )}
+
       </div>
 
       <ProgressTracker
@@ -734,6 +869,7 @@ const StartBuild = () => {
           systemInfoSubStep={systemInfoSubStep}
           showReview={showReview}
           handleInputChange={handleInputChange}
+          onExtractLog={handleExtractLog}
           partNumberSuggestions={partNumberSuggestions}
           scannerRefs={scannerRefs}
           selectedField={selectedField}
