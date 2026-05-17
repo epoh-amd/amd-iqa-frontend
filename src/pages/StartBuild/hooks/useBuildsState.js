@@ -652,6 +652,8 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
             updatedBuilds[buildIndex].systemInfo.chassisType = 'Rackmount';
           } else if (/\-[bB]/.test(value)) {
             updatedBuilds[buildIndex].systemInfo.chassisType = 'Benchtop';
+          } else {
+            updatedBuilds[buildIndex].systemInfo.chassisType = '';
           }
 
           // Extract manufacturer prefix and get manufacturer

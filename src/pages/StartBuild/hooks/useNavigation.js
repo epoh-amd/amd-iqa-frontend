@@ -91,9 +91,9 @@ export const useNavigation = (
       if (build.systemInfo.systemPN && !build.systemInfo.platformType) {
         errors.push(`Build ${i + 1}: Platform Type not populated. Please verify System P/N is valid.`);
       }
-      if (build.systemInfo.systemPN && !build.systemInfo.chassisType) {
-        errors.push(`Build ${i + 1}: Chassis Type not populated. Please verify System P/N format.`);
-      }
+     // if (build.systemInfo.systemPN && !build.systemInfo.chassisType) {
+      //  errors.push(`Build ${i + 1}: Chassis Type not populated. Please verify System P/N format.`);
+     // }
       if (build.systemInfo.systemPN && !build.systemInfo.manufacturer) {
         errors.push(`Build ${i + 1}: Manufacturer not populated. Please verify System P/N is valid.`);
       }
