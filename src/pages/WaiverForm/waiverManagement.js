@@ -183,6 +183,8 @@ const WaiverManagement = () => {
   const [cancelTarget, setCancelTarget] = useState(null); // { waiverId, reason }
   const [actionLoading, setActionLoading] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [approveTarget, setApproveTarget] = useState(null); // waiverId
+  const [closedTarget, setClosedTarget] = useState(null);   // waiverId
   const navigate = useNavigate();
 
 
@@ -223,9 +225,18 @@ const WaiverManagement = () => {
     setActionLoading(waiverId);
     try {
       const cancelledBy = status === 'Cancelled' ? `Approver: ${user?.full_name || ''}` : null;
-      await api.updateWaiverStatus(waiverId, status, reason, cancelledBy);
+      const approvedBy = status === 'Approved' ? (user?.full_name || '') : null;
+      await api.updateWaiverStatus(waiverId, status, reason, cancelledBy, approvedBy);
       setApprovals(prev => prev.filter(w => w.waiver_id !== waiverId));
       setCancelTarget(null);
+      if (status === 'Approved' || status === 'Cancelled') {
+        api.sendWaiverStatusNotification({
+          waiverId,
+          status,
+          actionBy: user?.full_name || '',
+          cancelReason: reason || null,
+        });
+      }
     } catch (err) {
       console.error('Action failed:', err);
     } finally {
@@ -313,7 +324,8 @@ const WaiverManagement = () => {
                         <th>Product Part Number</th>
                         <th>Submitted By</th>
                         <th>Submitted Date</th>
-                       <th>Action</th>
+                        <th>Approved By</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -342,7 +354,10 @@ const WaiverManagement = () => {
                           <td>{w.part_number || '-'}</td>
                           <td>{w.submitted_by || '-'}</td>
                           <td>{w.submitted_at ? new Date(w.submitted_at).toLocaleDateString() : '-'}</td>
-                                                                   <td>
+                          <td style={{ fontSize: '13px', color: w.approved_by ? '#2e7d32' : '#aaa' }}>
+                            {w.approved_by || '-'}
+                          </td>
+                          <td>
                         {w.status === 'Cancelled' ? (() => {
                           const cancelledBy = w.cancelled_by || '';
                           const cancelReason = w.cancel_reason || '';
@@ -395,7 +410,7 @@ const WaiverManagement = () => {
                               <button
                                 className="wm-btn-approve"
                                 disabled={actionLoading === w.waiver_id}
-                                onClick={() => handleAction(w.waiver_id, 'Approved')}
+                                onClick={() => setApproveTarget(w.waiver_id)}
                               >
                                 Approve
                               </button>
@@ -404,7 +419,7 @@ const WaiverManagement = () => {
                               <button
                                 className="wm-btn-cancel"
                                 disabled={actionLoading === w.waiver_id}
-                                onClick={() => handleAction(w.waiver_id, 'Closed')}
+                                onClick={() => setClosedTarget(w.waiver_id)}
                               >
                                 Closed
                               </button>
@@ -499,12 +514,7 @@ const WaiverManagement = () => {
             <h3>Cancel Waiver</h3>
             <p>Confirm cancel — <strong>this action cannot be undone.</strong></p>
             <div className="waiver-modal-actions">
-              <button
-                className="waiver-modal-cancel"
-                onClick={() => setShowCancelConfirm(false)}
-              >
-                Go Back
-              </button>
+              <button className="waiver-modal-cancel" onClick={() => setShowCancelConfirm(false)}>Go Back</button>
               <button
                 className="waiver-modal-delete"
                 onClick={() => {
@@ -513,6 +523,50 @@ const WaiverManagement = () => {
                 }}
               >
                 Yes, Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {approveTarget && (
+        <div className="waiver-modal-overlay">
+          <div className="waiver-modal">
+            <h3>Approve Waiver</h3>
+            <p>Confirm approval for <strong>{approveTarget}</strong> — this action cannot be undone.</p>
+            <div className="waiver-modal-actions">
+              <button className="waiver-modal-cancel" onClick={() => setApproveTarget(null)}>Go Back</button>
+              <button
+                className="wm-btn-approve"
+                onClick={() => {
+                  const id = approveTarget;
+                  setApproveTarget(null);
+                  handleAction(id, 'Approved');
+                }}
+              >
+                Yes, Approve
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {closedTarget && (
+        <div className="waiver-modal-overlay">
+          <div className="waiver-modal">
+            <h3>Close Waiver</h3>
+            <p>Confirm closing <strong>{closedTarget}</strong> — this action cannot be undone.</p>
+            <div className="waiver-modal-actions">
+              <button className="waiver-modal-cancel" onClick={() => setClosedTarget(null)}>Go Back</button>
+              <button
+                className="waiver-modal-delete"
+                onClick={() => {
+                  const id = closedTarget;
+                  setClosedTarget(null);
+                  handleAction(id, 'Closed');
+                }}
+              >
+                Yes, Close
               </button>
             </div>
           </div>

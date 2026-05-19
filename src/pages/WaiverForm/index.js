@@ -5,6 +5,7 @@ import { getAllConfig } from './waiverConfig';
 import { useAuth } from '../../contexts/AuthContext.js';
 import { useNavigate } from 'react-router-dom';
 
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 
 const generateWaiverId = () => {
   const year = new Date().getFullYear().toString().slice(-2); // 2026 -> 26
@@ -495,8 +496,49 @@ const WaiverForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
     setSubmitMessage(null);
+
+    // Validate required fields
+    const activeTypes = formData.waiverType || [];
+    const errors = [];
+
+    if (!formData.partNumber?.trim()) errors.push('AMD Product Part Number');
+    if (!formData.revision?.trim()) errors.push('AMD Product Revision');
+    if (!formData.description?.trim()) errors.push('AMD Product Description');
+    if (!formData.subcontractor) errors.push('Affected Subcontractor');
+    if (!formData.assemblyLevel) errors.push('Assembly Level');
+    if (!formData.requestor?.trim()) errors.push('Requestor Name');
+    if (!formData.startDate) errors.push('Waiver Start Date');
+    if (activeTypes.length === 0) errors.push('Waiver Type (at least one)');
+    if (!formData.reason?.trim()) errors.push('Reason / Justification');
+
+    // Section-specific required fields
+    if (activeTypes.includes('Material Waiver')) {
+      const hasValidRow = materialRows.some(r => r.currentPart?.trim() || r.newPart?.trim());
+      if (!hasValidRow) errors.push('Material Waiver: at least one row with Current or New Part');
+    }
+    if (activeTypes.includes('Process Waiver') && !processData.instructions?.trim())
+      errors.push('Process Waiver: Instructions');
+    if (activeTypes.includes('Test Waiver')) {
+      if (!testData.currentPart?.trim()) errors.push('Test Waiver: Current Part Number');
+      if (!testData.toBePart?.trim()) errors.push('Test Waiver: To Be Part Number');
+      if (!testData.instructions?.trim()) errors.push('Test Waiver: Instructions');
+    }
+    if (activeTypes.includes('Spec Deviation')) {
+      if (!specData.specImpact?.trim()) errors.push('Spec Deviation: Specifications/Drawings impacted');
+      if (!specData.instructions?.trim()) errors.push('Spec Deviation: Instructions');
+    }
+    if (activeTypes.includes('Rework Waiver') && !reworkData.instructions?.trim())
+      errors.push('Rework Waiver: Instructions');
+    if (activeTypes.includes('Label Waiver') && !labelData.instructions?.trim())
+      errors.push('Label Waiver: Instructions');
+
+    if (errors.length > 0) {
+      setSubmitMessage({ type: 'error', text: `Please fill in the following required fields:\n• ${errors.join('\n• ')}` });
+      return;
+    }
+
+    setSubmitting(true);
 
     try {
       const payload = {
@@ -509,17 +551,17 @@ const WaiverForm = () => {
         requestor: formData.requestor,
         startDate: formData.startDate,
         endDate: formData.endDate,
-        waiverType: formData.waiverType,
+        waiverType: activeTypes,
         reason: formData.reason,
         workorder: formData.workorder,
         workorderQty: formData.workorderQty,
         submittedBy: user?.full_name || user?.email || '',
-        materialRows,
-        processData,
-        testData,
-        specData,
-        reworkData,
-        labelData,
+        materialRows: activeTypes.includes('Material Waiver') ? materialRows : [],
+        processData: activeTypes.includes('Process Waiver') ? processData : { instructions: '', file: null },
+        testData: activeTypes.includes('Test Waiver') ? testData : { currentPart: '', toBePart: '', instructions: '', file: null },
+        specData: activeTypes.includes('Spec Deviation') ? specData : { specImpact: '', instructions: '', file1: null, file2: null },
+        reworkData: activeTypes.includes('Rework Waiver') ? reworkData : { instructions: '', file: null },
+        labelData: activeTypes.includes('Label Waiver') ? labelData : { instructions: '', file: null },
         openSections: openSection,
       };
 
@@ -540,26 +582,26 @@ const WaiverForm = () => {
         setTimeout(() => setPageMessage(null), 4000);
         return;
       }
+await api.submitWaiver(payload);
 
-      await api.submitWaiver(payload);
-      await api.sendNewWaiverNotification({
-        waiverId: formData.waiverId,
-        partNumber: formData.partNumber,
-        submittedBy: user?.full_name,
-        approvers,
-      });
+// Remove from drafts after successful submit
+try {
+  await api.deleteWaiver(formData.waiverId);
+} catch (err) {
+  console.warn('Could not delete draft after submit:', err);
+}
 
-      // Remove from drafts after successful submit
-      try {
-        await api.deleteWaiver(formData.waiverId);
-      } catch (err) {
-        console.warn('Could not delete draft after submit:', err);
-      }
-      setShowForm(false);
-      setActiveTab('drafts');
-      fetchDrafts();
-      setPageMessage({ type: 'success', text: `Waiver ${formData.waiverId} submitted successfully!` });
-      setTimeout(() => setPageMessage(null), 4000);
+// Navigate to WaiverView — it captures PDF from its own rendered output
+// and sends the email, guaranteeing identical PDF to Download PDF
+navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
+  state: {
+    approvers,
+    submittedBy: user?.full_name,
+    description: formData.description,
+    reason: formData.reason,
+  },
+});
+
 
     } catch (err) {
       console.error('Submit failed:', err);
@@ -1050,7 +1092,8 @@ const WaiverForm = () => {
                                   : cancelledBy.trim();
 
                                 let displayText = status;
-                                if (isApproverCancel) displayText = `Cancelled by ${cancellerName}`;
+                                if (status === 'Approved' && w.approved_by) displayText = `Approved by ${w.approved_by}`;
+                                else if (isApproverCancel) displayText = `Cancelled by ${cancellerName}`;
                                 else if (isRequestorCancel) displayText = 'Cancelled (by you)';
                                 else if (status === 'Cancelled' && cancelledBy) displayText = `Cancelled by ${cancelledBy}`;
 
@@ -1190,8 +1233,8 @@ const WaiverForm = () => {
             type="button"
             onClick={
               approverEditMode ? () => navigate(-1) :
-              requestorEditMode ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); } :
-              handleBackToList
+                requestorEditMode ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); } :
+                  handleBackToList
             }
             style={{
               margin: '16px 0', padding: '8px 16px', cursor: 'pointer',
@@ -1448,7 +1491,7 @@ const WaiverForm = () => {
                                   /* If file exists → show filename + actions */
                                   <div className="file-preview">
                                     <a
-                                      href={`http://localhost:5000${row.file}`}
+                                      href={`${BASE_URL}${row.file}`}
                                       target="_blank"
                                       rel="noreferrer"
                                       className="file-link"
@@ -1522,7 +1565,7 @@ const WaiverForm = () => {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`http://localhost:5000${processData.file}`}
+                          href={`${BASE_URL}${processData.file}`}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1593,7 +1636,7 @@ const WaiverForm = () => {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`http://localhost:5000${testData.file}`}
+                          href={`${BASE_URL}${testData.file}`}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1645,7 +1688,7 @@ const WaiverForm = () => {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`http://localhost:5000${reworkData.file}`}
+                          href={`${BASE_URL}${reworkData.file}`}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1706,7 +1749,7 @@ const WaiverForm = () => {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`http://localhost:5000${specData.file1}`}
+                          href={`${BASE_URL}${specData.file1}`}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1750,7 +1793,7 @@ const WaiverForm = () => {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`http://localhost:5000${specData.file2}`}
+                          href={`${BASE_URL}${specData.file2}`}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1803,7 +1846,7 @@ const WaiverForm = () => {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`http://localhost:5000${labelData.file}`}
+                          href={`${BASE_URL}${labelData.file}`}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1838,6 +1881,7 @@ const WaiverForm = () => {
                 marginTop: '16px',
                 padding: '12px 16px',
                 borderRadius: '6px',
+                whiteSpace: 'pre-line',
                 background: submitMessage.type === 'success' ? '#d4edda' : '#f8d7da',
                 color: submitMessage.type === 'success' ? '#155724' : '#721c24',
                 border: `1px solid ${submitMessage.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`

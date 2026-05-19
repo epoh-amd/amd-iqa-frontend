@@ -297,17 +297,34 @@ bulkUpdateBuilds: async (updates) => {
     throw error;
   }
 },
-sendNewWaiverNotification: async ({ waiverId, partNumber, submittedBy, approvers }) => {
+sendNewWaiverNotification: async ({ waiverId, partNumber, description, reason, submittedBy, approvers, pdfBase64  }) => {
   try {
     const response = await axios.post(`${API_URL}/email/waiver/notify`, {
-      waiverId,
+     waiverId,
       partNumber,
+      description,
+      reason,
       submittedBy,
       approvers,
+      pdfBase64
     });
     return response.data;
   } catch (error) {
     console.error('Failed to send waiver notification:', error);
+  }
+},
+
+sendWaiverStatusNotification: async ({ waiverId, status, actionBy, cancelReason }) => {
+  try {
+    const response = await axios.post(`${API_URL}/email/waiver/status-notify`, {
+      waiverId,
+      status,
+      actionBy,
+      cancelReason,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to send waiver status notification:', error);
   }
 },
 
@@ -513,9 +530,9 @@ getWaiversForApproval: async () => {
   }
 },
 
-updateWaiverStatus: async (waiverId, status, reason = null, cancelledBy=null) => {
+updateWaiverStatus: async (waiverId, status, reason = null, cancelledBy = null, approvedBy = null) => {
   try {
-    const response = await axios.patch(`${API_URL}/waivers/${waiverId}/status`, { status, reason, cancelledBy });
+    const response = await axios.patch(`${API_URL}/waivers/${waiverId}/status`, { status, reason, cancelledBy, approvedBy });
     return response.data;
   } catch (error) {
     console.error('Error updating waiver status:', error);

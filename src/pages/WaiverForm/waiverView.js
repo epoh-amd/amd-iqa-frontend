@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../../assets/css/waiver.css';
 import api from '../../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { generateWaiverPDFBase64 } from '../../utils/waiverPdfGenerator';
+
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 
 const WAIVER_TYPE_TO_SECTION = {
     'Material Waiver': 'material',
@@ -38,166 +41,61 @@ const WaiverView = () => {
     }, []);
 
     const [downloading, setDownloading] = useState(false);
+    const isSendEmail = new URLSearchParams(window.location.search).get('sendEmail') === 'true';
+    const [submitBanner, setSubmitBanner] = useState(isSendEmail ? 'sending' : null);
+    const emailSentRef = useRef(false);
+    const location = useLocation();
+
+    // Auto-send email with PDF when navigated here after waiver submission
+    useEffect(() => {
+        if (!isSendEmail) return;
+        if (!data || emailSentRef.current) return;
+        emailSentRef.current = true;
+
+        const sendEmailWithPDF = async () => {
+            await new Promise(r => setTimeout(r, 100));
+            const element = document.querySelector('.waiver-container');
+            if (!element) return;
+            try {
+                const base64 = await generateWaiverPDFBase64(element);
+                const state = location.state || {};
+                await api.sendNewWaiverNotification({
+                    waiverId: data.waiverId,
+                    partNumber: data.partNumber,
+                    description: data.description,
+                    reason: data.reason,
+                    submittedBy: data.submittedBy,
+                    approvers: state.approvers || [],
+                    pdfBase64: base64,
+                });
+                setSubmitBanner('success');
+            } catch (err) {
+                console.error('Failed to send email notification:', err);
+                setSubmitBanner('error');
+            }
+            window.history.replaceState({}, '', `/waiver-view?id=${data.waiverId}`);
+        };
+
+        sendEmailWithPDF();
+    }, [data]);
 
     const handleDownloadPDF = async () => {
+
         const element = document.querySelector('.waiver-container');
         if (!element) return;
-
         setDownloading(true);
         try {
-            const html2canvas = (await import('html2canvas')).default;
-            const { jsPDF } = await import('jspdf');
-            // Clone content into an off-screen container with no height/overflow constraints
-            const clone = element.cloneNode(true);
-
-            clone.querySelectorAll('button').forEach(el => el.remove());
-
-            const temp = document.createElement('div');
-            temp.style.cssText = `
-          position: fixed;
-          top: 0;
-          left: -9999px;
-          width: 1200px;
-          background: white;
-          overflow: visible;
-          height: auto;
-          padding: 20px;
-          box-sizing: border-box;
-        `;
-            temp.appendChild(clone);
-            document.body.appendChild(temp);
-
-            // Wait for content to fully render
-            await new Promise(resolve => setTimeout(resolve, 400));
-
-            const canvas = await html2canvas(temp, {
-                scale: 1,
-                useCORS: true,
-                allowTaint: true,
-                width: 1200,
-                windowWidth: 1200,
-                autoPaging: 'text',
-                scrollX: 0,
-                scrollY: 0,
-            });
-
-            document.body.removeChild(temp);
-
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = pageWidth;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            let position = 0;
-            let remaining = imgHeight;
-
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            remaining -= pageHeight;
-
-            while (remaining > 0) {
-                position -= pageHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                remaining -= pageHeight;
-            }
-
-            pdf.save(`waiver-${waiverId || 'form'}.pdf`);
+            const base64 = await generateWaiverPDFBase64(element);
+            const link = document.createElement('a');
+            link.href = `data:application/pdf;base64,${base64}`;
+            link.download = `waiver-${waiverId || 'form'}.pdf`;
+            link.click();
         } catch (err) {
             console.error('PDF generation failed:', err);
         } finally {
             setDownloading(false);
         }
     };
-
-    const handleDownloadPDF_unused = () => {
-        const element = document.querySelector('.waiver-container');
-
-        if (!element) return;
-
-        const styles = Array.from(document.styleSheets)
-            .map(sheet => {
-                try {
-                    return Array.from(sheet.cssRules).map(r => r.cssText).join('\n');
-                } catch (e) {
-                    return sheet.href ? `@import url('${sheet.href}');` : '';
-                }
-            })
-            .join('\n');
-
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Waiver ${waiverId || ''}</title>
-            <style>
-              ${styles}
-
-              @page { size: A4; margin: 15mm; }
-
-              /* Override all layout height/overflow constraints */
-              *, *::before, *::after {
-                overflow: visible !important;
-                max-height: none !important;
-                height: auto !important;
-                min-height: 0 !important;
-              }
-
-              html, body {
-                margin: 0 !important;
-                padding: 20px !important;
-                background: white !important;
-                width: 100% !important;
-                overflow: visible !important;
-              }
-
-              .waiver-container {
-                max-width: 100% !important;
-                width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                background: white !important;
-                overflow: visible !important;
-              }
-
-              .wv-download-btn,
-              .waiver-view-badge { display: none !important; }
-
-              .accordion-body { display: block !important; }
-
-              .accordion, .form-section, tr { page-break-inside: avoid; }
-
-              .title-header, .accordion-header {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-
-              .material-table th,
-              .material-table td { border: 1px solid #ddd !important; }
-            </style>
-          </head>
-          <body>
-            <div class="waiver-container">
-              ${element.innerHTML}
-            </div>
-            <script>
-              window.onload = function() {
-                setTimeout(function() {
-                  window.print();
-                  window.onafterprint = function() { window.close(); };
-                }, 600);
-              };
-            </script>
-          </body>
-        </html>
-      `);
-        printWindow.document.close();
-    };
-
-
 
     if (loading) return <div className="waiver-container"><p>Loading...</p></div>;
     if (error) return <div className="waiver-container"><p style={{ color: '#dc3545' }}>{error}</p></div>;
@@ -222,13 +120,55 @@ const WaiverView = () => {
 
 
     return (
-        <div className="waiver-container">
+        <>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
+            {submitBanner === 'sending' && (
+                <div style={{
+                    margin: '0 0 16px 0', padding: '12px 16px',
+                    background: '#e8f4fd', border: '1px solid #bee5eb',
+                    borderRadius: '6px', color: '#0c5460', fontWeight: 500,
+                    display: 'flex', alignItems: 'center', gap: '10px'
+                }}>
+                    <span style={{
+                        width: 18, height: 18, border: '3px solid #0c5460',
+                        borderTopColor: 'transparent', borderRadius: '50%',
+                        display: 'inline-block', animation: 'spin 0.8s linear infinite',
+                        flexShrink: 0
+                    }} />
+                    Waiver <strong style={{ margin: '0 4px' }}>{waiverId}</strong> submitted. Generating and sending email notification...
+                </div>
+            )}
+            {submitBanner === 'success' && (
+                <div style={{
+                    margin: '0 0 16px 0', padding: '12px 16px',
+                    background: '#d4edda', border: '1px solid #c3e6cb',
+                    borderRadius: '6px', color: '#155724', fontWeight: 500,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                }}>
+                    <span>Waiver <strong>{waiverId}</strong> submitted successfully! Email notification sent to approvers.</span>
+                    <span style={{ cursor: 'pointer', fontWeight: 700, marginLeft: 12 }} onClick={() => setSubmitBanner(null)}>✕</span>
+                </div>
+            )}
+            {submitBanner === 'error' && (
+                <div style={{
+                    margin: '0 0 16px 0', padding: '12px 16px',
+                    background: '#fff3cd', border: '1px solid #ffc107',
+                    borderRadius: '6px', color: '#856404', fontWeight: 500,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                }}>
+                    <span>Waiver <strong>{waiverId}</strong> submitted successfully, but email notification could not be sent.</span>
+                    <span style={{ cursor: 'pointer', fontWeight: 700, marginLeft: 12 }} onClick={() => setSubmitBanner(null)}>✕</span>
+                </div>
+            )}
+
+            <div className="waiver-container">
             {/* Header */}
             <div className="title-header">
                 <h4 className="waiver-title" style={{ textAlign: 'center' }}>AMD Waiver Request Form</h4>
             </div>
 
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '16px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '16px 0' }}>
                 <button
                     onClick={() => navigate(-1)}
                     style={{
@@ -244,8 +184,6 @@ const WaiverView = () => {
                     {downloading ? 'Generating...' : '⬇ Download PDF'}
                 </button>
             </div>
-
-
 
             {/* Waiver ID */}
             <div className="form-section">
@@ -344,7 +282,7 @@ const WaiverView = () => {
                                             <td>{row.instructions || '-'}</td>
                                             <td>
                                                 {row.file_path ? (
-                                                    <a href={`http://localhost:5000${row.file_path}`} target="_blank" rel="noreferrer" className="file-link">
+                                                    <a href={`${BASE_URL}${row.file_path}`} target="_blank" rel="noreferrer" className="file-link">
                                                         {row.file_path.split('/').pop()}
                                                     </a>
                                                 ) : '-'}
@@ -367,7 +305,7 @@ const WaiverView = () => {
                         <label>Instructions</label>
                         <span className="wv-value wv-multiline">{processData.instructions || '-'}</span>
                         {processData.file && (
-                            <a href={`http://localhost:5000${processData.file}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={`${BASE_URL}${processData.file}`} target="_blank" rel="noreferrer" className="file-link">
                                 {processData.file.split('/').pop()}
                             </a>
                         )}
@@ -389,7 +327,7 @@ const WaiverView = () => {
                         <label>Instructions</label>
                         <span className="wv-value wv-multiline">{testData.instructions || '-'}</span>
                         {testData.file && (
-                            <a href={`http://localhost:5000${testData.file}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={`${BASE_URL}${testData.file}`} target="_blank" rel="noreferrer" className="file-link">
                                 {testData.file.split('/').pop()}
                             </a>
                         )}
@@ -405,7 +343,7 @@ const WaiverView = () => {
                         <label>Instructions</label>
                         <span className="wv-value wv-multiline">{reworkData.instructions || '-'}</span>
                         {reworkData.file && (
-                            <a href={`http://localhost:5000${reworkData.file}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={`${BASE_URL}${reworkData.file}`} target="_blank" rel="noreferrer" className="file-link">
                                 {reworkData.file.split('/').pop()}
                             </a>
                         )}
@@ -421,14 +359,14 @@ const WaiverView = () => {
                         <label>Specifications/Drawings impacted</label>
                         <span className="wv-value wv-multiline">{specData.specImpact || '-'}</span>
                         {specData.file1 && (
-                            <a href={`http://localhost:5000${specData.file1}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={`${BASE_URL}${specData.file1}`} target="_blank" rel="noreferrer" className="file-link">
                                 {specData.file1.split('/').pop()}
                             </a>
                         )}
                         <label><br />Instructions</label>
                         <span className="wv-value wv-multiline">{specData.instructions || '-'}</span>
                         {specData.file2 && (
-                            <a href={`http://localhost:5000${specData.file2}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={`${BASE_URL}${specData.file2}`} target="_blank" rel="noreferrer" className="file-link">
                                 {specData.file2.split('/').pop()}
                             </a>
                         )}
@@ -444,7 +382,7 @@ const WaiverView = () => {
                         <label>Instructions</label>
                         <span className="wv-value wv-multiline">{labelData.instructions || '-'}</span>
                         {labelData.file && (
-                            <a href={`http://localhost:5000${labelData.file}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={`${BASE_URL}${labelData.file}`} target="_blank" rel="noreferrer" className="file-link">
                                 {labelData.file.split('/').pop()}
                             </a>
                         )}
@@ -452,6 +390,7 @@ const WaiverView = () => {
                 )}
             </div>
         </div>
+        </>
     );
 };
 
