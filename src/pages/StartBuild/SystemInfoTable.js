@@ -219,7 +219,7 @@ useEffect(() => {
                 <th>Boot to OS/Shell</th>
                 <th>DIMMs Detected</th>
                 <th>LOM Working</th>
-                
+                <th>Extract Log</th>
               </>
             )}
           </tr>
@@ -997,7 +997,27 @@ useEffect(() => {
                                    </div>
                   </td>
 
-                
+                  <td>
+                    <div className="test-field">
+                      <button
+                        className="upload-btn-small"
+                        disabled={build.systemInfo.extractLogStatus === 'extracting'}
+                        onClick={() => onExtractLog && onExtractLog(buildIndex)}
+                      >
+                        {build.systemInfo.extractLogStatus === 'extracting' ? 'Extracting...' : 'Extract'}
+                      </button>
+                      {build.systemInfo.extractLogFile && (
+                        <div style={{ marginTop: '6px', fontSize: '12px', color: '#27ae60' }}>
+                          ✓ {build.systemInfo.extractLogFile}
+                        </div>
+                      )}
+                      {build.systemInfo.extractLogError && (
+                        <div style={{ marginTop: '6px', fontSize: '12px', color: '#c0392b' }}>
+                          {build.systemInfo.extractLogError}
+                        </div>
+                      )}
+                    </div>
+                  </td>
                 </>
               )}
             </tr>
