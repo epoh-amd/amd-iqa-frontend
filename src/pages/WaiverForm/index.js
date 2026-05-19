@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext.js';
 import { useNavigate } from 'react-router-dom';
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+const toFileUrl = (filePath) => filePath ? `${BASE_URL}${filePath.replace('/drafts/', '/api/drafts/')}` : '';
 
 const generateWaiverId = () => {
   const year = new Date().getFullYear().toString().slice(-2); // 2026 -> 26
@@ -1491,7 +1492,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                                   /* If file exists → show filename + actions */
                                   <div className="file-preview">
                                     <a
-                                      href={`${BASE_URL}${row.file}`}
+                                      href={toFileUrl(row.file)}
                                       target="_blank"
                                       rel="noreferrer"
                                       className="file-link"
@@ -1565,7 +1566,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`${BASE_URL}${processData.file}`}
+                          href={toFileUrl(processData.file)}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1636,7 +1637,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`${BASE_URL}${testData.file}`}
+                          href={toFileUrl(testData.file)}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1688,7 +1689,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`${BASE_URL}${reworkData.file}`}
+                          href={toFileUrl(reworkData.file)}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1749,7 +1750,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`${BASE_URL}${specData.file1}`}
+                          href={toFileUrl(specData.file1)}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1793,7 +1794,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`${BASE_URL}${specData.file2}`}
+                          href={toFileUrl(specData.file2)}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"
@@ -1846,7 +1847,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                     ) : (
                       <div className="file-preview">
                         <a
-                          href={`${BASE_URL}${labelData.file}`}
+                          href={toFileUrl(labelData.file)}
                           target="_blank"
                           rel="noreferrer"
                           className="file-link"

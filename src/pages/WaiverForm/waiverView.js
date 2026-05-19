@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { generateWaiverPDFBase64 } from '../../utils/waiverPdfGenerator';
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+const toFileUrl = (filePath) => filePath ? `${BASE_URL}${filePath.replace('/drafts/', '/api/drafts/')}` : '';
 
 const WAIVER_TYPE_TO_SECTION = {
     'Material Waiver': 'material',
@@ -282,7 +283,7 @@ const WaiverView = () => {
                                             <td>{row.instructions || '-'}</td>
                                             <td>
                                                 {row.file_path ? (
-                                                    <a href={`${BASE_URL}${row.file_path}`} target="_blank" rel="noreferrer" className="file-link">
+                                                    <a href={toFileUrl(row.file_path)} target="_blank" rel="noreferrer" className="file-link">
                                                         {row.file_path.split('/').pop()}
                                                     </a>
                                                 ) : '-'}
@@ -305,7 +306,7 @@ const WaiverView = () => {
                         <label>Instructions</label>
                         <span className="wv-value wv-multiline">{processData.instructions || '-'}</span>
                         {processData.file && (
-                            <a href={`${BASE_URL}${processData.file}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={toFileUrl(processData.file)} target="_blank" rel="noreferrer" className="file-link">
                                 {processData.file.split('/').pop()}
                             </a>
                         )}
@@ -327,7 +328,7 @@ const WaiverView = () => {
                         <label>Instructions</label>
                         <span className="wv-value wv-multiline">{testData.instructions || '-'}</span>
                         {testData.file && (
-                            <a href={`${BASE_URL}${testData.file}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={toFileUrl(testData.file)} target="_blank" rel="noreferrer" className="file-link">
                                 {testData.file.split('/').pop()}
                             </a>
                         )}
@@ -343,7 +344,7 @@ const WaiverView = () => {
                         <label>Instructions</label>
                         <span className="wv-value wv-multiline">{reworkData.instructions || '-'}</span>
                         {reworkData.file && (
-                            <a href={`${BASE_URL}${reworkData.file}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={toFileUrl(reworkData.file)} target="_blank" rel="noreferrer" className="file-link">
                                 {reworkData.file.split('/').pop()}
                             </a>
                         )}
@@ -359,14 +360,14 @@ const WaiverView = () => {
                         <label>Specifications/Drawings impacted</label>
                         <span className="wv-value wv-multiline">{specData.specImpact || '-'}</span>
                         {specData.file1 && (
-                            <a href={`${BASE_URL}${specData.file1}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={toFileUrl(specData.file1)} target="_blank" rel="noreferrer" className="file-link">
                                 {specData.file1.split('/').pop()}
                             </a>
                         )}
                         <label><br />Instructions</label>
                         <span className="wv-value wv-multiline">{specData.instructions || '-'}</span>
                         {specData.file2 && (
-                            <a href={`${BASE_URL}${specData.file2}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={toFileUrl(specData.file2)} target="_blank" rel="noreferrer" className="file-link">
                                 {specData.file2.split('/').pop()}
                             </a>
                         )}
@@ -382,7 +383,7 @@ const WaiverView = () => {
                         <label>Instructions</label>
                         <span className="wv-value wv-multiline">{labelData.instructions || '-'}</span>
                         {labelData.file && (
-                            <a href={`${BASE_URL}${labelData.file}`} target="_blank" rel="noreferrer" className="file-link">
+                            <a href={toFileUrl(labelData.file)} target="_blank" rel="noreferrer" className="file-link">
                                 {labelData.file.split('/').pop()}
                             </a>
                         )}
