@@ -224,12 +224,12 @@ const WaiverManagement = () => {
   const handleAction = async (waiverId, status, reason = null) => {
     setActionLoading(waiverId);
     try {
-      const cancelledBy = status === 'Cancelled' ? `Approver: ${user?.full_name || ''}` : null;
+      const cancelledBy = status === 'Rejected' ? `Approver: ${user?.full_name || ''}` : null;
       const approvedBy = status === 'Approved' ? (user?.full_name || '') : null;
       await api.updateWaiverStatus(waiverId, status, reason, cancelledBy, approvedBy);
       setApprovals(prev => prev.filter(w => w.waiver_id !== waiverId));
       setCancelTarget(null);
-      if (status === 'Approved' || status === 'Cancelled') {
+      if (status === 'Approved' || status === 'Rejected') {
         api.sendWaiverStatusNotification({
           waiverId,
           status,
@@ -303,6 +303,7 @@ const WaiverManagement = () => {
                     <option value="Approved">Approved</option>
                     <option value="Closed">Closed</option>
                     <option value="Cancelled">Cancelled</option>
+                    <option value="Rejected">Rejected</option>
                   </select>
                 </div>
                 {approvals.filter(w => {
@@ -358,7 +359,7 @@ const WaiverManagement = () => {
                             {w.approved_by || '-'}
                           </td>
                           <td>
-                        {w.status === 'Cancelled' ? (() => {
+                        {w.status === 'Rejected' ? (() => {
                           const cancelledBy = w.cancelled_by || '';
                           const cancelReason = w.cancel_reason || '';
                           const cancellerName = cancelledBy.includes(':')
@@ -368,7 +369,7 @@ const WaiverManagement = () => {
                           return (
                             <div>
                               <span style={{ fontSize: '13px', color: '#555' }}>
-                                {cancellerName ? `Cancelled by ${cancellerName}` : '-'}
+                                {cancellerName ? `Rejected by ${cancellerName}` : '-'}
                               </span>
                               {cancelReason && (
                                 <div>
@@ -435,7 +436,7 @@ const WaiverManagement = () => {
                                   )
                                 }
                               >
-                                Cancel
+                                Reject
                               </button>
                             )}
                           </div>
@@ -447,7 +448,7 @@ const WaiverManagement = () => {
                             {cancelTarget?.waiverId === w.waiver_id && (
                               <div className="wm-cancel-expand">
                                 <textarea
-                                  placeholder="Enter cancellation reason..."
+                                  placeholder="Enter rejection reason..."
                                   value={cancelTarget.reason}
                                   onChange={(e) =>
                                     setCancelTarget({ ...cancelTarget, reason: e.target.value })
@@ -458,7 +459,7 @@ const WaiverManagement = () => {
                                   disabled={!cancelTarget.reason.trim() || actionLoading === w.waiver_id}
                                   onClick={() => setShowCancelConfirm(true)}
                                 >
-                                  Confirm Cancel
+                                  Confirm Reject
                                 </button>
 
                               </div>
@@ -511,18 +512,18 @@ const WaiverManagement = () => {
       {showCancelConfirm && (
         <div className="waiver-modal-overlay">
           <div className="waiver-modal">
-            <h3>Cancel Waiver</h3>
-            <p>Confirm cancel — <strong>this action cannot be undone.</strong></p>
+            <h3>Reject Waiver</h3>
+            <p>Confirm reject — <strong>this action cannot be undone.</strong></p>
             <div className="waiver-modal-actions">
               <button className="waiver-modal-cancel" onClick={() => setShowCancelConfirm(false)}>Go Back</button>
               <button
                 className="waiver-modal-delete"
                 onClick={() => {
                   setShowCancelConfirm(false);
-                  handleAction(cancelTarget.waiverId, 'Cancelled', cancelTarget.reason);
+                  handleAction(cancelTarget.waiverId, 'Rejected', cancelTarget.reason);
                 }}
               >
-                Yes, Cancel
+                Yes, Reject
               </button>
             </div>
           </div>

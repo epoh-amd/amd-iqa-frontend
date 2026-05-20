@@ -45,6 +45,7 @@ const WaiverForm = () => {
   const isEditingRef = React.useRef(false);
   const [approverEditMode, setApproverEditMode] = useState(false);
   const [requestorEditMode, setRequestorEditMode] = useState(false);
+  const [rejectedEditMode, setRejectedEditMode] = useState(false);
 
 
   useEffect(() => {
@@ -583,6 +584,32 @@ const WaiverForm = () => {
         setTimeout(() => setPageMessage(null), 4000);
         return;
       }
+
+      // Requestor re-submitting a Cancelled waiver — reset to New and notify approvers
+      if (rejectedEditMode) {
+        await api.submitWaiver({ ...payload, status: 'New' });
+        // Send email notification to approvers
+        try {
+          await api.sendNewWaiverNotification({
+            waiverId: formData.waiverId,
+            partNumber: formData.partNumber,
+            description: formData.description,
+            reason: formData.reason,
+            submittedBy: user?.full_name || user?.email || '',
+            approvers,
+            pdfBase64: null,
+          });
+        } catch (emailErr) {
+          console.error('Failed to notify approvers after cancelled waiver re-submit:', emailErr);
+        }
+        setRejectedEditMode(false);
+        setShowForm(false);
+        setActiveTab('myforms');
+        fetchMyForms();
+        setPageMessage({ type: 'success', text: `Waiver ${formData.waiverId} re-submitted successfully! Approvers have been notified.` });
+        setTimeout(() => setPageMessage(null), 5000);
+        return;
+      }
 await api.submitWaiver(payload);
 
 // Remove from drafts after successful submit
@@ -856,6 +883,55 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
   };
 
 
+  const handleEditRejectedForm = async (waiverId) => {
+    setRejectedEditMode(true);
+    setRequestorEditMode(false);
+    isEditingRef.current = false;
+    try {
+      const data = await api.getWaiverDetails(waiverId);
+      setWaiverId(waiverId);
+      setFormData({
+        waiverId,
+        partNumber: data.partNumber || '',
+        revision: data.revision || '',
+        description: data.description || '',
+        subcontractor: data.subcontractor || '',
+        assemblyLevel: data.assemblyLevel || '',
+        requestor: data.requestor || '',
+        startDate: data.startDate ? data.startDate.toString().slice(0, 10) : new Date().toISOString().split('T')[0],
+        endDate: data.endDate ? data.endDate.toString().slice(0, 10) : '',
+        waiverType: data.waiverType || [],
+        reason: data.reason || '',
+        workorder: data.workorder || '',
+        workorderQty: data.workorderQty || '',
+        currentPart: '', newPart: '', action: '', instructions: ''
+      });
+      const sectionMap = {
+        'Material Waiver': 'material', 'Process Waiver': 'process',
+        'Test Waiver': 'test', 'Spec Deviation': 'spec',
+        'Rework Waiver': 'rework', 'Label Waiver': 'label'
+      };
+      setOpenSection((data.waiverType || []).map(t => sectionMap[t]).filter(Boolean));
+      setMaterialRows((data.materialRows || [{ currentPart: '', currentPartDescription: '', newPart: '', newPartDescription: '', action: '', instructions: '', file: null }]).map(r => ({
+        currentPart: r.current_part || r.currentPart || '',
+        currentPartDescription: r.current_part_description || r.currentPartDescription || '',
+        newPart: r.new_part || r.newPart || '',
+        newPartDescription: r.new_part_description || r.newPartDescription || '',
+        action: r.action || '',
+        instructions: r.instructions || '',
+        file: r.file || null
+      })));
+      setProcessData({ instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+      setTestData({ currentPart: data.testData?.currentPart || '', toBePart: data.testData?.toBePart || '', instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+      setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
+      setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
+      setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+      setShowForm(true);
+    } catch (err) {
+      console.error('Failed to load cancelled waiver for edit:', err);
+    }
+  };
+
   const handleReplaceClick = async (index) => {
     const updated = [...materialRows];
 
@@ -1018,6 +1094,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                   <option value="New">New</option>
                   <option value="Approved">Approved</option>
                   <option value="Cancelled">Cancelled</option>
+                  <option value="Rejected">Rejected</option>
                   <option value="Closed">Closed</option>
                 </select>
               </div>
@@ -1045,6 +1122,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                       <th>AMD Product Part Number</th>
                       <th>Reason / Justification</th>
                       <th>Status</th>
+                      <th>Updated At</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -1065,8 +1143,8 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                         const statusColor = {
                           'New': { bg: '#e8f4fd', color: '#1a73e8' },
                           'Approved': { bg: '#e8f5e9', color: '#2e7d32' },
-                          'Cancelled': { bg: '#fdecea', color: '#c62828' },
-                          'Rejected': { bg: '#fff3e0', color: '#e65100' },
+                          'Cancelled': { bg: '#fff3e0', color: '#e65100' },
+                          'Rejected': { bg: '#fdecea', color: '#c62828' },
                         }[status] || { bg: '#cfcfcf49', color: '#555' };
                         return (
                           <tr key={w.waiver_id}>
@@ -1084,7 +1162,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                               {(() => {
                                 const cancelledBy = w.cancelled_by || '';
                                 const cancelReason = w.cancel_reason || '';
-                                const isApproverCancel = status === 'Cancelled' &&
+                                const isApproverReject = status === 'Rejected' &&
                                   cancelledBy.toLowerCase().startsWith('approver:');
                                 const isRequestorCancel = status === 'Cancelled' &&
                                   cancelledBy.toLowerCase().startsWith('requestor:');
@@ -1094,9 +1172,10 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
                                 let displayText = status;
                                 if (status === 'Approved' && w.approved_by) displayText = `Approved by ${w.approved_by}`;
-                                else if (isApproverCancel) displayText = `Cancelled by ${cancellerName}`;
+                                else if (isApproverReject) displayText = `Rejected by ${cancellerName}`;
                                 else if (isRequestorCancel) displayText = 'Cancelled (by you)';
-                                else if (status === 'Cancelled' && cancelledBy) displayText = `Cancelled by ${cancelledBy}`;
+                                else if (status === 'Cancelled' && cancelledBy) displayText = `Cancelled by ${cancellerName}`;
+                                else if (status === 'Rejected' && cancelledBy) displayText = `Rejected by ${cancellerName}`;
 
                                 const isExpanded = expandedCancelReason === w.waiver_id;
 
@@ -1113,7 +1192,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                                         Modified by {w.modified_by}
                                       </div>
                                     )}
-                                    {status === 'Cancelled' && cancelReason && (
+                                    {(status === 'Rejected' || status === 'Cancelled') && cancelReason && (
                                       <div>
                                         <span
                                           className="mf-cancel-toggle"
@@ -1146,6 +1225,18 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                               })()}
                             </td>
 
+                            <td style={{ whiteSpace: 'nowrap', fontSize: '13px', color: '#555' }}>
+                              {w.updated_at ? (() => {
+                                const raw = w.updated_at;
+                                let date;
+                                if (typeof raw === 'string' && !raw.endsWith('Z') && !raw.includes('+')) {
+                                  date = new Date(raw.replace(' ', 'T') + '+08:00');
+                                } else {
+                                  date = new Date(raw);
+                                }
+                                return isNaN(date) ? '-' : date.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+                              })() : '-'}
+                            </td>
 
                             <td>
                               <div style={{ display: 'flex', gap: '6px' }}>
@@ -1158,12 +1249,22 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                                     Edit
                                   </button>
                                 )}
+                                {status === 'Cancelled' && (
+                                  <button
+                                    className="add-btn"
+                                    style={{ background: '#fd7e14', color: '#fff', border: '1px solid #fd7e14' }}
+                                    onClick={() => handleEditRejectedForm(w.waiver_id)}
+                                  >
+                                    Edit
+                                  </button>
+                                )}
                                 <button
                                   className="add-btn"
                                   onClick={() => handleDuplicate(w.waiver_id)}
                                 >
                                   Duplicate
                                 </button>
+                                {status !== 'Cancelled' && status !== 'Rejected' && (
                                 <button
                                   className="delete-btn"
                                   style={{ border: '1px solid #dc3545', padding: '4px 12px', borderRadius: '4px' }}
@@ -1177,6 +1278,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                                 >
                                   Cancel
                                 </button>
+                                )}
                               </div>
                               {cancelTarget?.waiverId === w.waiver_id && (
                                 <div style={{ marginTop: '8px' }}>
@@ -1234,7 +1336,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
             type="button"
             onClick={
               approverEditMode ? () => navigate(-1) :
-                requestorEditMode ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); } :
+                (requestorEditMode || rejectedEditMode) ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); setRejectedEditMode(false); } :
                   handleBackToList
             }
             style={{
@@ -1243,11 +1345,14 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
               fontSize: '13px', fontWeight: 500
             }}
           >
-            {approverEditMode ? '← Back to Management' : requestorEditMode ? '← Back to My Forms' : '← Back to Drafts'}
+            {approverEditMode ? '← Back to Management' : (requestorEditMode || rejectedEditMode) ? '← Back to My Forms' : '← Back to Drafts'}
           </button>
 
           {/* ── PASTE YOUR ENTIRE EXISTING <form>...</form> BLOCK HERE ── */}
           <form onSubmit={handleSubmit}>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '8px' }}>
+              <span style={{ color: '#dc3545', fontWeight: 700 }}>**</span> indicates required fields
+            </p>
             {/* Product Info */}
             <div className="form-section">
               <div className="waiver-id-row">
@@ -1256,17 +1361,17 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
               </div>
 
               <div className="field-inline">
-                <label>AMD Product Part Number:</label>
+                <label>AMD Product Part Number: <span style={{ color: '#dc3545' }}>**</span></label>
                 <input name="partNumber" value={formData.partNumber || ""} onChange={handleChange} />
               </div>
 
               <div className="field-inline">
-                <label>AMD Product Revision:</label>
+                <label>AMD Product Revision: <span style={{ color: '#dc3545' }}>**</span></label>
                 <input name="revision" value={formData.revision || ""} onChange={handleChange} />
               </div>
 
               <div className="field-inline">
-                <label>AMD Product Description:</label>
+                <label>AMD Product Description: <span style={{ color: '#dc3545' }}>**</span></label>
                 <input name="description" value={formData.description || ""} onChange={handleChange} />
               </div>
 
@@ -1274,7 +1379,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
             {/* Subcontractor */}
             <div className="form-section">
-              <label>Affected Subcontractor</label>
+              <label>Affected Subcontractor <span style={{ color: '#dc3545' }}>**</span></label>
               {subcontractors.map((item) => (
                 <label key={item}>
                   <input
@@ -1291,7 +1396,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
             {/* Assembly */}
             <div className="form-section">
-              <label>Assembly Level</label>
+              <label>Assembly Level <span style={{ color: '#dc3545' }}>**</span></label>
               {assemblyLevels.map((item) => (
                 <label key={item}>
                   <input
@@ -1309,7 +1414,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
             {/* Requestor */}
             <div className="form-section">
               <div className="field-inline">
-                <label>Requestor Name:</label>
+                <label>Requestor Name: <span style={{ color: '#dc3545' }}>**</span></label>
                 <input name="requestor" value={formData.requestor || ""} onChange={handleChange} />
               </div>
             </div>
@@ -1317,7 +1422,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
             {/* Dates */}
             <div className="form-section">
               <div className="field-inline">
-                <label>Waiver Start Date</label>
+                <label>Waiver Start Date <span style={{ color: '#dc3545' }}>**</span></label>
                 <input
                   type="date"
                   name="startDate"
@@ -1333,7 +1438,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
             {/* Waiver Type */}
             <div className="form-section">
-              <label>Waiver Type</label>
+              <label>Waiver Type <span style={{ color: '#dc3545' }}>**</span></label>
               {[
                 "Material Waiver",
                 "Process Waiver",
@@ -1358,7 +1463,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
             {/* Reason */}
             <div className="form-section">
               <div className="field-inline">
-                <label>Reason / Justification</label>
+                <label>Reason / Justification <span style={{ color: '#dc3545' }}>**</span></label>
                 <textarea name="reason" value={formData.reason || ""} onChange={handleChange}></textarea>
               </div>
             </div>
@@ -1390,9 +1495,9 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                     <table className="material-table">
                       <thead>
                         <tr>
-                          <th>Current Part</th>
+                          <th>Current Part <span style={{ color: '#dc3545' }}>**</span></th>
                           <th>Description</th>
-                          <th>New Part</th>
+                          <th>New Part <span style={{ color: '#dc3545' }}>**</span></th>
                           <th>Description</th>
                           <th>Action</th>
                           <th>Instructions</th>
@@ -1551,7 +1656,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
               {openSection.includes("process") && (
                 <div className="accordion-body">
-                  <label>Instructions</label>
+                  <label>Instructions <span style={{ color: '#dc3545' }}>**</span></label>
                   <textarea name="processdata instructions" value={processData.instructions} onChange={(e) =>
                     setProcessData({ ...processData, instructions: e.target.value })
                   }></textarea>
@@ -1605,20 +1710,20 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                 <div className="accordion-body">
 
                   <div className="field-inline">
-                    <label>Current Part Number:</label>
+                    <label>Current Part Number: <span style={{ color: '#dc3545' }}>**</span></label>
                     <input name="currentpartnum" value={testData.currentPart}
                       onChange={(e) =>
                         setTestData({ ...testData, currentPart: e.target.value })
                       } />
 
-                    <label>To Be Part Number:</label>
+                    <label>To Be Part Number: <span style={{ color: '#dc3545' }}>**</span></label>
                     <input name="tobepartnum" value={testData.toBePart}
                       onChange={(e) =>
                         setTestData({ ...testData, toBePart: e.target.value })
                       } />
                   </div>
 
-                  <label>Instructions</label>
+                  <label>Instructions <span style={{ color: '#dc3545' }}>**</span></label>
                   <textarea name="test instructions" value={testData.instructions}
                     onChange={(e) =>
                       setTestData({ ...testData, instructions: e.target.value })
@@ -1672,7 +1777,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
               {openSection.includes("rework") && (
                 <div className="accordion-body">
-                  <label>Instructions</label>
+                  <label>Instructions <span style={{ color: '#dc3545' }}>**</span></label>
                   <textarea name="rework instructions" value={reworkData.instructions}
                     onChange={(e) =>
                       setReworkData({ ...reworkData, instructions: e.target.value })
@@ -1726,7 +1831,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
               {openSection.includes("spec") && (
                 <div className="accordion-body">
-                  <label>Specifications/Drawings impacted</label>
+                  <label>Specifications/Drawings impacted <span style={{ color: '#dc3545' }}>**</span></label>
                   <textarea name="spec impacted" value={specData.specImpact}
                     onChange={(e) =>
                       setSpecData({ ...specData, specImpact: e.target.value })
@@ -1770,7 +1875,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                     )}
 
                   </div>
-                  <label><br></br>Instructions</label>
+                  <label><br></br>Instructions <span style={{ color: '#dc3545' }}>**</span></label>
                   <textarea name="spec instructions" value={specData.instructions}
                     onChange={(e) =>
                       setSpecData({ ...specData, instructions: e.target.value })
@@ -1831,7 +1936,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
               {openSection.includes("label") && (
                 <div className="accordion-body">
 
-                  <label>Instructions</label>
+                  <label>Instructions <span style={{ color: '#dc3545' }}>**</span></label>
                   <textarea name="instructions" value={labelData.instructions}
                     onChange={(e) =>
                       setLabelData({ ...labelData, instructions: e.target.value })
