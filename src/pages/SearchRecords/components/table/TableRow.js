@@ -11,8 +11,14 @@ const LogFileCell = ({ bmcName }) => {
     if (!bmcName) { setExists(false); return; }
     fetch(`${BACKEND_URL}/api/log-file-exists/${encodeURIComponent(bmcName)}`)
       .then(r => r.json())
-      .then(data => setExists(data.exists))
-      .catch(() => setExists(false));
+       .then(data => {
+      console.log("log-file-exists response:", data);
+      setExists(data.exists);
+    })
+    .catch(err => {
+      console.error("API error:", err);
+      setExists(false);
+    });
   }, [bmcName]);
 
   if (exists === null) return <span style={{ color: '#aaa', fontSize: '12px' }}>...</span>;
