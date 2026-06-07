@@ -13,7 +13,8 @@ const TableBody = ({
   loadTestDetails,
   loadFailureDetails,
   loadReworkHistory,
-  getStatusBadgeClass
+  getStatusBadgeClass,
+  logFileMap = {}
 }) => {
   return (
     <tbody>
@@ -30,6 +31,7 @@ const TableBody = ({
           loadFailureDetails={loadFailureDetails}
           loadReworkHistory={loadReworkHistory}
           getStatusBadgeClass={getStatusBadgeClass}
+          logFileMap={logFileMap}
         />
       ))}
     </tbody>

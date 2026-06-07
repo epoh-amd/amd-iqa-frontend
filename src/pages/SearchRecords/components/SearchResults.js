@@ -1,6 +1,6 @@
 // frontend/src/pages/SearchRecords/components/SearchResults.js
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
@@ -19,7 +19,25 @@ import FailuresModal from '../modals/FailuresModal';
 import useModalHandlers from '../hooks/useModalHandlers';
 import useTableUtils from '../hooks/useTableUtils';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || (process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 'http://localhost:5000');
+
 const SearchResults = ({ results, loading }) => {
+  const [logFileMap, setLogFileMap] = useState({});
+
+  useEffect(() => {
+    if (!results || results.length === 0) return;
+    const bmcNames = results.map(r => r.bmc_name).filter(Boolean);
+    if (!bmcNames.length) return;
+    fetch(`${BACKEND_URL}/api/log-files-exist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bmcNames })
+    })
+      .then(r => r.ok ? r.json() : {})
+      .then(data => setLogFileMap(data))
+      .catch(() => {});
+  }, [results]);
+
   const [collapsedSections, setCollapsedSections] = useState({
     general: false,
     systemInfo: false,
@@ -121,6 +139,7 @@ const SearchResults = ({ results, loading }) => {
               loadFailureDetails={loadFailureDetails}
               loadReworkHistory={loadReworkHistory}
               getStatusBadgeClass={getStatusBadgeClass}
+              logFileMap={logFileMap}
             />
           </table>
         </div>

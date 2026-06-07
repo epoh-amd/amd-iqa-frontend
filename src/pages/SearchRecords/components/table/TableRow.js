@@ -2,12 +2,15 @@
 
 import React from 'react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || (process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 'http://localhost:5000');
 
-const LogFileCell = ({ bmcName }) => {
+const LogFileCell = ({ bmcName, logFileMap }) => {
   if (!bmcName) return <span>-</span>;
+  const normalized = bmcName.toLowerCase();
+  const exists = logFileMap[normalized];
+  if (!exists) return <span>-</span>;
 
-  const fileName = `${bmcName.toLowerCase()}-os-system-checks.log`;
+  const fileName = `${normalized}-os-system-checks.log`;
 
   const handleDownload = async (e) => {
     e.stopPropagation();
@@ -47,7 +50,8 @@ const TableRow = ({
   loadTestDetails,
   loadFailureDetails,
   loadReworkHistory,
-  getStatusBadgeClass
+  getStatusBadgeClass,
+  logFileMap = {}
 }) => {
   return (
     <tr>
@@ -277,7 +281,7 @@ const TableRow = ({
             )}
           </td>
           <td className="read-only-cell col-standard column-group-separator">
-            <LogFileCell bmcName={build.bmc_name} />
+            <LogFileCell bmcName={build.bmc_name} logFileMap={logFileMap} />
           </td>
         </>
       )}
