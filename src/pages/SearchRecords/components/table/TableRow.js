@@ -8,14 +8,14 @@ const LogFileCell = ({ bmcName }) => {
   const [exists, setExists] = useState(null);
 
   useEffect(() => {
-    console.log('bmcname',bmcName);
-    const normalizedBmc = bmcName.toLowerCase();
     if (!bmcName) { setExists(false); return; }
+    const normalizedBmc = bmcName.toLowerCase();
+   // console.log('bmcname', bmcName);
     
     fetch(`${BACKEND_URL}/api/log-file-exists/${encodeURIComponent(normalizedBmc)}`)
       .then(r => r.json())
        .then(data => {
-      console.log("log-file-exists response:", data);
+    //  console.log("log-file-exists response:", data);
       setExists(data.exists);
     })
     .catch(err => {
