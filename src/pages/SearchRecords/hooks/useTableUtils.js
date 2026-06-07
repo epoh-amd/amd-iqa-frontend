@@ -18,7 +18,7 @@ const useTableUtils = (results, collapsedSections, setCpuModal, setDimmModal) =>
       case 'componentInfo': return 4;
       case 'testing': return 4;
       case 'bkcDetails': return 4;
-      case 'qualityIndicator': return 5;
+      case 'qualityIndicator': return 6;
       case 'teamLocation': return 4;
       case 'buildInfo': return 4;
       case 'misc': return 6;

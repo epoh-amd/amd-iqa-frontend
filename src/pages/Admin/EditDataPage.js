@@ -56,6 +56,16 @@ const EditDataPage = () => {
     loadProjects();
   }, []);
 
+  const removeProject = async (projectName) => {
+    try {
+      await api.deleteProject(projectName);
+      setProjectOptions(prev => prev.filter(p => p !== projectName));
+      return { success: true, message: 'Project removed successfully!' };
+    } catch (err) {
+      return { success: false, message: err.response?.data?.error || 'Failed to remove project' };
+    }
+  };
+
   const addProject = async (projectName) => {
     const trimmed = projectName.trim();
     if (!trimmed) return { success: false };
@@ -75,6 +85,12 @@ const EditDataPage = () => {
         message: err.response?.data?.error || 'Failed to add project'
       };
     }
+  };
+
+  const handleDelete = async (chassisSN) => {
+    await api.deleteBuild(chassisSN);
+    setSearchResults(prev => prev.filter(b => b.chassis_sn !== chassisSN));
+    setMessages([{ type: 'success', text: `Build ${chassisSN} deleted successfully.` }]);
   };
 
   const handleSaveAll = async () => {
@@ -221,6 +237,7 @@ const EditDataPage = () => {
         searchResults={searchResults}
         projectOptions={projectOptions}
         onAddProject={addProject}
+        onRemoveProject={removeProject}
 
       />
 
@@ -230,9 +247,10 @@ const EditDataPage = () => {
           results={searchResults}
           loading={loading}
           editedRows={editedRows}
-        setEditedRows={setEditedRows}
-        platformInfo={platformInfo}
-        setMessages={setMessages}
+          setEditedRows={setEditedRows}
+          platformInfo={platformInfo}
+          setMessages={setMessages}
+          onDelete={handleDelete}
         />
       )}
     </div>

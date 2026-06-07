@@ -225,7 +225,8 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
             <th className="col-standard">Build Status</th>
             <th className="col-wide">Problem Description</th>
             <th className="col-standard">Failure Mode</th>
-            <th className="col-standard column-group-separator">Rework</th>
+            <th className="col-standard">Rework</th>
+            <th className="col-standard column-group-separator">Log File</th>
           </>
         )}
         {collapsedSections.qualityIndicator && (

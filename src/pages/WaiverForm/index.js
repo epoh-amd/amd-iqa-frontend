@@ -1381,7 +1381,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
             <div className="form-section">
               <label>Affected Subcontractor <span style={{ color: '#dc3545' }}>**</span></label>
               {subcontractors.map((item) => (
-                <label key={item}>
+                <label key={item} style={{ width: 'fit-content' }}>
                   <input
                     type="radio"
                     name="subcontractor"
@@ -1398,7 +1398,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
             <div className="form-section">
               <label>Assembly Level <span style={{ color: '#dc3545' }}>**</span></label>
               {assemblyLevels.map((item) => (
-                <label key={item}>
+                <label key={item} style={{ width: 'fit-content' }}>
                   <input
                     type="radio"
                     name="assemblyLevel"
@@ -1447,7 +1447,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                 "Rework Waiver",
                 "Label Waiver"
               ].map((item) => (
-                <label key={item}>
+                <label key={item} style={{ width: 'fit-content' }}>
                   <input
                     type="checkbox"
                     name="waiverType"

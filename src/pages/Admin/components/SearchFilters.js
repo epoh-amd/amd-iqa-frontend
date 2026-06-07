@@ -32,7 +32,8 @@ const SearchFilters = ({
   searchResults = [],
   onSave,
   projectOptions = [],
-  onAddProject
+  onAddProject,
+  onRemoveProject
 }) => {
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [exporting, setExporting] = React.useState(false);
@@ -40,6 +41,7 @@ const SearchFilters = ({
   const [newProject, setNewProject] = React.useState('');
   const [showProjectModal, setShowProjectModal] = React.useState(false);
   const [projectMessage, setProjectMessage] = React.useState(null);
+  const [removeConfirmProject, setRemoveConfirmProject] = React.useState(null);
   // Clear localStorage when reset is clicked (now handled in parent)
   const handleReset = () => {
     onReset();
@@ -394,13 +396,45 @@ const SearchFilters = ({
                       {projectOptions.length === 0 ? (
                         <p>No projects found</p>
                       ) : (
-                        <ul>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                           {projectOptions.map((proj, idx) => (
-                            <li key={idx}>{proj}</li>
+                            <li key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #f0f0f0' }}>
+                              <span>{proj}</span>
+                              <button
+                                type="button"
+                                onClick={() => setRemoveConfirmProject(proj)}
+                                style={{ marginLeft: '8px', fontSize: '11px', padding: '2px 8px', background: '#fff', border: '1px solid #dc3545', color: '#dc3545', borderRadius: '4px', cursor: 'pointer' }}
+                              >
+                                Remove
+                              </button>
+                            </li>
                           ))}
                         </ul>
                       )}
                     </div>
+
+                    {/* Remove Confirmation */}
+                    {removeConfirmProject && (
+                      <div style={{ margin: '10px 0', padding: '10px 12px', background: '#fff3cd', border: '1px solid #ffc107', borderRadius: '6px', fontSize: '13px' }}>
+                        <p style={{ margin: '0 0 8px 0' }}>Remove <strong>{removeConfirmProject}</strong>? This cannot be undone.</p>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            className="btn confirm"
+                            onClick={async () => {
+                              const result = await onRemoveProject(removeConfirmProject);
+                              setRemoveConfirmProject(null);
+                              setProjectMessage({ type: result.success ? 'success' : 'error', text: result.message });
+                              setTimeout(() => setProjectMessage(null), 2000);
+                            }}
+                          >
+                            Yes, Remove
+                          </button>
+                          <button className="btn cancel" onClick={() => setRemoveConfirmProject(null)}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Add New Project */}
                     <input

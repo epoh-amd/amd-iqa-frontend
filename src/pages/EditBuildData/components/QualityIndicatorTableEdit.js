@@ -228,8 +228,8 @@ const QualityIndicatorTableEdit = ({
                     <button
                       className="btn-save-rework"
                       onClick={() => onSaveAndRework && onSaveAndRework(buildIndex)}
-                      disabled={saving || (build.qualityDetails?.fpyStatus === 'Fail' && (!build.qualityDetails.numberOfFailures || !build.qualityDetails.failureModes[0]))}
-                      title={build.qualityDetails?.fpyStatus === 'Fail' ? "Save and rework (must fill failure details first)" : "Save and rework"}
+                      disabled={saving}
+                      title="Save and rework"
                     >
                       <FontAwesomeIcon icon={faTools} /> Save & Rework
                     </button>

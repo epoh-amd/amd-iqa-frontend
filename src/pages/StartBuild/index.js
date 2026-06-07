@@ -297,7 +297,7 @@ const StartBuild = () => {
       handleInputChange(buildIndex, 'systemInfo', 'extractLogFile', result.filename);
     } catch (err) {
       handleInputChange(buildIndex, 'systemInfo', 'extractLogStatus', '');
-      handleInputChange(buildIndex, 'systemInfo', 'extractLogError', err.message || 'Failed to extract log.');
+      handleInputChange(buildIndex, 'systemInfo', 'extractLogError', 'Log could not be retrieved. Please validate the system is online.');
     }
   };
 

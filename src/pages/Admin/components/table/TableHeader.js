@@ -8,7 +8,7 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
   return (
     <thead>
       <tr>
-        <th colSpan="2" className="sticky-header">Reference</th>
+        <th colSpan="3" className="sticky-header">Reference</th>
         {!collapsedSections.general && (
           <th colSpan={getColumnCount('general')} className="section-header" onClick={() => toggleSection('general')}>
             <FontAwesomeIcon icon={faChevronDown} />
@@ -196,6 +196,7 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
       </tr>
       <tr>
         {/* Reference - Always visible */}
+        <th className="col-standard">Action</th>
         <th className="bmc-name-header col-bmc-name">BMC Name</th>
         <th className="created-date-header col-created-date">Created Date</th>
 

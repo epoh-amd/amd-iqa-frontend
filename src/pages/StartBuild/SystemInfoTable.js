@@ -241,7 +241,6 @@ useEffect(() => {
                       className={build.errors.projectName ? 'error' : ''}
                     >
                       <option value="">Select Project</option>
-                    
                       {projects.map((project, index) => (
                         <option key={index} value={project}>
                           {project}

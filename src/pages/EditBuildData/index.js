@@ -126,6 +126,11 @@ const EditBuildData = () => {
     }
   };
 
+  // Send fail email
+  const handleSendEmail = async (build, toList, ccList, emailBody) => {
+    await api.sendFailBuildEmail(build, toList, ccList, emailBody);
+  };
+
   // Exit edit mode
   const exitEditMode = () => {
     setEditMode(false);
@@ -181,6 +186,7 @@ const EditBuildData = () => {
               onBuildSelect={handleBuildSelection}
               onEdit={editSelectedBuild}
               loading={loading}
+              onSendEmail={handleSendEmail}
             />
           )}
         </>

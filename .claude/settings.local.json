@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tail -20 \"c:/Users/epoh/Downloads/amd-iqa-backend-main \\(1\\)/amd-iqa-backend-main/routes/profile.js\")",
+      "Read(//c/Users/epoh/Downloads/amd-iqa-backend-main \\(1\\)/amd-iqa-backend-main/routes/**)"
+    ]
+  }
+}

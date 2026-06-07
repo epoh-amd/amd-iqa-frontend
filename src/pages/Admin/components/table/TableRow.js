@@ -1,6 +1,6 @@
 // frontend/src/pages/SearchRecords/components/table/TableRow.js
 
-import React from 'react';
+import React, { useState } from 'react';
 
 const TableRow = ({
   build,
@@ -14,17 +14,26 @@ const TableRow = ({
   loadReworkHistory,
   getStatusBadgeClass,
   onFieldChange,
+  onDelete,
   projectOptions = []
 }) => {
   const handleChange = (field, value) => {
     onFieldChange(build.chassis_sn, field, value);
   };
 
-  console.log('options:', projectOptions);
-  return (
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
+  return (
+    <>
     <tr>
       {/* Reference - Always visible */}
+      <td className="col-standard">
+        <button
+          onClick={() => setDeleteConfirm(true)}
+          style={{ background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >Delete</button>
+      </td>
       <td className={`bmc-name-cell col-bmc-name ${hasCollapsedSections ? 'with-collapsed' : ''}`}>
         {build.bmc_name || build.chassis_sn}
       </td>
@@ -478,6 +487,57 @@ const TableRow = ({
   )}
 */}
     </tr>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <tr>
+          <td colSpan="100" style={{ padding: 0, border: 'none' }}>
+            <div style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', zIndex: 1000
+            }}>
+              <div style={{
+                background: '#fff', borderRadius: '8px', padding: '32px 28px',
+                minWidth: '380px', maxWidth: '480px', boxShadow: '0 4px 24px rgba(0,0,0,0.2)', textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '40px', marginBottom: '12px' }}>&#9888;</div>
+                <h3 style={{ margin: '0 0 8px', color: '#dc3545' }}>Delete Record</h3>
+                <p style={{ margin: '0 0 4px', fontWeight: 600 }}>
+                  {build.bmc_name || build.chassis_sn}
+                </p>
+                <p style={{ margin: '0 0 24px', color: '#555', fontSize: '14px' }}>
+                  Are you sure you want to delete this record?<br />
+                  <strong>This action cannot be undone.</strong>
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                  <button
+                    onClick={() => setDeleteConfirm(false)}
+                    disabled={deleting}
+                    style={{ padding: '8px 24px', border: '1px solid #ccc', borderRadius: '4px', background: '#fff', cursor: 'pointer', fontSize: '14px' }}
+                  >Cancel</button>
+                  <button
+                    disabled={deleting}
+                    onClick={async () => {
+                      setDeleting(true);
+                      try {
+                        await onDelete(build.chassis_sn);
+                        setDeleteConfirm(false);
+                      } catch {
+                        alert('Failed to delete record.');
+                      } finally {
+                        setDeleting(false);
+                      }
+                    }}
+                    style={{ padding: '8px 24px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: deleting ? 'not-allowed' : 'pointer', fontSize: '14px', opacity: deleting ? 0.7 : 1 }}
+                  >{deleting ? 'Deleting...' : 'Yes, Delete'}</button>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 };
 

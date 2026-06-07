@@ -1,6 +1,52 @@
 // frontend/src/pages/SearchRecords/components/table/TableRow.js
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+
+const LogFileCell = ({ bmcName }) => {
+  const [exists, setExists] = useState(null);
+
+  useEffect(() => {
+    if (!bmcName) { setExists(false); return; }
+    fetch(`${BACKEND_URL}/api/log-file-exists/${encodeURIComponent(bmcName)}`)
+      .then(r => r.json())
+      .then(data => setExists(data.exists))
+      .catch(() => setExists(false));
+  }, [bmcName]);
+
+  if (exists === null) return <span style={{ color: '#aaa', fontSize: '12px' }}>...</span>;
+  if (!exists) return <span>-</span>;
+
+  const fileName = `${bmcName}-os-system-checks.log`;
+
+  const handleDownload = async (e) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`${BACKEND_URL}/uploads/${fileName}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Failed to download file.');
+    }
+  };
+
+  return (
+    <span
+      onClick={handleDownload}
+      style={{ color: '#0066cc', textDecoration: 'underline', fontSize: '12px', cursor: 'pointer', wordBreak: 'break-all' }}
+    >
+      {fileName}
+    </span>
+  );
+};
 
 const TableRow = ({
   build,
@@ -225,9 +271,9 @@ const TableRow = ({
               </span>
             )}
           </td>
-          <td className="read-only-cell col-standard column-group-separator">
+          <td className="read-only-cell col-standard">
             {build.has_rework === 'Yes' ? (
-              <span 
+              <span
                 className="link-text"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -240,6 +286,9 @@ const TableRow = ({
             ) : (
               'No'
             )}
+          </td>
+          <td className="read-only-cell col-standard column-group-separator">
+            <LogFileCell bmcName={build.bmc_name} />
           </td>
         </>
       )}

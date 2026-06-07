@@ -184,6 +184,16 @@ addProject: async (data) => {
   }
 },
 
+deleteProject: async (projectName) => {
+  try {
+    const response = await axios.delete(`${API_URL}/projects/${encodeURIComponent(projectName)}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    throw error;
+  }
+},
+
 /**
  * Bulk update builds
  *
@@ -296,6 +306,38 @@ bulkUpdateBuilds: async (updates) => {
     console.error('Error fetching my waivers:', error);
     throw error;
   }
+},
+searchUserEmails: async (q) => {
+  if (!q || q.trim().length < 1) return [];
+  try {
+    const response = await axios.get(`${API_URL}/profile/users/search-email`, { params: { q } });
+    return response.data;
+  } catch {
+    return [];
+  }
+},
+
+sendFailBuildEmail: async (build, recipients = [], cc = [], emailBody = '') => {
+  const response = await axios.post(`${API_URL}/email/build-fail-notify`, {
+    chassis_sn: build.chassis_sn,
+    bmc_name: build.bmc_name,
+    platform_type: build.platform_type,
+    build_engineer: build.build_engineer,
+    location: build.location,
+    visual_inspection_status: build.visual_inspection_status,
+    visual_inspection_notes: build.visual_inspection_notes,
+    boot_status: build.boot_status,
+    boot_notes: build.boot_notes,
+    dimms_detected_status: build.dimms_detected_status,
+    dimms_detected_notes: build.dimms_detected_notes,
+    lom_working_status: build.lom_working_status,
+    lom_working_notes: build.lom_working_notes,
+    problem_description: build.problem_description,
+    email_body: emailBody,
+    recipients,
+    cc,
+  });
+  return response.data;
 },
 sendNewWaiverNotification: async ({ waiverId, partNumber, description, reason, submittedBy, approvers, pdfBase64  }) => {
   try {
@@ -834,6 +876,11 @@ updateBuild: async (chassisSN, updateData) => {
  * @param {object} filters - Search filters {bmcNames: [], chassisSNs: []}
  * @returns {Promise<array>} - Array of matching builds
  */
+deleteBuild: async (chassisSN) => {
+  const response = await axios.delete(`${API_URL}/builds/${chassisSN}`);
+  return response.data;
+},
+
 searchBuildsForEdit: async (filters) => {
   try {
     const response = await axios.post(`${API_URL}/builds/search-for-edit`, filters);

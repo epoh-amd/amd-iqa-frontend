@@ -15,9 +15,10 @@ const TableBody = ({
   loadReworkHistory,
   getStatusBadgeClass,
   projectOptions,
-  onFieldChange
+  onFieldChange,
+  onDelete
 }) => {
-  
+
   return (
     <tbody>
       {results.map((build) => (
@@ -34,7 +35,8 @@ const TableBody = ({
           loadReworkHistory={loadReworkHistory}
           getStatusBadgeClass={getStatusBadgeClass}
           projectOptions={projectOptions}
-          onFieldChange={onFieldChange} 
+          onFieldChange={onFieldChange}
+          onDelete={onDelete}
         />
       ))}
     </tbody>

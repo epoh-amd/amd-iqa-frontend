@@ -20,7 +20,7 @@ import FailuresModal from '../modals/FailuresModal';
 import useModalHandlers from '../hooks/useModalHandlers';
 import useTableUtils from '../hooks/useTableUtils';
 
-const SearchResults = ({ results, loading, editedRows, setEditedRows}) => {
+const SearchResults = ({ results, loading, editedRows, setEditedRows, onDelete }) => {
   const [projectOptions, setProjectOptions] = useState([]);
   useEffect(() => {
     //console.log("useEffect triggered");
@@ -200,6 +200,7 @@ const SearchResults = ({ results, loading, editedRows, setEditedRows}) => {
               loadReworkHistory={loadReworkHistory}
               getStatusBadgeClass={getStatusBadgeClass}
               onFieldChange={onFieldChange}
+              onDelete={onDelete}
             />
           </table>
         </div>

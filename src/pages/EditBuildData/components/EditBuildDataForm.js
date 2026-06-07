@@ -416,6 +416,21 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
   };
 
   // Handle save action
+  const handleExtractLog = async (buildIndex) => {
+    const chassisSN = builds[buildIndex]?.systemInfo?.chassisSN;
+    const bmcName = builds[buildIndex]?.systemInfo?.bmcName;
+    handleInputChange(buildIndex, 'systemInfo', 'extractLogStatus', 'extracting');
+    handleInputChange(buildIndex, 'systemInfo', 'extractLogError', '');
+    try {
+      const result = await api.extractLog(chassisSN, bmcName);
+      handleInputChange(buildIndex, 'systemInfo', 'extractLogStatus', 'done');
+      handleInputChange(buildIndex, 'systemInfo', 'extractLogFile', result.filename);
+    } catch (err) {
+      handleInputChange(buildIndex, 'systemInfo', 'extractLogStatus', '');
+      handleInputChange(buildIndex, 'systemInfo', 'extractLogError', 'Log could not be retrieved. Please validate the system is online.');
+    }
+  };
+
   const handleSave = () => {
     setConfirmSave(true);
   };
@@ -657,6 +672,7 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
           handlePartNumberSearchChange={handlePartNumberSearchChange}
           selectPartNumber={selectPartNumber}
           isEditMode={true}
+          onExtractLog={handleExtractLog}
         />
       )}
 
