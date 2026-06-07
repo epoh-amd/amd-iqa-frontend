@@ -1,25 +1,11 @@
 // frontend/src/pages/SearchRecords/components/table/TableRow.js
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 
 const LogFileCell = ({ bmcName }) => {
-  const [exists, setExists] = useState(null);
-
-  useEffect(() => {
-    if (!bmcName) { setExists(false); return; }
-    const normalizedBmc = bmcName.toLowerCase();
-   // console.log('bmcname', bmcName);
-    
-    fetch(`${BACKEND_URL}/api/log-file-exists/${encodeURIComponent(normalizedBmc)}`)
-      .then(r => r.ok ? r.json() : { exists: false })
-      .then(data => setExists(data.exists))
-      .catch(() => setExists(false));
-  }, [bmcName]);
-
-  if (exists === null) return <span style={{ color: '#aaa', fontSize: '12px' }}>...</span>;
-  if (!exists) return <span>-</span>;
+  if (!bmcName) return <span>-</span>;
 
   const fileName = `${bmcName.toLowerCase()}-os-system-checks.log`;
 
