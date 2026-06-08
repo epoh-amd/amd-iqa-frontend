@@ -80,9 +80,28 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
   const [sending, setSending] = useState(false);
   const [successBanner, setSuccessBanner] = useState(null);
   const bannerTimer = useRef(null);
+  const [showAllTo, setShowAllTo] = useState(false);
 
   const openEmailModal = (build) => {
-    setToList(['dl_iqadashboardEmail@amd.com']);
+    setToList([
+      'BeowHwa.Yap@amd.com',
+      'SLTeh.Teh@amd.com',
+      'HoeSeng.Yeoh@amd.com',
+      'KokKwan.Tang@amd.com',
+      'YewAun.Soo@amd.com',
+      'LeeLing.Ong@amd.com',
+      'JerYen.Ang@amd.com',
+      'TingWei.Tan@amd.com',
+      'MuhammadAimanSyakir.ZamzuriAnas@amd.com',
+      'XinXin.Mooi@amd.com',
+      'Amanda.KoayBeeWah@amd.com',
+      'Daniyal.BinRosli@amd.com',
+      'QiYi.Tan@amd.com',
+      'SueSan.Koh@amd.com',
+      'WeiSin.Khor@amd.com',
+      'LayLing.Chew@amd.com',
+      'ChoonChuan.Yap@amd.com',
+    ]);
     setCcList([
       'HafizSafwan.binShahimi@amd.com',
       'AhmadZafri.BinAhmadSuhaimi@amd.com',
@@ -90,6 +109,7 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
       'Izzuan.Ismail@amd.com',
     ]);
     setEmailBody('');
+    setShowAllTo(false);
     setEmailModal({ build });
   };
 
@@ -195,13 +215,13 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
               <th>Status</th>
               <th>FPY Status</th>
               <th>Last Updated</th>
-              {/* <th>Send Email</th> */}
+              <th>Send Email</th>
             </tr>
           </thead>
           <tbody>
             {builds.length === 0 ? (
               <tr>
-                <td colSpan="11" className="no-data">
+                <td colSpan="12" className="no-data">
                   No builds found
                 </td>
               </tr>
@@ -238,7 +258,7 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
                     </span>
                   </td>
                   <td>{formatDate(build.updated_at)}</td>
-                  {/* <td onClick={(e) => e.stopPropagation()}>
+                  <td onClick={(e) => e.stopPropagation()}>
                     {build.fpy_status === 'Fail' && (
                       <button
                         className="wm-btn-reject"
@@ -248,7 +268,7 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
                         Send Email
                       </button>
                     )}
-                  </td> */}
+                  </td>
                 </tr>
               ))
             )}
@@ -274,8 +294,17 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
 
             {/* To: */}
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ fontWeight: 600, display: 'block', marginBottom: '6px' }}>To:</label>
-              {toList.map((email, idx) => (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                <label style={{ fontWeight: 600 }}>To:</label>
+                {toList.length > 1 && (
+                  <button
+                    onClick={() => setShowAllTo(v => !v)}
+                    style={{ background: 'none', border: '1px solid #aaa', borderRadius: '4px', padding: '2px 10px', cursor: 'pointer', fontSize: '12px', color: '#555' }}
+                  >{showAllTo ? 'Collapse' : `View all (${toList.length})`}</button>
+                )}
+              </div>
+              <div style={showAllTo ? { maxHeight: '160px', overflowY: 'auto', paddingRight: '4px' } : {}}>
+              {(showAllTo ? toList : toList.slice(0, 1)).map((email, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
                   <EmailInput
                     value={email}
@@ -294,6 +323,12 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
                   )}
                 </div>
               ))}
+              </div>
+              {!showAllTo && toList.length > 1 && (
+                <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>
+                  +{toList.length - 1} more recipient{toList.length - 1 > 1 ? 's' : ''}
+                </div>
+              )}
               <button
                 onClick={() => setToList([...toList, ''])}
                 style={{ background: 'none', border: '1px dashed #aaa', borderRadius: '4px', padding: '4px 12px', cursor: 'pointer', color: '#555', fontSize: '12px' }}
@@ -303,6 +338,7 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
             {/* CC: */}
             <div style={{ marginBottom: '24px' }}>
               <label style={{ fontWeight: 600, display: 'block', marginBottom: '6px' }}>CC: (optional)</label>
+              <div style={{ maxHeight: '160px', overflowY: 'auto', paddingRight: '4px' }}>
               {ccList.map((email, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
                   <EmailInput
@@ -322,6 +358,7 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
                   )}
                 </div>
               ))}
+              </div>
               <button
                 onClick={() => setCcList([...ccList, ''])}
                 style={{ background: 'none', border: '1px dashed #aaa', borderRadius: '4px', padding: '4px 12px', cursor: 'pointer', color: '#555', fontSize: '12px' }}
