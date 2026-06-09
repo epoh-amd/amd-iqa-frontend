@@ -9,8 +9,10 @@ import api from '../../../services/api';
 const EmailInput = ({ value, onChange, placeholder }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
   const debounce = useRef(null);
   const wrapRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -27,6 +29,10 @@ const EmailInput = ({ value, onChange, placeholder }) => {
     debounce.current = setTimeout(async () => {
       const results = await api.searchUserEmails(val);
       setSuggestions(results);
+      if (results.length > 0 && inputRef.current) {
+        const rect = inputRef.current.getBoundingClientRect();
+        setDropdownPos({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: rect.width });
+      }
       setOpen(results.length > 0);
     }, 250);
   };
@@ -40,16 +46,23 @@ const EmailInput = ({ value, onChange, placeholder }) => {
   return (
     <div ref={wrapRef} style={{ position: 'relative', flex: 1 }}>
       <input
+        ref={inputRef}
         type="text"
         value={value}
         placeholder={placeholder}
         onChange={(e) => handleChange(e.target.value)}
-        onFocus={() => suggestions.length > 0 && setOpen(true)}
+        onFocus={() => {
+          if (suggestions.length > 0 && inputRef.current) {
+            const rect = inputRef.current.getBoundingClientRect();
+            setDropdownPos({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: rect.width });
+            setOpen(true);
+          }
+        }}
         style={{ width: '100%', padding: '6px 10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px', boxSizing: 'border-box' }}
       />
       {open && (
         <ul style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2000,
+          position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999,
           background: '#fff', border: '1px solid #ccc', borderRadius: '4px',
           margin: '2px 0 0', padding: 0, listStyle: 'none', maxHeight: '180px', overflowY: 'auto',
           boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
