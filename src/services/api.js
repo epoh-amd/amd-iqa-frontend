@@ -310,7 +310,7 @@ bulkUpdateBuilds: async (updates) => {
 searchUserEmails: async (q) => {
   if (!q || q.trim().length < 1) return [];
   try {
-    const response = await axios.get(`${API_URL}/profile/users/search-email`, { params: { q } });
+    const response = await axios.get(`${API_URL}/users/search-email`, { params: { q } });
     return response.data;
   } catch {
     return [];
