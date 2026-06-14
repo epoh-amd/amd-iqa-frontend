@@ -1,4 +1,78 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+
+const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Select...' }) => {
+  const [open, setOpen] = useState(false);
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef(null);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleOpen = () => {
+    if (!open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setDropPos({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: rect.width });
+    }
+    setOpen(v => !v);
+  };
+
+  const toggle = (item) => {
+    const next = value.includes(item) ? value.filter(v => v !== item) : [...value, item];
+    onChange(next);
+  };
+
+  const displayText = value.length === 0 ? placeholder : value.join(', ');
+
+  return (
+    <div ref={ref} style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+      <div
+        ref={triggerRef}
+        onClick={handleOpen}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '6px 10px', border: '1px solid #ccc', borderRadius: '4px',
+          background: '#fff', cursor: 'pointer', fontSize: '13px',
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayText}</span>
+        <span style={{ marginLeft: '8px', flexShrink: 0 }}>&#9660;</span>
+      </div>
+      {open && (
+        <div style={{
+          position: 'fixed',
+          top: dropPos.top,
+          left: dropPos.left,
+          width: dropPos.width,
+          zIndex: 9999,
+          background: '#fff',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          maxHeight: '200px',
+          overflowY: 'scroll',
+        }}>
+          {options.map(item => (
+            <label key={item} style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '8px 12px', cursor: 'pointer', fontSize: '13px',
+              borderBottom: '1px solid #f0f0f0', width: 'auto', margin: 0
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f5f5f5'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+            >
+              <input type="checkbox" checked={value.includes(item)} onChange={() => toggle(item)} style={{ cursor: 'pointer' }} />
+              {item}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 import "../../assets/css/waiver.css";
 import api from "../../services/api";
 import { getAllConfig } from './waiverConfig';
@@ -31,6 +105,7 @@ const WaiverForm = () => {
   const [myFormsLoading, setMyFormsLoading] = useState(false);
   const [myFormsSearch, setMyFormsSearch] = useState('');
   const [myFormsStatusFilter, setMyFormsStatusFilter] = useState('all');
+  const [waiverStatus, setWaiverStatus] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [expandedCancelReason, setExpandedCancelReason] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -101,8 +176,8 @@ const WaiverForm = () => {
 
         setOpenSection(data.openSection ?? []);
 
-        setProcessData(data.processData ?? { instructions: "", file: null });
-        setTestData(data.testData ?? { currentPart: "", toBePart: "", instructions: "", file: null });
+        setProcessData(data.processData ?? { areas: [], areaInstructions: {}, areaFiles: {}, instructions: "", file: null });
+        setTestData(data.testData ?? { rows: [{ currentPart: '', toBePart: '', refdes: '' }], areas: [], areaInstructions: {}, areaFiles: {}, instructions: "", file: null });
         setSpecData(data.specData ?? { specImpact: "", instructions: "", file1: null, file2: null });
         setReworkData(data.reworkData ?? { instructions: "", file: null });
         setLabelData(data.labelData ?? { instructions: "", file: null });
@@ -138,8 +213,8 @@ const WaiverForm = () => {
           partNumber: data.partNumber || '',
           revision: data.revision || '',
           description: data.description || '',
-          subcontractor: data.subcontractor || '',
-          assemblyLevel: data.assemblyLevel || '',
+          subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
+          assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
           requestor: data.requestor || '',
           startDate: toDate(data.startDate) || new Date().toISOString().split('T')[0],
           endDate: toDate(data.endDate),
@@ -158,17 +233,20 @@ const WaiverForm = () => {
         setMaterialRows((data.materialRows || [{ currentPart: '', currentPartDescription: '', newPart: '', newPartDescription: '', action: '', instructions: '', file: null }]).map(r => ({
           currentPart: r.current_part || r.currentPart || '',
           currentPartDescription: r.current_part_description || r.currentPartDescription || '',
+          noOfPer: r.no_of_per || r.noOfPer || '',
+          refdes: r.refdes || '',
           newPart: r.new_part || r.newPart || '',
           newPartDescription: r.new_part_description || r.newPartDescription || '',
           action: r.action || '',
           instructions: r.instructions || '',
-          file: r.file || null
+          file: r.file_path || r.file || null
         })));
-        setProcessData({ instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-        setTestData({ currentPart: data.testData?.currentPart || '', toBePart: data.testData?.toBePart || '', instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+        setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+        setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
         setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
         setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
         setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+        setWaiverStatus(data.status || null);
         setShowForm(true);
       } catch (err) {
         console.error('Failed to load waiver for edit:', err);
@@ -196,8 +274,8 @@ const WaiverForm = () => {
           partNumber: data.partNumber || '',
           revision: data.revision || '',
           description: data.description || '',
-          subcontractor: data.subcontractor || '',
-          assemblyLevel: data.assemblyLevel || '',
+          subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
+          assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
           requestor: data.requestor || '',
           startDate: toDate(data.startDate) || new Date().toISOString().split('T')[0],
           endDate: toDate(data.endDate),
@@ -216,17 +294,20 @@ const WaiverForm = () => {
         setMaterialRows((data.materialRows || [{ currentPart: '', currentPartDescription: '', newPart: '', newPartDescription: '', action: '', instructions: '', file: null }]).map(r => ({
           currentPart: r.current_part || r.currentPart || '',
           currentPartDescription: r.current_part_description || r.currentPartDescription || '',
+          noOfPer: r.no_of_per || r.noOfPer || '',
+          refdes: r.refdes || '',
           newPart: r.new_part || r.newPart || '',
           newPartDescription: r.new_part_description || r.newPartDescription || '',
           action: r.action || '',
           instructions: r.instructions || '',
-          file: r.file || null
+          file: r.file_path || r.file || null
         })));
-        setProcessData({ instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-        setTestData({ currentPart: data.testData?.currentPart || '', toBePart: data.testData?.toBePart || '', instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+        setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+        setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
         setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
         setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
         setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+        setWaiverStatus(data.status || null);
         setShowForm(true);
       } catch (err) {
         console.error('Failed to load waiver for approver edit:', err);
@@ -283,6 +364,8 @@ const WaiverForm = () => {
     {
       currentPart: "",
       currentPartDescription: "",
+      noOfPer: "",
+      refdes: "",
       newPart: "",
       newPartDescription: "",
       action: "",
@@ -291,14 +374,23 @@ const WaiverForm = () => {
     }
   ]);
 
+  const PROCESS_AREAS = ['Prepping', 'SMT', 'Wave', 'Hand Soldering', 'Visual Inspection', 'Final Assembly', 'System Assembly', 'Packing'];
+
   const [processData, setProcessData] = useState({
+    areas: [],
+    areaInstructions: {},
+    areaFiles: {},
     instructions: "",
     file: null
   });
 
+  const TEST_AREAS = ['Programming', 'Flying Probe', 'ICT', 'Functional Test', 'System Test'];
+
   const [testData, setTestData] = useState({
-    currentPart: "",
-    toBePart: "",
+    rows: [{ currentPart: '', toBePart: '', refdes: '' }],
+    areas: [],
+    areaInstructions: {},
+    areaFiles: {},
     instructions: "",
     file: null
   });
@@ -507,8 +599,8 @@ const WaiverForm = () => {
     if (!formData.partNumber?.trim()) errors.push('AMD Product Part Number');
     if (!formData.revision?.trim()) errors.push('AMD Product Revision');
     if (!formData.description?.trim()) errors.push('AMD Product Description');
-    if (!formData.subcontractor) errors.push('Affected Subcontractor');
-    if (!formData.assemblyLevel) errors.push('Assembly Level');
+    if (!formData.subcontractor || (Array.isArray(formData.subcontractor) ? formData.subcontractor.length === 0 : !formData.subcontractor)) errors.push('Affected Subcontractor');
+    if (!formData.assemblyLevel || (Array.isArray(formData.assemblyLevel) ? formData.assemblyLevel.length === 0 : !formData.assemblyLevel)) errors.push('Assembly Level');
     if (!formData.requestor?.trim()) errors.push('Requestor Name');
     if (!formData.startDate) errors.push('Waiver Start Date');
     if (activeTypes.length === 0) errors.push('Waiver Type (at least one)');
@@ -519,12 +611,15 @@ const WaiverForm = () => {
       const hasValidRow = materialRows.some(r => r.currentPart?.trim() || r.newPart?.trim());
       if (!hasValidRow) errors.push('Material Waiver: at least one row with Current or New Part');
     }
-    if (activeTypes.includes('Process Waiver') && !processData.instructions?.trim())
-      errors.push('Process Waiver: Instructions');
+    if (activeTypes.includes('Process Waiver')) {
+      if (!processData.areas?.length) errors.push('Process Waiver: Area');
+      else if (!processData.areas.every(area => processData.areaInstructions?.[area]?.trim()))
+        errors.push('Process Waiver: Instructions (all selected areas must have instructions)');
+    }
     if (activeTypes.includes('Test Waiver')) {
-      if (!testData.currentPart?.trim()) errors.push('Test Waiver: Current Part Number');
-      if (!testData.toBePart?.trim()) errors.push('Test Waiver: To Be Part Number');
-      if (!testData.instructions?.trim()) errors.push('Test Waiver: Instructions');
+      if (!testData.rows?.some(r => r.currentPart?.trim())) errors.push('Test Waiver: Current Part Number');
+      if (!testData.rows?.some(r => r.toBePart?.trim())) errors.push('Test Waiver: To Be Part Number');
+      if (!testData.areas?.length) errors.push('Test Waiver: Area');
     }
     if (activeTypes.includes('Spec Deviation')) {
       if (!specData.specImpact?.trim()) errors.push('Spec Deviation: Specifications/Drawings impacted');
@@ -559,8 +654,8 @@ const WaiverForm = () => {
         workorderQty: formData.workorderQty,
         submittedBy: user?.full_name || user?.email || '',
         materialRows: activeTypes.includes('Material Waiver') ? materialRows : [],
-        processData: activeTypes.includes('Process Waiver') ? processData : { instructions: '', file: null },
-        testData: activeTypes.includes('Test Waiver') ? testData : { currentPart: '', toBePart: '', instructions: '', file: null },
+        processData: activeTypes.includes('Process Waiver') ? processData : { areas: [], areaInstructions: {}, areaFiles: {}, instructions: '', file: null },
+        testData: activeTypes.includes('Test Waiver') ? testData : { rows: [{ currentPart: '', toBePart: '', refdes: '' }], areas: [], areaInstructions: {}, areaFiles: {}, instructions: '', file: null },
         specData: activeTypes.includes('Spec Deviation') ? specData : { specImpact: '', instructions: '', file1: null, file2: null },
         reworkData: activeTypes.includes('Rework Waiver') ? reworkData : { instructions: '', file: null },
         labelData: activeTypes.includes('Label Waiver') ? labelData : { instructions: '', file: null },
@@ -594,6 +689,8 @@ const WaiverForm = () => {
             waiverId: formData.waiverId,
             partNumber: formData.partNumber,
             description: formData.description,
+            revision: formData.revision,
+            assemblyLevel: formData.assemblyLevel,
             reason: formData.reason,
             submittedBy: user?.full_name || user?.email || '',
             approvers,
@@ -653,11 +750,9 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
   };
 
   const fetchMyForms = async () => {
-    if (!user?.full_name) return;
     setMyFormsLoading(true);
     try {
-      const data = await api.getMyWaivers(user.full_name);
-      console.log('My Forms data:', data);
+      const data = await api.getAllWaivers();
       setMyForms(data);
     } catch (err) {
       console.error('Failed to load my forms:', err);
@@ -703,17 +798,19 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
       setOpenSection((data.waiverType || []).map(t => sectionMap[t]).filter(Boolean));
 
       setMaterialRows((data.materialRows || []).map(r => ({
-        currentPart: r.current_part || '',
-        currentPartDescription: r.current_part_description || '',
-        newPart: r.new_part || '',
-        newPartDescription: r.new_part_description || '',
+        currentPart: r.current_part || r.currentPart || '',
+        currentPartDescription: r.current_part_description || r.currentPartDescription || '',
+        noOfPer: r.no_of_per || r.noOfPer || '',
+        refdes: r.refdes || '',
+        newPart: r.new_part || r.newPart || '',
+        newPartDescription: r.new_part_description || r.newPartDescription || '',
         action: r.action || '',
         instructions: r.instructions || '',
         file: null
       })));
 
-      setProcessData({ instructions: data.processData?.instructions || '', file: null });
-      setTestData({ currentPart: data.testData?.currentPart || '', toBePart: data.testData?.toBePart || '', instructions: data.testData?.instructions || '', file: null });
+      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: null });
+      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: null });
       setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: null, file2: null });
       setReworkData({ instructions: data.reworkData?.instructions || '', file: null });
       setLabelData({ instructions: data.labelData?.instructions || '', file: null });
@@ -740,18 +837,20 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
   };
 
   const handleCreateNew = () => {
-
     isEditingRef.current = false;
+    setRequestorEditMode(false);
+    setApproverEditMode(false);
+    setRejectedEditMode(false);
+    setWaiverStatus(null);
 
-    // Reset all form state to empty defaults
     setWaiverId(generateWaiverId());
 
     setFormData({
       partNumber: '',
       revision: '',
       description: '',
-      subcontractor: '',
-      assemblyLevel: '',
+      subcontractor: [],
+      assemblyLevel: [],
       requestor: '',
       startDate: new Date().toISOString().split('T')[0],
       endDate: '',
@@ -767,13 +866,14 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
     setMaterialRows([{
       currentPart: '', currentPartDescription: '',
+      noOfPer: '', refdes: '',
       newPart: '', newPartDescription: '',
       action: '', instructions: '', file: null
     }]);
 
     setOpenSection([]);
-    setProcessData({ instructions: '', file: null });
-    setTestData({ currentPart: '', toBePart: '', instructions: '', file: null });
+    setProcessData({ areas: [], areaInstructions: {}, areaFiles: {}, instructions: '', file: null });
+    setTestData({ rows: [{ currentPart: '', toBePart: '', refdes: '' }], areas: [], areaInstructions: {}, areaFiles: {}, instructions: '', file: null });
     setSpecData({ specImpact: '', instructions: '', file1: null, file2: null });
     setReworkData({ instructions: '', file: null });
     setLabelData({ instructions: '', file: null });
@@ -845,8 +945,8 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
         partNumber: data.partNumber || '',
         revision: data.revision || '',
         description: data.description || '',
-        subcontractor: data.subcontractor || '',
-        assemblyLevel: data.assemblyLevel || '',
+        subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
+        assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
         requestor: data.requestor || '',
         startDate: data.startDate ? data.startDate.toString().slice(0, 10) : new Date().toISOString().split('T')[0],
         endDate: data.endDate ? data.endDate.toString().slice(0, 10) : '',
@@ -865,17 +965,20 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
       setMaterialRows((data.materialRows || [{ currentPart: '', currentPartDescription: '', newPart: '', newPartDescription: '', action: '', instructions: '', file: null }]).map(r => ({
         currentPart: r.current_part || r.currentPart || '',
         currentPartDescription: r.current_part_description || r.currentPartDescription || '',
+        noOfPer: r.no_of_per || r.noOfPer || '',
+        refdes: r.refdes || '',
         newPart: r.new_part || r.newPart || '',
         newPartDescription: r.new_part_description || r.newPartDescription || '',
         action: r.action || '',
         instructions: r.instructions || '',
-        file: r.file || null
+        file: r.file_path || r.file || null
       })));
-      setProcessData({ instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-      setTestData({ currentPart: data.testData?.currentPart || '', toBePart: data.testData?.toBePart || '', instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
       setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
       setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
       setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+      setWaiverStatus(data.status || null);
       setShowForm(true);
     } catch (err) {
       console.error('Failed to load waiver for edit:', err);
@@ -895,8 +998,8 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
         partNumber: data.partNumber || '',
         revision: data.revision || '',
         description: data.description || '',
-        subcontractor: data.subcontractor || '',
-        assemblyLevel: data.assemblyLevel || '',
+        subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
+        assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
         requestor: data.requestor || '',
         startDate: data.startDate ? data.startDate.toString().slice(0, 10) : new Date().toISOString().split('T')[0],
         endDate: data.endDate ? data.endDate.toString().slice(0, 10) : '',
@@ -915,17 +1018,20 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
       setMaterialRows((data.materialRows || [{ currentPart: '', currentPartDescription: '', newPart: '', newPartDescription: '', action: '', instructions: '', file: null }]).map(r => ({
         currentPart: r.current_part || r.currentPart || '',
         currentPartDescription: r.current_part_description || r.currentPartDescription || '',
+        noOfPer: r.no_of_per || r.noOfPer || '',
+        refdes: r.refdes || '',
         newPart: r.new_part || r.newPart || '',
         newPartDescription: r.new_part_description || r.newPartDescription || '',
         action: r.action || '',
         instructions: r.instructions || '',
-        file: r.file || null
+        file: r.file_path || r.file || null
       })));
-      setProcessData({ instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-      setTestData({ currentPart: data.testData?.currentPart || '', toBePart: data.testData?.toBePart || '', instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
       setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
       setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
       setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+      setWaiverStatus(data.status || null);
       setShowForm(true);
     } catch (err) {
       console.error('Failed to load cancelled waiver for edit:', err);
@@ -977,7 +1083,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
             <div style={{ display: 'flex', gap: '4px', borderBottom: '2px solid #ddd' }}>
               {[
                 { key: 'drafts', label: 'Drafts' },
-                { key: 'myforms', label: 'My Forms' },
+                { key: 'myforms', label: 'All Forms' },
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -1029,7 +1135,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                   <thead>
                     <tr>
                       <th>Waiver ID</th>
-                      <th>AMD Product Part Number</th>
+                      <th>Product Part Number</th>
                       <th>Last Updated</th>
                       <th>Action</th>
                     </tr>
@@ -1073,7 +1179,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
               <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
                 <input
                   type="text"
-                  placeholder="Search by Waiver ID, Part Number or Reason..."
+                  placeholder="Search by Waiver ID, Part Number, Description, Workorder, Subcontractor..."
                   value={myFormsSearch}
                   onChange={(e) => setMyFormsSearch(e.target.value)}
                   style={{
@@ -1103,23 +1209,36 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                 <p>Loading...</p>
               ) : myForms.filter(w => {
                 const q = myFormsSearch.toLowerCase();
-                return !q ||
-                  (w.waiver_id || '').toLowerCase().includes(q) ||
-                  (w.part_number || '').toLowerCase().includes(q) ||
-                  (w.reason || '').toLowerCase().includes(q);
+                if (!q) return true;
+                const subText = Array.isArray(w.subcontractor)
+                  ? w.subcontractor.join(' ')
+                  : typeof w.subcontractor === 'string'
+                    ? w.subcontractor.replace(/[\[\]"\\]/g, ' ')
+                    : '';
+                const terms = q.split(/[\s,]+/).filter(Boolean);
+                const matchesTerm = (t) =>
+                  (w.waiver_id || '').toLowerCase().includes(t) ||
+                  (w.part_number || '').toLowerCase().includes(t) ||
+                  (w.description || '').toLowerCase().includes(t) ||
+                  (w.workorder || '').toLowerCase().includes(t) ||
+                  subText.toLowerCase().includes(t) ||
+                  (w.reason || '').toLowerCase().includes(t);
+                return terms.some(matchesTerm);
               }).length === 0 ? (
                 <div style={{
                   textAlign: 'center', padding: '48px', color: '#aaa',
                   border: '1px dashed #ddd', borderRadius: '8px', marginTop: '16px'
                 }}>
-                  {myForms.length === 0 ? 'No submitted forms found.' : 'No results match your search.'}
+                  {myForms.length === 0 ? 'No forms found.' : 'No results match your search.'}
                 </div>
               ) : (
                 <table className="material-table" style={{ width: '100%' }}>
                   <thead>
                     <tr>
                       <th>Waiver ID</th>
-                      <th>AMD Product Part Number</th>
+                      <th>Product Part Number</th>
+                      <th>Product Part Description</th>
+                      <th>Revision</th>
                       <th>Reason / Justification</th>
                       <th>Status</th>
                       <th>Updated At</th>
@@ -1130,10 +1249,20 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                     {myForms
                       .filter(w => {
                         const q = myFormsSearch.toLowerCase();
-                        const matchSearch = !q ||
-                          (w.waiver_id || '').toLowerCase().includes(q) ||
-                          (w.part_number || '').toLowerCase().includes(q) ||
-                          (w.reason || '').toLowerCase().includes(q);
+                        const subText = Array.isArray(w.subcontractor)
+                          ? w.subcontractor.join(' ')
+                          : typeof w.subcontractor === 'string'
+                            ? w.subcontractor.replace(/[\[\]"\\]/g, ' ')
+                            : '';
+                        const terms = q.split(/[\s,]+/).filter(Boolean);
+                        const matchesTerm = (t) =>
+                          (w.waiver_id || '').toLowerCase().includes(t) ||
+                          (w.part_number || '').toLowerCase().includes(t) ||
+                          (w.description || '').toLowerCase().includes(t) ||
+                          (w.workorder || '').toLowerCase().includes(t) ||
+                          subText.toLowerCase().includes(t) ||
+                          (w.reason || '').toLowerCase().includes(t);
+                        const matchSearch = !q || terms.some(matchesTerm);
                         const matchStatus = myFormsStatusFilter === 'all' ||
                           (w.status || 'New') === myFormsStatusFilter;
                         return matchSearch && matchStatus;
@@ -1157,6 +1286,8 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                               </span>
                             </td>
                             <td>{w.part_number || '-'}</td>
+                            <td>{w.description || '-'}</td>
+                            <td>{w.revision || '-'}</td>
                             <td>{w.reason || '-'}</td>
                             <td>
                               {(() => {
@@ -1332,26 +1463,38 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
             <h4 className="waiver-title" style={{ textAlign: 'center' }}>AMD Waiver Request Form</h4>
           </div>
 
-          <button
-            type="button"
-            onClick={
-              approverEditMode ? () => navigate(-1) :
-                (requestorEditMode || rejectedEditMode) ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); setRejectedEditMode(false); } :
-                  handleBackToList
-            }
-            style={{
-              margin: '16px 0', padding: '8px 16px', cursor: 'pointer',
-              background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '6px',
-              fontSize: '13px', fontWeight: 500
-            }}
-          >
-            {approverEditMode ? '← Back to Management' : (requestorEditMode || rejectedEditMode) ? '← Back to My Forms' : '← Back to Drafts'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '16px 0' }}>
+            <button
+              type="button"
+              onClick={
+                approverEditMode ? () => navigate(-1) :
+                  (requestorEditMode || rejectedEditMode) ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); setRejectedEditMode(false); } :
+                    handleBackToList
+              }
+              style={{
+                padding: '8px 16px', cursor: 'pointer',
+                background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '6px',
+                fontSize: '13px', fontWeight: 500
+              }}
+            >
+              {approverEditMode ? '← Back to Management' : (requestorEditMode || rejectedEditMode) ? '← Back to All Forms' : '← Back to Drafts'}
+            </button>
+            {waiverStatus && (
+              <span style={{
+                padding: '5px 14px', borderRadius: '12px', fontSize: '12px', fontWeight: 700,
+                background: { 'New': '#e8f4fd', 'Approved': '#e8f5e9', 'Cancelled': '#fff3e0', 'Rejected': '#fdecea', 'Closed': '#f0f0f0' }[waiverStatus] || '#f0f0f0',
+                color: { 'New': '#1a73e8', 'Approved': '#2e7d32', 'Cancelled': '#e65100', 'Rejected': '#c62828', 'Closed': '#555' }[waiverStatus] || '#555',
+                border: '1px solid currentColor'
+              }}>
+                {waiverStatus}
+              </span>
+            )}
+          </div>
 
           {/* ── PASTE YOUR ENTIRE EXISTING <form>...</form> BLOCK HERE ── */}
           <form onSubmit={handleSubmit}>
             <p style={{ fontSize: '12px', color: '#888', marginBottom: '8px' }}>
-              <span style={{ color: '#dc3545', fontWeight: 700 }}>**</span> indicates required fields
+              <span style={{ color: '#dc3545', fontWeight: 700 }}>*</span> indicates required fields
             </p>
             {/* Product Info */}
             <div className="form-section">
@@ -1361,17 +1504,17 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
               </div>
 
               <div className="field-inline">
-                <label>AMD Product Part Number: <span style={{ color: '#dc3545' }}>**</span></label>
+                <label>AMD Product Part Number: <span style={{ color: '#dc3545' }}>*</span></label>
                 <input name="partNumber" value={formData.partNumber || ""} onChange={handleChange} />
               </div>
 
               <div className="field-inline">
-                <label>AMD Product Revision: <span style={{ color: '#dc3545' }}>**</span></label>
+                <label>AMD Product Revision: <span style={{ color: '#dc3545' }}>*</span></label>
                 <input name="revision" value={formData.revision || ""} onChange={handleChange} />
               </div>
 
               <div className="field-inline">
-                <label>AMD Product Description: <span style={{ color: '#dc3545' }}>**</span></label>
+                <label>AMD Product Description: <span style={{ color: '#dc3545' }}>*</span></label>
                 <input name="description" value={formData.description || ""} onChange={handleChange} />
               </div>
 
@@ -1379,42 +1522,34 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
             {/* Subcontractor */}
             <div className="form-section">
-              <label>Affected Subcontractor <span style={{ color: '#dc3545' }}>**</span></label>
-              {subcontractors.map((item) => (
-                <label key={item} style={{ width: 'fit-content' }}>
-                  <input
-                    type="radio"
-                    name="subcontractor"
-                    value={item}
-                    checked={formData.subcontractor === item}
-                    onChange={handleChange}
-                  />
-                  {item}
-                </label>
-              ))}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <label style={{ whiteSpace: 'nowrap', marginBottom: 0 }}>Affected Subcontractor <span style={{ color: '#dc3545' }}>*</span></label>
+                <MultiSelectDropdown
+                  options={subcontractors}
+                  value={Array.isArray(formData.subcontractor) ? formData.subcontractor : formData.subcontractor ? [formData.subcontractor] : []}
+                  onChange={(selected) => setFormData(prev => ({ ...prev, subcontractor: selected }))}
+                  placeholder="Select subcontractor..."
+                />
+              </div>
             </div>
 
             {/* Assembly */}
             <div className="form-section">
-              <label>Assembly Level <span style={{ color: '#dc3545' }}>**</span></label>
-              {assemblyLevels.map((item) => (
-                <label key={item} style={{ width: 'fit-content' }}>
-                  <input
-                    type="radio"
-                    name="assemblyLevel"
-                    value={item}
-                    checked={formData.assemblyLevel === item}
-                    onChange={handleChange}
-                  />
-                  {item}
-                </label>
-              ))}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <label style={{ whiteSpace: 'nowrap', marginBottom: 0 }}>Assembly Level <span style={{ color: '#dc3545' }}>*</span></label>
+                <MultiSelectDropdown
+                  options={assemblyLevels}
+                  value={Array.isArray(formData.assemblyLevel) ? formData.assemblyLevel : formData.assemblyLevel ? [formData.assemblyLevel] : []}
+                  onChange={(selected) => setFormData(prev => ({ ...prev, assemblyLevel: selected }))}
+                  placeholder="Select assembly level..."
+                />
+              </div>
             </div>
 
             {/* Requestor */}
             <div className="form-section">
               <div className="field-inline">
-                <label>Requestor Name: <span style={{ color: '#dc3545' }}>**</span></label>
+                <label>Requestor Name: <span style={{ color: '#dc3545' }}>*</span></label>
                 <input name="requestor" value={formData.requestor || ""} onChange={handleChange} />
               </div>
             </div>
@@ -1422,7 +1557,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
             {/* Dates */}
             <div className="form-section">
               <div className="field-inline">
-                <label>Waiver Start Date <span style={{ color: '#dc3545' }}>**</span></label>
+                <label>Waiver Start Date <span style={{ color: '#dc3545' }}>*</span></label>
                 <input
                   type="date"
                   name="startDate"
@@ -1438,14 +1573,11 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
             {/* Waiver Type */}
             <div className="form-section">
-              <label>Waiver Type <span style={{ color: '#dc3545' }}>**</span></label>
+              <label>Waiver Type <span style={{ color: '#dc3545' }}>*</span></label>
               {[
                 "Material Waiver",
                 "Process Waiver",
                 "Test Waiver",
-                "Spec Deviation",
-                "Rework Waiver",
-                "Label Waiver"
               ].map((item) => (
                 <label key={item} style={{ width: 'fit-content' }}>
                   <input
@@ -1463,7 +1595,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
             {/* Reason */}
             <div className="form-section">
               <div className="field-inline">
-                <label>Reason / Justification <span style={{ color: '#dc3545' }}>**</span></label>
+                <label>Reason / Justification <span style={{ color: '#dc3545' }}>*</span></label>
                 <textarea name="reason" value={formData.reason || ""} onChange={handleChange}></textarea>
               </div>
             </div>
@@ -1495,12 +1627,13 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                     <table className="material-table">
                       <thead>
                         <tr>
-                          <th>Current Part <span style={{ color: '#dc3545' }}>**</span></th>
+                          <th>Current Part Number <span style={{ color: '#dc3545' }}>*</span></th>
                           <th>Description</th>
-                          <th>New Part <span style={{ color: '#dc3545' }}>**</span></th>
+                          <th>No. of Per</th>
+                          <th>Refdes</th>
+                          <th>To Be Part Number <span style={{ color: '#dc3545' }}>*</span></th>
                           <th>Description</th>
                           <th>Action</th>
-                          <th>Instructions</th>
                           <th>Attachment</th>
                           <th></th>
                         </tr>
@@ -1508,12 +1641,13 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
                       <tbody>
                         {materialRows.map((row, index) => (
-                          <tr key={index}>
+                          <React.Fragment key={index}>
+                          <tr>
 
                             <td>
                               <input
                                 className="table-input"
-                                placeholder="Part No"
+                                placeholder="Current Part No"
                                 value={row.currentPart || ""}
                                 onChange={(e) =>
                                   handleMaterialChange(index, "currentPart", e.target.value)
@@ -1535,7 +1669,29 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                             <td>
                               <input
                                 className="table-input"
-                                placeholder="Part No"
+                                placeholder="Qty"
+                                value={row.noOfPer || ""}
+                                onChange={(e) =>
+                                  handleMaterialChange(index, "noOfPer", e.target.value)
+                                }
+                              />
+                            </td>
+
+                            <td>
+                              <textarea
+                                className="table-textarea small"
+                                placeholder="Refdes"
+                                value={row.refdes || ""}
+                                onChange={(e) =>
+                                  handleMaterialChange(index, "refdes", e.target.value)
+                                }
+                              />
+                            </td>
+
+                            <td>
+                              <input
+                                className="table-input"
+                                placeholder="To Be Part No"
                                 value={row.newPart || ""}
                                 onChange={(e) =>
                                   handleMaterialChange(index, "newPart", e.target.value)
@@ -1571,24 +1727,13 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                             </td>
 
                             <td>
-                              <textarea
-                                className="table-textarea"
-                                placeholder="Instructions..."
-                                value={row.instructions || ""}
-                                onChange={(e) =>
-                                  handleMaterialChange(index, "instructions", e.target.value)
-                                }
-                              />
-                            </td>
-
-                            <td>
                               <div className="file-upload">
 
                                 {/* If NO file → show upload */}
                                 {!row.file ? (
                                   <input
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx"
                                     onChange={(e) =>
                                       handleMaterialFileChange(index, e.target.files[0])
                                     }
@@ -1631,6 +1776,23 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                             </td>
 
                           </tr>
+                          <tr>
+                            <td colSpan="9" style={{ paddingTop: '4px', paddingBottom: '8px', background: '#fafafa' }}>
+                              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                <label style={{ whiteSpace: 'nowrap', fontWeight: 600, fontSize: '13px', paddingTop: '6px', minWidth: '80px' }}>
+                                  Instructions <span style={{ color: '#dc3545' }}>*</span>
+                                </label>
+                                <textarea
+                                  className="table-textarea"
+                                  placeholder="Instructions..."
+                                  value={row.instructions || ""}
+                                  onChange={(e) => handleMaterialChange(index, "instructions", e.target.value)}
+                                  style={{ flex: 1, minHeight: '60px' }}
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                          </React.Fragment>
                         ))}
                       </tbody>
                     </table>
@@ -1641,6 +1803,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                       + Add Row
                     </button>
                   </div>
+
 
                 </div>
               )}
@@ -1656,41 +1819,90 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
               {openSection.includes("process") && (
                 <div className="accordion-body">
-                  <label>Instructions <span style={{ color: '#dc3545' }}>**</span></label>
-                  <textarea name="processdata instructions" value={processData.instructions} onChange={(e) =>
-                    setProcessData({ ...processData, instructions: e.target.value })
-                  }></textarea>
 
-                  <div className="file-upload">
-                    {!processData.file ? (
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileChange(e.target.files[0], processData, setProcessData)}
+                  {/* Area multi-select */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                    <label style={{ whiteSpace: 'nowrap', marginBottom: 0 }}>Area <span style={{ color: '#dc3545' }}>*</span></label>
+                    <MultiSelectDropdown
+                      options={PROCESS_AREAS}
+                      value={processData.areas || []}
+                      onChange={(selected) => {
+                        const newAreaInstructions = { ...processData.areaInstructions };
+                        // remove deselected
+                        Object.keys(newAreaInstructions).forEach(k => { if (!selected.includes(k)) delete newAreaInstructions[k]; });
+                        setProcessData({ ...processData, areas: selected, areaInstructions: newAreaInstructions });
+                      }}
+                      placeholder="Select area(s)..."
+                    />
+                  </div>
+
+                  {/* Per-area instructions + file */}
+                  {(processData.areas || []).map(area => (
+                    <div key={area} style={{ marginBottom: '16px', padding: '12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
+                      <label style={{ display: 'block', fontWeight: 600, marginBottom: '6px', fontSize: '13px' }}>
+                        Instructions ({area}) <span style={{ color: '#dc3545' }}>*</span>
+                      </label>
+                      <textarea
+                        value={processData.areaInstructions?.[area] || ''}
+                        onChange={(e) => setProcessData({
+                          ...processData,
+                          areaInstructions: { ...processData.areaInstructions, [area]: e.target.value }
+                        })}
+                        placeholder={`Instructions for ${area}...`}
+                        style={{ width: '100%', minHeight: '70px', padding: '6px 10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical', marginBottom: '8px' }}
                       />
+                      <div className="file-upload">
+                        {!processData.areaFiles?.[area] ? (
+                          <input
+                            type="file"
+                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx"
+                            onChange={async (e) => {
+                              const file = e.target.files[0];
+                              if (!file) return;
+                              const fd = new FormData();
+                              fd.append('file', file);
+                              try {
+                                const res = await api.uploadDraft(fd);
+                                setProcessData(prev => ({
+                                  ...prev,
+                                  areaFiles: { ...prev.areaFiles, [area]: res.filePath }
+                                }));
+                              } catch (err) { console.error('Upload failed:', err); }
+                            }}
+                          />
+                        ) : (
+                          <div className="file-preview">
+                            <a href={toFileUrl(processData.areaFiles[area])} target="_blank" rel="noreferrer" className="file-link">
+                              {processData.areaFiles[area].split('/').pop()}
+                            </a>
+                            <button
+                              type="button"
+                              className="replace-btn"
+                              onClick={async () => {
+                                try { await api.deleteDraftFile({ filePath: processData.areaFiles[area] }); } catch {}
+                                setProcessData(prev => ({
+                                  ...prev,
+                                  areaFiles: { ...prev.areaFiles, [area]: null }
+                                }));
+                              }}
+                            >Replace</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="file-upload" style={{ display: 'none' }}>
+                    {!processData.file ? (
+                      <input type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx" onChange={(e) => handleFileChange(e.target.files[0], processData, setProcessData)} />
                     ) : (
                       <div className="file-preview">
-                        <a
-                          href={toFileUrl(processData.file)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="file-link"
-                        >
+                        <a href={toFileUrl(processData.file)} target="_blank" rel="noreferrer" className="file-link">
                           {processData.file.split("/").pop()}
                         </a>
-
-                        <button
-                          type="button"
-                          className="replace-btn"
-                          onClick={() =>
-                            handleReplace(processData, setProcessData)
-                          }
-                        >
-                          Replace
-                        </button>
+                        <button type="button" className="replace-btn" onClick={() => handleReplace(processData, setProcessData)}>Replace</button>
                       </div>
                     )}
-
                   </div>
 
                 </div>
@@ -1709,275 +1921,133 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
               {openSection.includes("test") && (
                 <div className="accordion-body">
 
-                  <div className="field-inline">
-                    <label>Current Part Number: <span style={{ color: '#dc3545' }}>**</span></label>
-                    <input name="currentpartnum" value={testData.currentPart}
-                      onChange={(e) =>
-                        setTestData({ ...testData, currentPart: e.target.value })
-                      } />
-
-                    <label>To Be Part Number: <span style={{ color: '#dc3545' }}>**</span></label>
-                    <input name="tobepartnum" value={testData.toBePart}
-                      onChange={(e) =>
-                        setTestData({ ...testData, toBePart: e.target.value })
-                      } />
+                  {/* Parts table */}
+                  <div className="table-wrapper" style={{ marginBottom: '16px' }}>
+                    <table className="material-table">
+                      <thead>
+                        <tr>
+                          <th>Current Part Number <span style={{ color: '#dc3545' }}>*</span></th>
+                          <th>To Be Part Number <span style={{ color: '#dc3545' }}>*</span></th>
+                          <th>Refdes</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(testData.rows || []).map((row, idx) => (
+                          <tr key={idx}>
+                            <td>
+                              <input
+                                className="table-input"
+                                placeholder="Current Part No"
+                                value={row.currentPart || ''}
+                                onChange={(e) => {
+                                  const rows = [...testData.rows];
+                                  rows[idx] = { ...rows[idx], currentPart: e.target.value };
+                                  setTestData({ ...testData, rows });
+                                }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                className="table-input"
+                                placeholder="To Be Part No"
+                                value={row.toBePart || ''}
+                                onChange={(e) => {
+                                  const rows = [...testData.rows];
+                                  rows[idx] = { ...rows[idx], toBePart: e.target.value };
+                                  setTestData({ ...testData, rows });
+                                }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                className="table-input"
+                                placeholder="Refdes"
+                                value={row.refdes || ''}
+                                onChange={(e) => {
+                                  const rows = [...testData.rows];
+                                  rows[idx] = { ...rows[idx], refdes: e.target.value };
+                                  setTestData({ ...testData, rows });
+                                }}
+                              />
+                            </td>
+                            <td>
+                              {testData.rows.length > 1 && (
+                                <button type="button" className="delete-btn"
+                                  onClick={() => setTestData({ ...testData, rows: testData.rows.filter((_, i) => i !== idx) })}
+                                >✕</button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <div className="table-actions">
+                      <button type="button" className="add-btn"
+                        onClick={() => setTestData({ ...testData, rows: [...(testData.rows || []), { currentPart: '', toBePart: '', refdes: '' }] })}
+                      >+ Add Row</button>
+                    </div>
                   </div>
 
-                  <label>Instructions <span style={{ color: '#dc3545' }}>**</span></label>
-                  <textarea name="test instructions" value={testData.instructions}
-                    onChange={(e) =>
-                      setTestData({ ...testData, instructions: e.target.value })
-                    }
-                  />
+                  {/* Area multi-select */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                    <label style={{ whiteSpace: 'nowrap', marginBottom: 0 }}>Area <span style={{ color: '#dc3545' }}>*</span></label>
+                    <MultiSelectDropdown
+                      options={TEST_AREAS}
+                      value={testData.areas || []}
+                      onChange={(selected) => {
+                        const newAreaInstructions = { ...testData.areaInstructions };
+                        const newAreaFiles = { ...testData.areaFiles };
+                        Object.keys(newAreaInstructions).forEach(k => { if (!selected.includes(k)) delete newAreaInstructions[k]; });
+                        Object.keys(newAreaFiles).forEach(k => { if (!selected.includes(k)) delete newAreaFiles[k]; });
+                        setTestData({ ...testData, areas: selected, areaInstructions: newAreaInstructions, areaFiles: newAreaFiles });
+                      }}
+                      placeholder="Select area(s)..."
+                    />
+                  </div>
 
-                  <div className="file-upload">
-                    {!testData.file ? (
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleFileChange(e.target.files[0], testData, setTestData)
-                        }
+                  {/* Per-area instructions + file */}
+                  {(testData.areas || []).map(area => (
+                    <div key={area} style={{ marginBottom: '16px', padding: '12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
+                      <label style={{ display: 'block', fontWeight: 600, marginBottom: '6px', fontSize: '13px' }}>
+                        Instructions ({area}) <span style={{ color: '#dc3545' }}>*</span>
+                      </label>
+                      <textarea
+                        value={testData.areaInstructions?.[area] || ''}
+                        onChange={(e) => setTestData({ ...testData, areaInstructions: { ...testData.areaInstructions, [area]: e.target.value } })}
+                        placeholder={`Instructions for ${area}...`}
+                        style={{ width: '100%', minHeight: '70px', padding: '6px 10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical', marginBottom: '8px' }}
                       />
-                    ) : (
-                      <div className="file-preview">
-                        <a
-                          href={toFileUrl(testData.file)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="file-link"
-                        >
-                          {testData.file.split("/").pop()}
-                        </a>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleReplace(testData, setTestData)
-                          }
-                        >
-                          Replace
-                        </button>
+                      <div className="file-upload">
+                        {!testData.areaFiles?.[area] ? (
+                          <input type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx" onChange={async (e) => {
+                            const file = e.target.files[0]; if (!file) return;
+                            const fd = new FormData(); fd.append('file', file);
+                            try {
+                              const res = await api.uploadDraft(fd);
+                              setTestData(prev => ({ ...prev, areaFiles: { ...prev.areaFiles, [area]: res.filePath } }));
+                            } catch (err) { console.error('Upload failed:', err); }
+                          }} />
+                        ) : (
+                          <div className="file-preview">
+                            <a href={toFileUrl(testData.areaFiles[area])} target="_blank" rel="noreferrer" className="file-link">
+                              {testData.areaFiles[area].split('/').pop()}
+                            </a>
+                            <button type="button" className="replace-btn" onClick={async () => {
+                              try { await api.deleteDraftFile({ filePath: testData.areaFiles[area] }); } catch {}
+                              setTestData(prev => ({ ...prev, areaFiles: { ...prev.areaFiles, [area]: null } }));
+                            }}>Replace</button>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ))}
 
                 </div>
               )}
             </div>
 
 
-            {/* Rework Waiver Section */}
-            <div className="accordion">
-              <div
-                className="accordion-header"
-              >
-                Rework Waiver Details
-              </div>
-
-              {openSection.includes("rework") && (
-                <div className="accordion-body">
-                  <label>Instructions <span style={{ color: '#dc3545' }}>**</span></label>
-                  <textarea name="rework instructions" value={reworkData.instructions}
-                    onChange={(e) =>
-                      setReworkData({ ...reworkData, instructions: e.target.value })
-                    }
-                  />
-
-                  <div className="file-upload">
-                    {!reworkData.file ? (
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileChange(e.target.files[0], reworkData, setReworkData)}
-                      />
-                    ) : (
-                      <div className="file-preview">
-                        <a
-                          href={toFileUrl(reworkData.file)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="file-link"
-                        >
-                          {reworkData.file.split("/").pop()}
-                        </a>
-
-                        <button
-                          type="button"
-                          className="replace-btn"
-                          onClick={() =>
-                            handleReplace(reworkData, setReworkData)
-                          }
-                        >
-                          Replace
-                        </button>
-                      </div>
-                    )}
-
-                  </div>
-
-                </div>
-              )}
-            </div>
-
-
-            {/* Spec Waiver Section */}
-            <div className="accordion">
-              <div
-                className="accordion-header"
-              >
-                Spec Deviation Waiver Details
-              </div>
-
-              {openSection.includes("spec") && (
-                <div className="accordion-body">
-                  <label>Specifications/Drawings impacted <span style={{ color: '#dc3545' }}>**</span></label>
-                  <textarea name="spec impacted" value={specData.specImpact}
-                    onChange={(e) =>
-                      setSpecData({ ...specData, specImpact: e.target.value })
-                    }></textarea>
-
-                  <div className="file-upload">
-
-                    {!specData.file1 ? (
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleFileChange(
-                            e.target.files[0],
-                            specData,
-                            setSpecData,
-                            "file1"
-                          )
-                        }
-                      />
-                    ) : (
-                      <div className="file-preview">
-                        <a
-                          href={toFileUrl(specData.file1)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="file-link"
-                        >
-                          {specData.file1.split("/").pop()}
-                        </a>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleReplace(specData, setSpecData, "file1")
-                          }
-                        >
-                          Replace
-                        </button>
-                      </div>
-                    )}
-
-                  </div>
-                  <label><br></br>Instructions <span style={{ color: '#dc3545' }}>**</span></label>
-                  <textarea name="spec instructions" value={specData.instructions}
-                    onChange={(e) =>
-                      setSpecData({ ...specData, instructions: e.target.value })
-                    }></textarea>
-
-                  <div className="file-upload">
-
-                    {!specData.file2 ? (
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleFileChange(
-                            e.target.files[0],
-                            specData,
-                            setSpecData,
-                            "file2"
-                          )
-                        }
-                      />
-                    ) : (
-                      <div className="file-preview">
-                        <a
-                          href={toFileUrl(specData.file2)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="file-link"
-                        >
-                          {specData.file2.split("/").pop()}
-                        </a>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleReplace(specData, setSpecData, "file2")
-                          }
-                        >
-                          Replace
-                        </button>
-                      </div>
-                    )}
-
-                  </div>
-
-                </div>
-              )}
-            </div>
-
-
-            {/* Label Waiver Section */}
-            <div className="accordion">
-              <div
-                className="accordion-header"
-              >
-                Label Waiver Details
-              </div>
-
-              {openSection.includes("label") && (
-                <div className="accordion-body">
-
-                  <label>Instructions <span style={{ color: '#dc3545' }}>**</span></label>
-                  <textarea name="instructions" value={labelData.instructions}
-                    onChange={(e) =>
-                      setLabelData({ ...labelData, instructions: e.target.value })
-                    }></textarea>
-
-                  <div className="file-upload">
-                    {!labelData.file ? (
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileChange(e.target.files[0], labelData, setLabelData)}
-                      />
-                    ) : (
-                      <div className="file-preview">
-                        <a
-                          href={toFileUrl(labelData.file)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="file-link"
-                        >
-                          {labelData.file.split("/").pop()}
-                        </a>
-
-                        <button
-                          type="button"
-                          className="replace-btn"
-                          onClick={() =>
-                            handleReplace(labelData, setLabelData)
-                          }
-                        >
-                          Replace
-                        </button>
-                      </div>
-                    )}
-
-                  </div>
-
-
-                </div>
-              )}
-            </div>
 
 
 

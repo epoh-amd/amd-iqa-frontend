@@ -307,6 +307,16 @@ bulkUpdateBuilds: async (updates) => {
     throw error;
   }
 },
+
+getAllWaivers: async () => {
+  try {
+    const response = await axios.get(`${API_URL}/waivers/all`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all waivers:', error);
+    throw error;
+  }
+},
 searchUserEmails: async (q) => {
   if (!q || q.trim().length < 1) return [];
   try {
@@ -339,16 +349,19 @@ sendFailBuildEmail: async (build, recipients = [], cc = [], emailBody = '') => {
   });
   return response.data;
 },
-sendNewWaiverNotification: async ({ waiverId, partNumber, description, reason, submittedBy, approvers, pdfBase64  }) => {
+sendNewWaiverNotification: async ({ waiverId, partNumber, description, revision, assemblyLevel, reason, submittedBy, approvers, pdfBase64, uploadedFilePaths }) => {
   try {
     const response = await axios.post(`${API_URL}/email/waiver/notify`, {
-     waiverId,
+      waiverId,
       partNumber,
       description,
+      revision,
+      assemblyLevel,
       reason,
       submittedBy,
       approvers,
-      pdfBase64
+      pdfBase64,
+      uploadedFilePaths
     });
     return response.data;
   } catch (error) {

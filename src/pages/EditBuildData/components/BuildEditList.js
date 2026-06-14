@@ -97,6 +97,7 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
 
   const openEmailModal = (build) => {
     setToList([
+      
       'BeowHwa.Yap@amd.com',
       'SLTeh.Teh@amd.com',
       'HoeSeng.Yeoh@amd.com',
@@ -113,7 +114,10 @@ const BuildEditList = ({ builds, selectedBuild, onBuildSelect, onEdit, loading, 
       'SueSan.Koh@amd.com',
       'WeiSin.Khor@amd.com',
       'LayLing.Chew@amd.com',
-      'ChoonChuan.Yap@amd.com',
+      'ChoonChuan.Yap@amd.com'
+      /*
+       'dl_iqadashboardEmail@amd.com'
+       */
     ]);
     setCcList([
       'HafizSafwan.binShahimi@amd.com',

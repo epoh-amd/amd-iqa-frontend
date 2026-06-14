@@ -60,14 +60,28 @@ const WaiverView = () => {
             try {
                 const base64 = await generateWaiverPDFBase64(element);
                 const state = location.state || {};
+
+                // Collect all uploaded file paths
+                const uploadedFilePaths = [];
+                (data.materialRows || []).forEach(r => {
+                    if (r.file_path || r.file) uploadedFilePaths.push(r.file_path || r.file);
+                });
+                const pd = data.processData || {};
+                if (pd.areaFiles) Object.values(pd.areaFiles).forEach(f => { if (f) uploadedFilePaths.push(f); });
+                const td = data.testData || {};
+                if (td.areaFiles) Object.values(td.areaFiles).forEach(f => { if (f) uploadedFilePaths.push(f); });
+
                 await api.sendNewWaiverNotification({
                     waiverId: data.waiverId,
                     partNumber: data.partNumber,
                     description: data.description,
+                    revision: data.revision,
+                    assemblyLevel: data.assemblyLevel,
                     reason: data.reason,
                     submittedBy: data.submittedBy,
                     approvers: state.approvers || [],
                     pdfBase64: base64,
+                    uploadedFilePaths,
                 });
                 setSubmitBanner('success');
             } catch (err) {
@@ -201,7 +215,7 @@ const WaiverView = () => {
             <div className="form-section">
                 <div className="field-inline">
                     <label>Affected Subcontractor</label>
-                    <span className="wv-value">{subcontractor || '-'}</span>
+                    <span className="wv-value">{Array.isArray(subcontractor) ? subcontractor.join(', ') : subcontractor || '-'}</span>
                 </div>
             </div>
 
@@ -209,7 +223,7 @@ const WaiverView = () => {
             <div className="form-section">
                 <div className="field-inline">
                     <label>Assembly Level</label>
-                    <span className="wv-value">{assemblyLevel || '-'}</span>
+                    <span className="wv-value">{Array.isArray(assemblyLevel) ? assemblyLevel.join(', ') : assemblyLevel || '-'}</span>
                 </div>
             </div>
 
@@ -263,34 +277,42 @@ const WaiverView = () => {
                             <table className="material-table">
                                 <thead>
                                     <tr>
-                                        <th>Current Part</th>
+                                        <th>Current Part Number</th>
                                         <th>Description</th>
-                                        <th>New Part</th>
+                                        <th>No. of Per</th>
+                                        <th>Refdes</th>
+                                        <th>To Be Part Number</th>
                                         <th>Description</th>
                                         <th>Action</th>
-                                        <th>Instructions</th>
                                         <th>Attachment</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {materialRows.map((row, i) => (
-                                        <tr key={i}>
-                                            <td>{row.current_part || '-'}</td>
-                                            <td>{row.current_part_description || '-'}</td>
-                                            <td>{row.new_part || '-'}</td>
-                                            <td>{row.new_part_description || '-'}</td>
+                                        <React.Fragment key={i}>
+                                        <tr>
+                                            <td>{row.current_part || row.currentPart || '-'}</td>
+                                            <td>{row.current_part_description || row.currentPartDescription || '-'}</td>
+                                            <td>{row.no_of_per || row.noOfPer || '-'}</td>
+                                            <td>{row.refdes || '-'}</td>
+                                            <td>{row.new_part || row.newPart || '-'}</td>
+                                            <td>{row.new_part_description || row.newPartDescription || '-'}</td>
                                             <td>{row.action || '-'}</td>
-                                            <td>{row.instructions || '-'}</td>
                                             <td>
-                                                {row.file_path ? (
-                                                    <a href={toFileUrl(row.file_path)} target="_blank" rel="noreferrer" className="file-link">
-                                                        {row.file_path.split('/').pop()}
+                                                {row.file_path || row.file ? (
+                                                    <a href={toFileUrl(row.file_path || row.file)} target="_blank" rel="noreferrer" className="file-link">
+                                                        {(row.file_path || row.file).split('/').pop()}
                                                     </a>
                                                 ) : '-'}
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td colSpan="8" style={{ background: '#fafafa', padding: '6px 12px', fontSize: '13px' }}>
+                                                <strong>Instructions:</strong> {row.instructions || '-'}
+                                            </td>
+                                        </tr>
+                                        </React.Fragment>
                                     ))}
-
                                 </tbody>
                             </table>
                         </div>
@@ -303,13 +325,27 @@ const WaiverView = () => {
                 <div className="accordion-header">Process Waiver Details</div>
                 {openSections.includes('process') && (
                     <div className="accordion-body">
-                        <label>Instructions</label>
-                        <span className="wv-value wv-multiline">{processData.instructions || '-'}</span>
-                        {processData.file && (
-                            <a href={toFileUrl(processData.file)} target="_blank" rel="noreferrer" className="file-link">
-                                {processData.file.split('/').pop()}
-                            </a>
-                        )}
+                        <div className="field-inline" style={{ marginBottom: '12px' }}>
+                            <label>Area:</label>
+                            <span className="wv-value">
+                                {Array.isArray(processData.areas) && processData.areas.length > 0
+                                    ? processData.areas.join(', ')
+                                    : '-'}
+                            </span>
+                        </div>
+                        {Array.isArray(processData.areas) && processData.areas.map(area => (
+                            <div key={area} style={{ marginBottom: '12px', padding: '10px 12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
+                                <label style={{ fontWeight: 600, fontSize: '13px', display: 'block', marginBottom: '4px' }}>Instructions ({area}):</label>
+                                <span className="wv-value wv-multiline">{processData.areaInstructions?.[area] || '-'}</span>
+                                {processData.areaFiles?.[area] && (
+                                    <div style={{ marginTop: '6px' }}>
+                                        <a href={toFileUrl(processData.areaFiles[area])} target="_blank" rel="noreferrer" className="file-link">
+                                            {processData.areaFiles[area].split('/').pop()}
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
@@ -319,77 +355,54 @@ const WaiverView = () => {
                 <div className="accordion-header">Test Waiver Details</div>
                 {openSections.includes('test') && (
                     <div className="accordion-body">
-                        <div className="field-inline">
-                            <label>Current Part Number:</label>
-                            <span className="wv-value">{testData.currentPart || '-'}</span>
-                            <label>To Be Part Number:</label>
-                            <span className="wv-value">{testData.toBePart || '-'}</span>
+                        {/* Parts table */}
+                        {Array.isArray(testData.rows) && testData.rows.length > 0 && (
+                            <div className="table-wrapper" style={{ marginBottom: '16px' }}>
+                                <table className="material-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Current Part Number</th>
+                                            <th>To Be Part Number</th>
+                                            <th>Refdes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {testData.rows.map((row, i) => (
+                                            <tr key={i}>
+                                                <td>{row.currentPart || '-'}</td>
+                                                <td>{row.toBePart || '-'}</td>
+                                                <td>{row.refdes || '-'}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                        <div className="field-inline" style={{ marginBottom: '12px' }}>
+                            <label>Area:</label>
+                            <span className="wv-value">
+                                {Array.isArray(testData.areas) && testData.areas.length > 0
+                                    ? testData.areas.join(', ')
+                                    : '-'}
+                            </span>
                         </div>
-                        <label>Instructions</label>
-                        <span className="wv-value wv-multiline">{testData.instructions || '-'}</span>
-                        {testData.file && (
-                            <a href={toFileUrl(testData.file)} target="_blank" rel="noreferrer" className="file-link">
-                                {testData.file.split('/').pop()}
-                            </a>
-                        )}
+                        {Array.isArray(testData.areas) && testData.areas.map(area => (
+                            <div key={area} style={{ marginBottom: '12px', padding: '10px 12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
+                                <label style={{ fontWeight: 600, fontSize: '13px', display: 'block', marginBottom: '4px' }}>Instructions ({area}):</label>
+                                <span className="wv-value wv-multiline">{testData.areaInstructions?.[area] || '-'}</span>
+                                {testData.areaFiles?.[area] && (
+                                    <div style={{ marginTop: '6px' }}>
+                                        <a href={toFileUrl(testData.areaFiles[area])} target="_blank" rel="noreferrer" className="file-link">
+                                            {testData.areaFiles[area].split('/').pop()}
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
 
-            {/* Rework Waiver */}
-            <div className="accordion">
-                <div className="accordion-header">Rework Waiver Details</div>
-                {openSections.includes('rework') && (
-                    <div className="accordion-body">
-                        <label>Instructions</label>
-                        <span className="wv-value wv-multiline">{reworkData.instructions || '-'}</span>
-                        {reworkData.file && (
-                            <a href={toFileUrl(reworkData.file)} target="_blank" rel="noreferrer" className="file-link">
-                                {reworkData.file.split('/').pop()}
-                            </a>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* Spec Deviation */}
-            <div className="accordion">
-                <div className="accordion-header">Spec Deviation Waiver Details</div>
-                {openSections.includes('spec') && (
-                    <div className="accordion-body">
-                        <label>Specifications/Drawings impacted</label>
-                        <span className="wv-value wv-multiline">{specData.specImpact || '-'}</span>
-                        {specData.file1 && (
-                            <a href={toFileUrl(specData.file1)} target="_blank" rel="noreferrer" className="file-link">
-                                {specData.file1.split('/').pop()}
-                            </a>
-                        )}
-                        <label><br />Instructions</label>
-                        <span className="wv-value wv-multiline">{specData.instructions || '-'}</span>
-                        {specData.file2 && (
-                            <a href={toFileUrl(specData.file2)} target="_blank" rel="noreferrer" className="file-link">
-                                {specData.file2.split('/').pop()}
-                            </a>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* Label Waiver */}
-            <div className="accordion">
-                <div className="accordion-header">Label Waiver Details</div>
-                {openSections.includes('label') && (
-                    <div className="accordion-body">
-                        <label>Instructions</label>
-                        <span className="wv-value wv-multiline">{labelData.instructions || '-'}</span>
-                        {labelData.file && (
-                            <a href={toFileUrl(labelData.file)} target="_blank" rel="noreferrer" className="file-link">
-                                {labelData.file.split('/').pop()}
-                            </a>
-                        )}
-                    </div>
-                )}
-            </div>
         </div>
         </>
     );
