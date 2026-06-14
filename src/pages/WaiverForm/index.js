@@ -1,4 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
+import "../../assets/css/waiver.css";
+import api from "../../services/api";
+import { getAllConfig } from './waiverConfig';
+import { useAuth } from '../../contexts/AuthContext.js';
+import { useNavigate } from 'react-router-dom';
 
 const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Select...' }) => {
   const [open, setOpen] = useState(false);
@@ -73,11 +78,7 @@ const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Sel
     </div>
   );
 };
-import "../../assets/css/waiver.css";
-import api from "../../services/api";
-import { getAllConfig } from './waiverConfig';
-import { useAuth } from '../../contexts/AuthContext.js';
-import { useNavigate } from 'react-router-dom';
+
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 const toFileUrl = (filePath) => filePath ? `${BASE_URL}${filePath.replace('/drafts/', '/api/drafts/')}` : '';
