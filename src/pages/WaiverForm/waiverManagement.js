@@ -177,7 +177,7 @@ const WaiverManagement = () => {
   const [showApprovals, setShowApprovals] = useState(true);
   const [approvals, setApprovals] = useState([]);
   const [approvalsLoading, setApprovalsLoading] = useState(false);
-  const [approvalsFilter, setApprovalsFilter] = useState('New');
+  const [approvalsFilter, setApprovalsFilter] = useState('Pending Approval');
   const [approvalsSearch, setApprovalsSearch] = useState('');
    const [expandedCancelReason, setExpandedCancelReason] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null); // { waiverId, reason }
@@ -299,7 +299,7 @@ const WaiverManagement = () => {
                     }}
                   >
                     <option value="all">All Status</option>
-                    <option value="New">New</option>
+                    <option value="Pending Approval">Pending Approval</option>
                     <option value="Approved">Approved</option>
                     <option value="Closed">Closed</option>
                     <option value="Cancelled">Cancelled</option>
@@ -398,7 +398,7 @@ const WaiverManagement = () => {
                           <span style={{ color: '#aaa' }}>-</span>
                         ) : (
                           <div className="wm-action-btns">
-                            {w.status === 'New' && (
+                            {w.status === 'Pending Approval' && (
                               <button
                                 className="add-btn"
                                 style={{ padding: '4px 12px', fontSize: '13px' }}
@@ -407,7 +407,7 @@ const WaiverManagement = () => {
                                 Edit
                               </button>
                             )}
-                            {w.status === 'New' && (
+                            {w.status === 'Pending Approval' && (
                               <button
                                 className="wm-btn-approve"
                                 disabled={actionLoading === w.waiver_id}
@@ -425,7 +425,7 @@ const WaiverManagement = () => {
                                 Closed
                               </button>
                             )}
-                            {(w.status === 'New' || w.status === 'Approved') && (
+                            {(w.status === 'Pending Approval' || w.status === 'Approved') && (
                               <button
                                 className="wm-btn-reject"
                                 onClick={() =>

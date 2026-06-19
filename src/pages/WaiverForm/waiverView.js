@@ -46,6 +46,7 @@ const WaiverView = () => {
     const [submitBanner, setSubmitBanner] = useState(isSendEmail ? 'sending' : null);
     const emailSentRef = useRef(false);
     const location = useLocation();
+    const isUpdate = !!(location.state?.isUpdate);
 
     // Auto-send email with PDF when navigated here after waiver submission
     useEffect(() => {
@@ -60,6 +61,7 @@ const WaiverView = () => {
             try {
                 const base64 = await generateWaiverPDFBase64(element);
                 const state = location.state || {};
+                const isUpdate = !!state.isUpdate;
 
                 // Collect all uploaded file paths
                 const uploadedFilePaths = [];
@@ -71,6 +73,15 @@ const WaiverView = () => {
                 const td = data.testData || {};
                 if (td.areaFiles) Object.values(td.areaFiles).forEach(f => { if (f) uploadedFilePaths.push(f); });
 
+                const requestors = (() => {
+                    try {
+                        const p = JSON.parse(data.requestor);
+                        return Array.isArray(p) ? p.filter(Boolean) : [String(p)];
+                    } catch {
+                        return data.requestor ? [data.requestor] : [];
+                    }
+                })();
+
                 await api.sendNewWaiverNotification({
                     waiverId: data.waiverId,
                     partNumber: data.partNumber,
@@ -80,6 +91,8 @@ const WaiverView = () => {
                     reason: data.reason,
                     submittedBy: data.submittedBy,
                     approvers: state.approvers || [],
+                    requestors,
+                    isUpdate,
                     pdfBase64: base64,
                     uploadedFilePaths,
                 });
@@ -151,7 +164,7 @@ const WaiverView = () => {
                         display: 'inline-block', animation: 'spin 0.8s linear infinite',
                         flexShrink: 0
                     }} />
-                    Waiver <strong style={{ margin: '0 4px' }}>{waiverId}</strong> submitted. Generating and sending email notification...
+                    Waiver <strong style={{ margin: '0 4px' }}>{waiverId}</strong> {isUpdate ? 'updated' : 'submitted'}. Generating and sending email notification...
                 </div>
             )}
             {submitBanner === 'success' && (
@@ -161,7 +174,7 @@ const WaiverView = () => {
                     borderRadius: '6px', color: '#155724', fontWeight: 500,
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between'
                 }}>
-                    <span>Waiver <strong>{waiverId}</strong> submitted successfully! Email notification sent to approvers.</span>
+                    <span>Waiver <strong>{waiverId}</strong> {isUpdate ? 'updated' : 'submitted'} successfully! Email notification sent to approvers.</span>
                     <span style={{ cursor: 'pointer', fontWeight: 700, marginLeft: 12 }} onClick={() => setSubmitBanner(null)}>✕</span>
                 </div>
             )}
@@ -172,7 +185,7 @@ const WaiverView = () => {
                     borderRadius: '6px', color: '#856404', fontWeight: 500,
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between'
                 }}>
-                    <span>Waiver <strong>{waiverId}</strong> submitted successfully, but email notification could not be sent.</span>
+                    <span>Waiver <strong>{waiverId}</strong> {isUpdate ? 'updated' : 'submitted'} successfully, but email notification could not be sent.</span>
                     <span style={{ cursor: 'pointer', fontWeight: 700, marginLeft: 12 }} onClick={() => setSubmitBanner(null)}>✕</span>
                 </div>
             )}
@@ -231,13 +244,11 @@ const WaiverView = () => {
             {/* Requestor */}
             <div className="form-section">
                 <Field label="Requestor Name:" value={requestor} />
-                <Field label="Submitted By:" value={submittedBy} />
             </div>
 
             {/* Dates */}
             <div className="form-section">
                 <Field label="Waiver Start Date" value={formatDate(startDate)} />
-                <Field label="Waiver End Date" value={formatDate(endDate)} />
             </div>
 
             {/* Waiver Type */}

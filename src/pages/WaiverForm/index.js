@@ -5,6 +5,86 @@ import { getAllConfig } from './waiverConfig';
 import { useAuth } from '../../contexts/AuthContext.js';
 import { useNavigate } from 'react-router-dom';
 
+const RequestorInput = ({ value, onChange }) => {
+  const [suggestions, setSuggestions] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
+  const debounce = useRef(null);
+  const inputRef = useRef(null);
+  const wrapRef = useRef(null);
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    const handler = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleChange = (val) => {
+    onChange(val);
+    clearTimeout(debounce.current);
+    if (!val.trim()) { setSuggestions([]); setOpen(false); return; }
+    debounce.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_URL}/users/search-email?q=${encodeURIComponent(val)}`);
+        const data = await res.json();
+        setSuggestions(data);
+        if (data.length > 0 && inputRef.current) {
+          const rect = inputRef.current.getBoundingClientRect();
+          setDropPos({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: rect.width });
+        }
+        setOpen(data.length > 0);
+      } catch { setSuggestions([]); setOpen(false); }
+    }, 250);
+  };
+
+  const select = (row) => {
+    onChange(row.full_name || row.email);
+    setSuggestions([]);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={wrapRef} style={{ position: 'relative', flex: 1 }}>
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
+        onFocus={() => {
+          if (suggestions.length > 0 && inputRef.current) {
+            const rect = inputRef.current.getBoundingClientRect();
+            setDropPos({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: rect.width });
+            setOpen(true);
+          }
+        }}
+        style={{ width: '100%', boxSizing: 'border-box' }}
+      />
+      {open && (
+        <ul style={{
+          position: 'fixed', top: dropPos.top, left: dropPos.left, width: dropPos.width, zIndex: 9999,
+          background: '#fff', border: '1px solid #ccc', borderRadius: '4px',
+          margin: '2px 0 0', padding: 0, listStyle: 'none', maxHeight: '200px', overflowY: 'auto',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
+        }}>
+          {suggestions.map((row, i) => (
+            <li
+              key={i}
+              onMouseDown={() => select(row)}
+              style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}
+            >
+              <span style={{ fontWeight: 500 }}>{row.full_name}</span>
+              {row.email && <span style={{ color: '#888', marginLeft: '8px', fontSize: '12px' }}>{row.email}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+
 const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Select...' }) => {
   const [open, setOpen] = useState(false);
   const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
@@ -107,6 +187,9 @@ const WaiverForm = () => {
   const [myFormsSearch, setMyFormsSearch] = useState('');
   const [myFormsStatusFilter, setMyFormsStatusFilter] = useState('all');
   const [waiverStatus, setWaiverStatus] = useState(null);
+  const [emailSentBanner, setEmailSentBanner] = useState(null);
+  const emailBannerTimer = useRef(null);
+  const [sendingEmailIdx, setSendingEmailIdx] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [expandedCancelReason, setExpandedCancelReason] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -216,7 +299,7 @@ const WaiverForm = () => {
           description: data.description || '',
           subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
           assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
-          requestor: data.requestor || '',
+          requestor: Array.isArray(data.requestor) ? data.requestor : data.requestor ? [data.requestor] : [''],
           startDate: toDate(data.startDate) || new Date().toISOString().split('T')[0],
           endDate: toDate(data.endDate),
           waiverType: data.waiverType || [],
@@ -277,7 +360,7 @@ const WaiverForm = () => {
           description: data.description || '',
           subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
           assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
-          requestor: data.requestor || '',
+          requestor: Array.isArray(data.requestor) ? data.requestor : data.requestor ? [data.requestor] : [''],
           startDate: toDate(data.startDate) || new Date().toISOString().split('T')[0],
           endDate: toDate(data.endDate),
           waiverType: data.waiverType || [],
@@ -375,7 +458,7 @@ const WaiverForm = () => {
     }
   ]);
 
-  const PROCESS_AREAS = ['Prepping', 'SMT', 'Wave', 'Hand Soldering', 'Visual Inspection', 'Final Assembly', 'System Assembly', 'Packing'];
+  const PROCESS_AREAS = ['Prepping', 'SMT', 'Wave', 'Hand Soldering', 'Visual Inspection', 'Final Assembly', 'System Assembly', 'Packing', 'Rework'];
 
   const [processData, setProcessData] = useState({
     areas: [],
@@ -415,6 +498,8 @@ const WaiverForm = () => {
 
   useEffect(() => {
     if (!userId) return;
+    // Don't save to drafts when editing an existing waiver from All Forms
+    if (requestorEditMode || approverEditMode || rejectedEditMode) return;
 
     // prevent saving empty initial state
     const isEmpty =
@@ -451,6 +536,47 @@ const WaiverForm = () => {
     reworkData,
     labelData,
     openSection]);
+
+  // Auto-save to waivers table when editing from All Forms tab
+  useEffect(() => {
+    if (!requestorEditMode || !waiverId || !formData.partNumber) return;
+
+    const timeout = setTimeout(async () => {
+      try {
+        const activeTypes = formData.waiverType || [];
+        await api.submitWaiver({
+          waiverId,
+          partNumber: formData.partNumber,
+          revision: formData.revision,
+          description: formData.description,
+          subcontractor: formData.subcontractor,
+          assemblyLevel: formData.assemblyLevel,
+          requestor: JSON.stringify(Array.isArray(formData.requestor) ? formData.requestor.filter(Boolean) : formData.requestor ? [formData.requestor] : []),
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          waiverType: activeTypes,
+          reason: formData.reason,
+          workorder: formData.workorder,
+          workorderQty: formData.workorderQty,
+          submittedBy: user?.full_name || user?.email || '',
+          status: waiverStatus || 'New',
+          materialRows: activeTypes.includes('Material Waiver') ? materialRows : [],
+          processData: activeTypes.includes('Process Waiver') ? processData : { areas: [], areaInstructions: {}, areaFiles: {}, instructions: '', file: null },
+          testData: activeTypes.includes('Test Waiver') ? testData : { rows: [{ currentPart: '', toBePart: '', refdes: '' }], areas: [], areaInstructions: {}, areaFiles: {}, instructions: '', file: null },
+          specData: activeTypes.includes('Spec Deviation') ? specData : { specImpact: '', instructions: '', file1: null, file2: null },
+          reworkData: activeTypes.includes('Rework Waiver') ? reworkData : { instructions: '', file: null },
+          labelData: activeTypes.includes('Label Waiver') ? labelData : { instructions: '', file: null },
+          openSections: openSection,
+        });
+      } catch (error) {
+        console.error("Auto-save waiver failed:", error);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timeout);
+  }, [requestorEditMode, waiverId,
+    formData, materialRows, processData,
+    testData, specData, reworkData, labelData, openSection]);
 
 
   const handleMaterialChange = (index, field, value) => {
@@ -602,34 +728,36 @@ const WaiverForm = () => {
     if (!formData.description?.trim()) errors.push('AMD Product Description');
     if (!formData.subcontractor || (Array.isArray(formData.subcontractor) ? formData.subcontractor.length === 0 : !formData.subcontractor)) errors.push('Affected Subcontractor');
     if (!formData.assemblyLevel || (Array.isArray(formData.assemblyLevel) ? formData.assemblyLevel.length === 0 : !formData.assemblyLevel)) errors.push('Assembly Level');
-    if (!formData.requestor?.trim()) errors.push('Requestor Name');
+    if (!(Array.isArray(formData.requestor) ? formData.requestor.some(r => r.trim()) : formData.requestor?.trim())) errors.push('Requestor Name');
     if (!formData.startDate) errors.push('Waiver Start Date');
     if (activeTypes.length === 0) errors.push('Waiver Type (at least one)');
     if (!formData.reason?.trim()) errors.push('Reason / Justification');
 
-    // Section-specific required fields
-    if (activeTypes.includes('Material Waiver')) {
-      const hasValidRow = materialRows.some(r => r.currentPart?.trim() || r.newPart?.trim());
-      if (!hasValidRow) errors.push('Material Waiver: at least one row with Current or New Part');
+    // Section-specific required fields — only enforced when requestor is submitting for approval
+    if (requestorEditMode || rejectedEditMode) {
+      if (activeTypes.includes('Material Waiver')) {
+        const hasValidRow = materialRows.some(r => r.currentPart?.trim() || r.newPart?.trim());
+        if (!hasValidRow) errors.push('Material Waiver: at least one row with Current or New Part');
+      }
+      if (activeTypes.includes('Process Waiver')) {
+        if (!processData.areas?.length) errors.push('Process Waiver: Area');
+        else if (!processData.areas.every(area => processData.areaInstructions?.[area]?.trim()))
+          errors.push('Process Waiver: Instructions (all selected areas must have instructions)');
+      }
+      if (activeTypes.includes('Test Waiver')) {
+        if (!testData.rows?.some(r => r.currentPart?.trim())) errors.push('Test Waiver: Current Part Number');
+        if (!testData.rows?.some(r => r.toBePart?.trim())) errors.push('Test Waiver: To Be Part Number');
+        if (!testData.areas?.length) errors.push('Test Waiver: Area');
+      }
+      if (activeTypes.includes('Spec Deviation')) {
+        if (!specData.specImpact?.trim()) errors.push('Spec Deviation: Specifications/Drawings impacted');
+        if (!specData.instructions?.trim()) errors.push('Spec Deviation: Instructions');
+      }
+      if (activeTypes.includes('Rework Waiver') && !reworkData.instructions?.trim())
+        errors.push('Rework Waiver: Instructions');
+      if (activeTypes.includes('Label Waiver') && !labelData.instructions?.trim())
+        errors.push('Label Waiver: Instructions');
     }
-    if (activeTypes.includes('Process Waiver')) {
-      if (!processData.areas?.length) errors.push('Process Waiver: Area');
-      else if (!processData.areas.every(area => processData.areaInstructions?.[area]?.trim()))
-        errors.push('Process Waiver: Instructions (all selected areas must have instructions)');
-    }
-    if (activeTypes.includes('Test Waiver')) {
-      if (!testData.rows?.some(r => r.currentPart?.trim())) errors.push('Test Waiver: Current Part Number');
-      if (!testData.rows?.some(r => r.toBePart?.trim())) errors.push('Test Waiver: To Be Part Number');
-      if (!testData.areas?.length) errors.push('Test Waiver: Area');
-    }
-    if (activeTypes.includes('Spec Deviation')) {
-      if (!specData.specImpact?.trim()) errors.push('Spec Deviation: Specifications/Drawings impacted');
-      if (!specData.instructions?.trim()) errors.push('Spec Deviation: Instructions');
-    }
-    if (activeTypes.includes('Rework Waiver') && !reworkData.instructions?.trim())
-      errors.push('Rework Waiver: Instructions');
-    if (activeTypes.includes('Label Waiver') && !labelData.instructions?.trim())
-      errors.push('Label Waiver: Instructions');
 
     if (errors.length > 0) {
       setSubmitMessage({ type: 'error', text: `Please fill in the following required fields:\n• ${errors.join('\n• ')}` });
@@ -646,7 +774,7 @@ const WaiverForm = () => {
         description: formData.description,
         subcontractor: formData.subcontractor,
         assemblyLevel: formData.assemblyLevel,
-        requestor: formData.requestor,
+        requestor: JSON.stringify(Array.isArray(formData.requestor) ? formData.requestor.filter(Boolean) : formData.requestor ? [formData.requestor] : []),
         startDate: formData.startDate,
         endDate: formData.endDate,
         waiverType: activeTypes,
@@ -670,14 +798,18 @@ const WaiverForm = () => {
         return;
       }
 
-      // Requestor editing their own New waiver from My Forms tab
+      // Requestor submitting from All Forms — set to Pending Approval and notify approvers
       if (requestorEditMode) {
-        await api.submitWaiver(payload); // ON DUPLICATE KEY UPDATE preserves status & modified_by
-        setShowForm(false);
-        setActiveTab('myforms');
-        fetchMyForms();
-        setPageMessage({ type: 'success', text: `Waiver ${formData.waiverId} updated successfully!` });
-        setTimeout(() => setPageMessage(null), 4000);
+        await api.submitWaiver({ ...payload, status: 'Pending Approval' });
+        navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
+          state: {
+            approvers,
+            submittedBy: user?.full_name,
+            description: formData.description,
+            reason: formData.reason,
+            isUpdate: waiverStatus === 'Pending Approval',
+          },
+        });
         return;
       }
 
@@ -708,25 +840,41 @@ const WaiverForm = () => {
         setTimeout(() => setPageMessage(null), 5000);
         return;
       }
-await api.submitWaiver(payload);
+// New waiver — save as New, notify requestors only
+await api.submitWaiver({ ...payload, status: 'New' });
 
-// Remove from drafts after successful submit
+// Remove from drafts list after successful submit
 try {
   await api.deleteWaiver(formData.waiverId);
 } catch (err) {
   console.warn('Could not delete draft after submit:', err);
 }
 
-// Navigate to WaiverView — it captures PDF from its own rendered output
-// and sends the email, guaranteeing identical PDF to Download PDF
-navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
-  state: {
-    approvers,
-    submittedBy: user?.full_name,
+// Notify requestors
+const requestorList = Array.isArray(formData.requestor)
+  ? formData.requestor.filter(Boolean)
+  : formData.requestor ? [formData.requestor] : [];
+
+try {
+  await api.sendRequestorNotification({
+    waiverId: formData.waiverId,
+    partNumber: formData.partNumber,
     description: formData.description,
+    revision: formData.revision,
+    assemblyLevel: formData.assemblyLevel,
     reason: formData.reason,
-  },
-});
+    submittedBy: user?.full_name || user?.email || '',
+    requestors: requestorList,
+  });
+} catch (emailErr) {
+  console.error('Failed to notify requestors:', emailErr);
+}
+
+setShowForm(false);
+setActiveTab('myforms');
+fetchMyForms();
+setPageMessage({ type: 'success', text: `Waiver ${formData.waiverId} created and requestors have been notified.` });
+setTimeout(() => setPageMessage(null), 5000);
 
 
     } catch (err) {
@@ -778,7 +926,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
         description: data.description || '',
         subcontractor: data.subcontractor || '',
         assemblyLevel: data.assemblyLevel || '',
-        requestor: data.requestor || '',
+        requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
         startDate: new Date().toISOString().split('T')[0],
         endDate: data.endDate || '',
         waiverType: data.waiverType || [],
@@ -852,7 +1000,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
       description: '',
       subcontractor: [],
       assemblyLevel: [],
-      requestor: '',
+      requestor: [''],
       startDate: new Date().toISOString().split('T')[0],
       endDate: '',
       waiverType: [],
@@ -948,7 +1096,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
         description: data.description || '',
         subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
         assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
-        requestor: data.requestor || '',
+        requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
         startDate: data.startDate ? data.startDate.toString().slice(0, 10) : new Date().toISOString().split('T')[0],
         endDate: data.endDate ? data.endDate.toString().slice(0, 10) : '',
         waiverType: data.waiverType || [],
@@ -1001,7 +1149,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
         description: data.description || '',
         subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
         assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
-        requestor: data.requestor || '',
+        requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
         startDate: data.startDate ? data.startDate.toString().slice(0, 10) : new Date().toISOString().split('T')[0],
         endDate: data.endDate ? data.endDate.toString().slice(0, 10) : '',
         waiverType: data.waiverType || [],
@@ -1198,7 +1346,9 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                   }}
                 >
                   <option value="all">All Status</option>
+                  <option value="Draft">Draft</option>
                   <option value="New">New</option>
+                  <option value="Pending Approval">Pending Approval</option>
                   <option value="Approved">Approved</option>
                   <option value="Cancelled">Cancelled</option>
                   <option value="Rejected">Rejected</option>
@@ -1242,6 +1392,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                       <th>Revision</th>
                       <th>Reason / Justification</th>
                       <th>Status</th>
+                      <th>Remarks</th>
                       <th>Updated At</th>
                       <th>Action</th>
                     </tr>
@@ -1272,6 +1423,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                         const status = w.status || 'New';
                         const statusColor = {
                           'New': { bg: '#e8f4fd', color: '#1a73e8' },
+                          'Pending Approval': { bg: '#fff8e1', color: '#f57c00' },
                           'Approved': { bg: '#e8f5e9', color: '#2e7d32' },
                           'Cancelled': { bg: '#fff3e0', color: '#e65100' },
                           'Rejected': { bg: '#fdecea', color: '#c62828' },
@@ -1357,6 +1509,21 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                               })()}
                             </td>
 
+                            <td style={{ fontSize: '13px', color: '#555', maxWidth: '180px' }}>
+                              {w.cancelled_by && w.cancelled_by.toLowerCase().startsWith('approver:') ? (
+                                <div>
+                                  <div style={{ fontWeight: 500, color: '#c62828' }}>
+                                    Rejected by {w.cancelled_by.split(':').slice(1).join(':').trim()}
+                                  </div>
+                                  {w.cancel_reason && (
+                                    <div style={{ marginTop: '4px', fontSize: '12px', color: '#444', background: '#fdecea', padding: '4px 8px', borderRadius: '4px', borderLeft: '3px solid #c62828' }}>
+                                      {w.cancel_reason}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : '-'}
+                            </td>
+
                             <td style={{ whiteSpace: 'nowrap', fontSize: '13px', color: '#555' }}>
                               {w.updated_at ? (() => {
                                 const raw = w.updated_at;
@@ -1372,7 +1539,7 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
                             <td>
                               <div style={{ display: 'flex', gap: '6px' }}>
-                                {status === 'New' && (
+                                {(status === 'New' || status === 'Pending Approval') && (
                                   <button
                                     className="add-btn"
                                     style={{ background: '#28a745', color: '#fff', border: '1px solid #28a745' }}
@@ -1460,6 +1627,21 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
         /* ── Form view ── */
         <>
           {/* Back button */}
+          {emailSentBanner && (
+            <div style={{
+              position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)',
+              zIndex: 9999, display: 'flex', alignItems: 'center', gap: '12px',
+              background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724',
+              borderRadius: '8px', padding: '12px 20px', fontSize: '14px', fontWeight: 500,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.15)', minWidth: '280px'
+            }}>
+              <span>&#10003; {emailSentBanner}</span>
+              <button
+                onClick={() => setEmailSentBanner(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#155724', fontSize: '16px', marginLeft: 'auto' }}
+              >&#x2715;</button>
+            </div>
+          )}
           <div className="title-header">
             <h4 className="waiver-title" style={{ textAlign: 'center' }}>AMD Waiver Request Form</h4>
           </div>
@@ -1549,10 +1731,64 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
 
             {/* Requestor */}
             <div className="form-section">
-              <div className="field-inline">
-                <label>Requestor Name: <span style={{ color: '#dc3545' }}>*</span></label>
-                <input name="requestor" value={formData.requestor || ""} onChange={handleChange} />
-              </div>
+              <label>Requestor Name: <span style={{ color: '#dc3545' }}>*</span></label>
+              {(Array.isArray(formData.requestor) ? formData.requestor : [formData.requestor || '']).map((val, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '6px', alignItems: 'center' }}>
+                  <RequestorInput
+                    value={val || ''}
+                    onChange={(v) => {
+                      const updated = [...(Array.isArray(formData.requestor) ? formData.requestor : [formData.requestor || ''])];
+                      updated[idx] = v;
+                      setFormData(prev => ({ ...prev, requestor: updated }));
+                    }}
+                  />
+                  {requestorEditMode && val?.trim() && (
+                    <button
+                      type="button"
+                      title={`Send email to ${val}`}
+                      onClick={async () => {
+                        setSendingEmailIdx(idx);
+                        try {
+                          await api.sendRequestorNotification({
+                            waiverId,
+                            partNumber: formData.partNumber,
+                            description: formData.description,
+                            revision: formData.revision,
+                            assemblyLevel: formData.assemblyLevel,
+                            reason: formData.reason,
+                            submittedBy: user?.full_name || user?.email || '',
+                            requestors: [val],
+                          });
+                          clearTimeout(emailBannerTimer.current);
+                          setEmailSentBanner(`Email sent to ${val}`);
+                          emailBannerTimer.current = setTimeout(() => setEmailSentBanner(null), 4000);
+                        } catch {
+                          setEmailSentBanner('Failed to send email.');
+                        } finally {
+                          setSendingEmailIdx(null);
+                        }
+                      }}
+                      disabled={sendingEmailIdx === idx}
+                      style={{ background: '#1a73e8', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 10px', cursor: sendingEmailIdx === idx ? 'not-allowed' : 'pointer', flexShrink: 0, fontSize: '12px', opacity: sendingEmailIdx === idx ? 0.7 : 1 }}
+                    >{sendingEmailIdx === idx ? 'Sending...' : '✉ Send'}</button>
+                  )}
+                  {(Array.isArray(formData.requestor) ? formData.requestor : [formData.requestor]).length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = (Array.isArray(formData.requestor) ? formData.requestor : [formData.requestor]).filter((_, i) => i !== idx);
+                        setFormData(prev => ({ ...prev, requestor: updated }));
+                      }}
+                      style={{ background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', flexShrink: 0 }}
+                    >✕</button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, requestor: [...(Array.isArray(prev.requestor) ? prev.requestor : [prev.requestor || '']), ''] }))}
+                style={{ background: 'none', border: '1px dashed #aaa', borderRadius: '4px', padding: '4px 12px', cursor: 'pointer', color: '#555', fontSize: '12px', marginTop: '4px' }}
+              >+ Add Requestor</button>
             </div>
 
             {/* Dates */}
@@ -1565,10 +1801,6 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
                   value={formData.startDate}
                   onChange={handleChange}
                 />
-              </div>
-              <div className="field-inline">
-                <label>Waiver End Date</label>
-                <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} />
               </div>
             </div>
 
@@ -2072,7 +2304,9 @@ navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
               className="submit-btn"
               disabled={submitting}
             >
-              {submitting ? 'Submitting...' : 'SUBMIT'}
+              {submitting
+                ? (requestorEditMode && waiverStatus === 'Pending Approval' ? 'Updating...' : 'Submitting...')
+                : (requestorEditMode && waiverStatus === 'Pending Approval' ? 'UPDATE' : 'SUBMIT')}
             </button>
 
 

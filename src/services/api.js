@@ -349,7 +349,18 @@ sendFailBuildEmail: async (build, recipients = [], cc = [], emailBody = '') => {
   });
   return response.data;
 },
-sendNewWaiverNotification: async ({ waiverId, partNumber, description, revision, assemblyLevel, reason, submittedBy, approvers, pdfBase64, uploadedFilePaths }) => {
+sendRequestorNotification: async ({ waiverId, partNumber, description, revision, assemblyLevel, reason, submittedBy, requestors }) => {
+  try {
+    const response = await axios.post(`${API_URL}/email/waiver/requestor-notify`, {
+      waiverId, partNumber, description, revision, assemblyLevel, reason, submittedBy, requestors
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to send requestor notification:', error);
+  }
+},
+
+sendNewWaiverNotification: async ({ waiverId, partNumber, description, revision, assemblyLevel, reason, submittedBy, approvers, requestors, isUpdate, pdfBase64, uploadedFilePaths }) => {
   try {
     const response = await axios.post(`${API_URL}/email/waiver/notify`, {
       waiverId,
@@ -360,6 +371,8 @@ sendNewWaiverNotification: async ({ waiverId, partNumber, description, revision,
       reason,
       submittedBy,
       approvers,
+      requestors,
+      isUpdate,
       pdfBase64,
       uploadedFilePaths
     });

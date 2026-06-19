@@ -24,19 +24,19 @@ export const generateWaiverPDFBase64 = async (element) => {
   await new Promise(resolve => setTimeout(resolve, 100));
 
   const canvas = await html2canvas(temp, {
-    scale: 1,
+    scale: 1.5,
     useCORS: true,
     allowTaint: true,
     width: 1200,
     windowWidth: 1200,
-    autoPaging: 'text',
     scrollX: 0,
     scrollY: 0,
   });
 
   document.body.removeChild(temp);
 
-  const imgData = canvas.toDataURL('image/png');
+  // JPEG at 0.7 quality keeps the file small enough for SMTP (target <1MB)
+  const imgData = canvas.toDataURL('image/jpeg', 0.7);
   const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -47,16 +47,15 @@ export const generateWaiverPDFBase64 = async (element) => {
   let position = 0;
   let remaining = imgHeight;
 
-  pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+  pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
   remaining -= pageHeight;
 
   while (remaining > 0) {
     position -= pageHeight;
     pdf.addPage();
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
     remaining -= pageHeight;
   }
 
-  // Return base64 string (strip the data URL prefix)
   return pdf.output('datauristring').split(',')[1];
 };
