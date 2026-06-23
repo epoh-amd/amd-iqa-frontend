@@ -1,8 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(tail -20 \"c:/Users/epoh/Downloads/amd-iqa-backend-main \\(1\\)/amd-iqa-backend-main/routes/profile.js\")",
-      "Read(//c/Users/epoh/Downloads/amd-iqa-backend-main \\(1\\)/amd-iqa-backend-main/routes/**)"
+      "Bash(tail -20 \"c:/Users/epoh/Downloads/amd-iqa-backend-main \\(3\\)/amd-iqa-backend-main/routes/profile.js\")",
+      "Read(//c/Users/epoh/Downloads/amd-iqa-backend-main \\(3\\)/amd-iqa-backend-main/routes/**)"
     ]
+  },
+  "env": {
+    "ANTHROPIC_CUSTOM_HEADERS": "Ocp-Apim-Subscription-Key: fbab168aa2724149b1ac854102e9b2c9"
   }
 }

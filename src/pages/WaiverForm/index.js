@@ -192,6 +192,7 @@ const WaiverForm = () => {
   const [sendingEmailIdx, setSendingEmailIdx] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [expandedCancelReason, setExpandedCancelReason] = useState(null);
+  const [historyModal, setHistoryModal] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const [subcontractors, setSubcontractors] = useState([]);
@@ -205,6 +206,8 @@ const WaiverForm = () => {
   const [approverEditMode, setApproverEditMode] = useState(false);
   const [requestorEditMode, setRequestorEditMode] = useState(false);
   const [rejectedEditMode, setRejectedEditMode] = useState(false);
+  const [approverAmendMode, setApproverAmendMode] = useState(false);
+  const [parentWaiverId, setParentWaiverId] = useState(null);
 
 
   useEffect(() => {
@@ -399,6 +402,69 @@ const WaiverForm = () => {
     })();
   }, []); // run once on mount
 
+  // Approver amend: detect ?approverAmend=true&id=ORIGINAL_ID&amendId=NEW_ID from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('approverAmend') !== 'true') return;
+    const originalId = params.get('id');
+    const amendId = params.get('amendId');
+    if (!originalId || !amendId) return;
+
+    setApproverAmendMode(true);
+    setParentWaiverId(originalId);
+    isEditingRef.current = false;
+    const toDate = (v) => v ? v.toString().slice(0, 10) : '';
+
+    (async () => {
+      try {
+        const data = await api.getWaiverDetails(originalId);
+        setWaiverId(amendId);
+        setFormData({
+          waiverId: amendId,
+          partNumber: data.partNumber || '',
+          revision: data.revision || '',
+          description: data.description || '',
+          subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
+          assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
+          requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
+          startDate: toDate(data.startDate) || new Date().toISOString().split('T')[0],
+          endDate: toDate(data.endDate),
+          waiverType: data.waiverType || [],
+          reason: data.reason || '',
+          workorder: data.workorder || '',
+          workorderQty: data.workorderQty || '',
+          currentPart: '', newPart: '', action: '', instructions: ''
+        });
+        const sectionMap = {
+          'Material Waiver': 'material', 'Process Waiver': 'process',
+          'Test Waiver': 'test', 'Spec Deviation': 'spec',
+          'Rework Waiver': 'rework', 'Label Waiver': 'label'
+        };
+        setOpenSection((data.waiverType || []).map(t => sectionMap[t]).filter(Boolean));
+        setMaterialRows((data.materialRows || []).map(r => ({
+          currentPart: r.current_part || r.currentPart || '',
+          currentPartDescription: r.current_part_description || r.currentPartDescription || '',
+          noOfPer: r.no_of_per || r.noOfPer || '',
+          refdes: r.refdes || '',
+          newPart: r.new_part || r.newPart || '',
+          newPartDescription: r.new_part_description || r.newPartDescription || '',
+          action: r.action || '',
+          instructions: r.instructions || '',
+          file: null
+        })));
+        setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: {}, instructions: data.processData?.instructions || '', file: null });
+        setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: {}, instructions: data.testData?.instructions || '', file: null });
+        setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: null, file2: null });
+        setReworkData({ instructions: data.reworkData?.instructions || '', file: null });
+        setLabelData({ instructions: data.labelData?.instructions || '', file: null });
+        setWaiverStatus('New');
+        setShowForm(true);
+      } catch (err) {
+        console.error('Failed to load waiver for amend:', err);
+      }
+    })();
+  }, []); // run once on mount
+
 
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('drafts');  // 'drafts' | 'myforms'
@@ -499,7 +565,7 @@ const WaiverForm = () => {
   useEffect(() => {
     if (!userId) return;
     // Don't save to drafts when editing an existing waiver from All Forms
-    if (requestorEditMode || approverEditMode || rejectedEditMode) return;
+    if (requestorEditMode || approverEditMode || rejectedEditMode || approverAmendMode) return;
 
     // prevent saving empty initial state
     const isEmpty =
@@ -539,7 +605,7 @@ const WaiverForm = () => {
 
   // Auto-save to waivers table when editing from All Forms tab
   useEffect(() => {
-    if (!requestorEditMode || !waiverId || !formData.partNumber) return;
+    if (!requestorEditMode || approverAmendMode || !waiverId || !formData.partNumber) return;
 
     const timeout = setTimeout(async () => {
       try {
@@ -798,6 +864,38 @@ const WaiverForm = () => {
         return;
       }
 
+      // Approver amending an approved waiver — creates new version as New, notifies requestors
+      if (approverAmendMode) {
+        await api.submitWaiver({ ...payload, status: 'New', parentWaiverId });
+
+        const requestorList = Array.isArray(formData.requestor)
+          ? formData.requestor.filter(Boolean)
+          : formData.requestor ? [formData.requestor] : [];
+
+        try {
+          await api.sendRequestorNotification({
+            waiverId: formData.waiverId,
+            partNumber: formData.partNumber,
+            description: formData.description,
+            revision: formData.revision,
+            assemblyLevel: formData.assemblyLevel,
+            reason: formData.reason,
+            submittedBy: user?.full_name || user?.email || '',
+            requestors: requestorList,
+          });
+        } catch (emailErr) {
+          console.error('Failed to notify requestors:', emailErr);
+        }
+
+        setApproverAmendMode(false);
+        setShowForm(false);
+        setActiveTab('myforms');
+        fetchMyForms();
+        setPageMessage({ type: 'success', text: `Waiver ${formData.waiverId} created and requestors have been notified.` });
+        setTimeout(() => setPageMessage(null), 5000);
+        return;
+      }
+
       // Requestor submitting from All Forms — set to Pending Approval and notify approvers
       if (requestorEditMode) {
         await api.submitWaiver({ ...payload, status: 'Pending Approval' });
@@ -889,7 +987,9 @@ setTimeout(() => setPageMessage(null), 5000);
     setMyFormsLoading(true);
     try {
       const data = await api.getAllWaivers();
-      setMyForms(data);
+      // Hide older versions — if a waiver is a parent of another, it has been superseded
+      const parentIds = new Set(data.map(w => w.parent_waiver_id).filter(Boolean));
+      setMyForms(data.filter(w => !parentIds.has(w.waiver_id)));
     } catch (err) {
       console.error('Failed to load my forms:', err);
     } finally {
@@ -1579,6 +1679,21 @@ setTimeout(() => setPageMessage(null), 5000);
                                 >
                                   Duplicate
                                 </button>
+                                {/^WV\d+-[B-Z]$/.test(w.waiver_id) && (
+                                  <button
+                                    className="add-btn"
+                                    style={{ background: '#6c757d', border: '1px solid #6c757d', color: '#fff' }}
+                                    onClick={async () => {
+                                      try {
+                                        const chain = await api.getWaiverHistory(w.waiver_id);
+                                        const details = await Promise.all(chain.map(r => api.getWaiverDetails(r.waiver_id).catch(() => r)));
+                                        setHistoryModal({ waiverId: w.waiver_id, records: details });
+                                      } catch { setHistoryModal({ waiverId: w.waiver_id, records: [] }); }
+                                    }}
+                                  >
+                                    Version History
+                                  </button>
+                                )}
                                 {status !== 'Cancelled' && status !== 'Rejected' && (
                                 <button
                                   className="delete-btn"
@@ -1666,7 +1781,7 @@ setTimeout(() => setPageMessage(null), 5000);
             <button
               type="button"
               onClick={
-                approverEditMode ? () => navigate(-1) :
+                (approverEditMode || approverAmendMode) ? () => navigate(-1) :
                   (requestorEditMode || rejectedEditMode) ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); setRejectedEditMode(false); } :
                     handleBackToList
               }
@@ -1676,7 +1791,7 @@ setTimeout(() => setPageMessage(null), 5000);
                 fontSize: '13px', fontWeight: 500
               }}
             >
-              {approverEditMode ? '← Back to Management' : (requestorEditMode || rejectedEditMode) ? '← Back to All Forms' : '← Back to Drafts'}
+              {(approverEditMode || approverAmendMode) ? '← Back to Management' : (requestorEditMode || rejectedEditMode) ? '← Back to All Forms' : '← Back to Drafts'}
             </button>
             {waiverStatus && (
               <span style={{
@@ -2321,8 +2436,8 @@ setTimeout(() => setPageMessage(null), 5000);
               disabled={submitting}
             >
               {submitting
-                ? (requestorEditMode && waiverStatus === 'Pending Approval' ? 'Updating...' : !requestorEditMode && !rejectedEditMode && !approverEditMode ? 'Creating...' : 'Submitting...')
-                : (requestorEditMode && waiverStatus === 'Pending Approval' ? 'UPDATE' : !requestorEditMode && !rejectedEditMode && !approverEditMode ? 'Create Form' : 'SUBMIT')}
+                ? (approverAmendMode ? 'Submitting...' : requestorEditMode && waiverStatus === 'Pending Approval' ? 'Updating...' : !requestorEditMode && !rejectedEditMode && !approverEditMode ? 'Creating...' : 'Submitting...')
+                : (approverAmendMode ? 'SUBMIT' : requestorEditMode && waiverStatus === 'Pending Approval' ? 'UPDATE' : !requestorEditMode && !rejectedEditMode && !approverEditMode ? 'Create Form' : 'SUBMIT')}
             </button>
 
 
@@ -2372,6 +2487,148 @@ setTimeout(() => setPageMessage(null), 5000);
         </div>
       )}
 
+      {/* Version History Modal */}
+      {historyModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '10px', padding: '28px 32px',
+            maxWidth: '900px', width: '100%', maxHeight: '85vh', overflowY: 'auto',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px' }}>Version History — {historyModal.waiverId}</h3>
+              <button onClick={() => setHistoryModal(null)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#555' }}>✕</button>
+            </div>
+            {historyModal.records.length === 0 ? (
+              <p style={{ color: '#888' }}>No version history found.</p>
+            ) : historyModal.records.map((r, i) => {
+              const isCurrent = r.waiverId === historyModal.waiverId;
+              const fmtDate = (v) => v ? new Date(v).toLocaleDateString() : '-';
+              const arrText = (v) => Array.isArray(v) ? v.join(', ') : v || '-';
+              const field = (label, value) => {
+                if (!value || value === '-') return null;
+                return (
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '4px', fontSize: '13px' }}>
+                    <span style={{ minWidth: '180px', color: '#666', fontWeight: 500 }}>{label}:</span>
+                    <span style={{ color: '#222' }}>{value}</span>
+                  </div>
+                );
+              };
+              return (
+                <div key={r.waiverId || i} style={{
+                  border: `2px solid ${isCurrent ? '#1a73e8' : '#e0e0e0'}`,
+                  borderRadius: '8px', marginBottom: '20px', overflow: 'hidden'
+                }}>
+                  <div style={{
+                    background: isCurrent ? '#e8f4fd' : '#f5f5f5',
+                    padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                  }}>
+                    <strong style={{ fontSize: '14px', color: isCurrent ? '#1a73e8' : '#333' }}>
+                      {r.waiverId} {isCurrent && <span style={{ fontSize: '11px' }}>(current)</span>}
+                    </strong>
+                    <span style={{ fontSize: '12px', color: '#555' }}>
+                      Status: <strong>{r.status || '-'}</strong> · Submitted by: {r.submittedBy || '-'} · {r.updatedAt ? new Date(r.updatedAt).toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' }) : '-'}
+                    </span>
+                  </div>
+                  <div style={{ padding: '16px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      {field('AMD Product Part Number', r.partNumber)}
+                      {field('AMD Product Revision', r.revision)}
+                      {field('AMD Product Description', r.description)}
+                      {field('Affected Subcontractor', arrText(r.subcontractor))}
+                      {field('Assembly Level', arrText(r.assemblyLevel))}
+                      {field('Requestor Name', (() => { try { const p = JSON.parse(r.requestor); return Array.isArray(p) ? p.join(', ') : r.requestor; } catch { return r.requestor; } })())}
+                      {field('Waiver Start Date', fmtDate(r.startDate))}
+                      {field('Waiver End Date', r.endDate ? fmtDate(r.endDate) : null)}
+                      {field('Waiver Type', arrText(r.waiverType))}
+                      {field('Reason / Justification', r.reason)}
+                      {field('Workorder', r.workorder)}
+                      {field('Workorder Qty', r.workorderQty)}
+                    </div>
+                    {r.waiverType?.includes('Material Waiver') && r.materialRows?.length > 0 && (
+                      <div style={{ marginTop: '12px' }}>
+                        <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#333' }}>Material Waiver Details</div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                          <thead><tr style={{ background: '#f0f0f0' }}>
+                            {['Current Part','Description','No. of Per','Refdes','To Be Part','Description','Action','Instructions'].map(h => (
+                              <th key={h} style={{ padding: '6px 8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>{h}</th>
+                            ))}
+                          </tr></thead>
+                          <tbody>{r.materialRows.map((row, ri) => (
+                            <tr key={ri} style={{ borderBottom: '1px solid #eee' }}>
+                              <td style={{ padding: '6px 8px' }}>{row.current_part || row.currentPart || '-'}</td>
+                              <td style={{ padding: '6px 8px' }}>{row.current_part_description || row.currentPartDescription || '-'}</td>
+                              <td style={{ padding: '6px 8px' }}>{row.no_of_per || row.noOfPer || '-'}</td>
+                              <td style={{ padding: '6px 8px' }}>{row.refdes || '-'}</td>
+                              <td style={{ padding: '6px 8px' }}>{row.new_part || row.newPart || '-'}</td>
+                              <td style={{ padding: '6px 8px' }}>{row.new_part_description || row.newPartDescription || '-'}</td>
+                              <td style={{ padding: '6px 8px' }}>{row.action || '-'}</td>
+                              <td style={{ padding: '6px 8px' }}>{row.instructions || '-'}</td>
+                            </tr>
+                          ))}</tbody>
+                        </table>
+                      </div>
+                    )}
+                    {r.waiverType?.includes('Process Waiver') && r.processData?.areas?.length > 0 && (
+                      <div style={{ marginTop: '12px' }}>
+                        <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#333' }}>Process Waiver Details</div>
+                        {field('Areas', r.processData.areas.join(', '))}
+                        {r.processData.areas.map(area => (
+                          <div key={area} style={{ marginLeft: '12px', fontSize: '12px', marginBottom: '4px' }}>
+                            <strong>{area}:</strong> {r.processData.areaInstructions?.[area] || '-'}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {r.waiverType?.includes('Test Waiver') && r.testData?.rows?.length > 0 && (
+                      <div style={{ marginTop: '12px' }}>
+                        <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#333' }}>Test Waiver Details</div>
+                        {field('Areas', r.testData.areas?.join(', '))}
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginTop: '6px' }}>
+                          <thead><tr style={{ background: '#f0f0f0' }}>
+                            {['Current Part','To Be Part','Refdes'].map(h => (
+                              <th key={h} style={{ padding: '6px 8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>{h}</th>
+                            ))}
+                          </tr></thead>
+                          <tbody>{r.testData.rows.map((row, ri) => (
+                            <tr key={ri} style={{ borderBottom: '1px solid #eee' }}>
+                              <td style={{ padding: '6px 8px' }}>{row.currentPart || '-'}</td>
+                              <td style={{ padding: '6px 8px' }}>{row.toBePart || '-'}</td>
+                              <td style={{ padding: '6px 8px' }}>{row.refdes || '-'}</td>
+                            </tr>
+                          ))}</tbody>
+                        </table>
+                      </div>
+                    )}
+                    {r.waiverType?.includes('Spec Deviation') && r.specData && (
+                      <div style={{ marginTop: '12px' }}>
+                        <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#333' }}>Spec Deviation Details</div>
+                        {field('Spec Impact', r.specData.specImpact)}
+                        {field('Instructions', r.specData.instructions)}
+                      </div>
+                    )}
+                    {r.waiverType?.includes('Rework Waiver') && r.reworkData && (
+                      <div style={{ marginTop: '12px' }}>
+                        <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#333' }}>Rework Waiver Details</div>
+                        {field('Instructions', r.reworkData.instructions)}
+                      </div>
+                    )}
+                    {r.waiverType?.includes('Label Waiver') && r.labelData && (
+                      <div style={{ marginTop: '12px' }}>
+                        <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#333' }}>Label Waiver Details</div>
+                        {field('Instructions', r.labelData.instructions)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 

@@ -360,7 +360,7 @@ sendRequestorNotification: async ({ waiverId, partNumber, description, revision,
   }
 },
 
-sendNewWaiverNotification: async ({ waiverId, partNumber, description, revision, assemblyLevel, reason, submittedBy, approvers, requestors, isUpdate, pdfBase64, uploadedFilePaths }) => {
+sendNewWaiverNotification: async ({ waiverId, partNumber, description, revision, assemblyLevel, reason, submittedBy, approvers, requestors, isUpdate, parentWaiverId, pdfBase64, uploadedFilePaths }) => {
   try {
     const response = await axios.post(`${API_URL}/email/waiver/notify`, {
       waiverId,
@@ -373,6 +373,7 @@ sendNewWaiverNotification: async ({ waiverId, partNumber, description, revision,
       approvers,
       requestors,
       isUpdate,
+      parentWaiverId,
       pdfBase64,
       uploadedFilePaths
     });
@@ -611,6 +612,11 @@ updateWaiverStatus: async (waiverId, status, reason = null, cancelledBy = null, 
 
 getWaiverDetails: async (waiverId) => {
   const response = await axios.get(`${API_URL}/waiver/details/${waiverId}`);
+  return response.data;
+},
+
+getWaiverHistory: async (waiverId) => {
+  const response = await axios.get(`${API_URL}/waiver/history/${waiverId}`);
   return response.data;
 },
 
