@@ -813,31 +813,18 @@ const WaiverForm = () => {
         return;
       }
 
-      // Requestor re-submitting a Cancelled waiver — reset to New and notify approvers
+      // Requestor re-submitting a Cancelled waiver — reset to New and notify approvers with PDF
       if (rejectedEditMode) {
         await api.submitWaiver({ ...payload, status: 'New' });
-        // Send email notification to approvers
-        try {
-          await api.sendNewWaiverNotification({
-            waiverId: formData.waiverId,
-            partNumber: formData.partNumber,
-            description: formData.description,
-            revision: formData.revision,
-            assemblyLevel: formData.assemblyLevel,
-            reason: formData.reason,
-            submittedBy: user?.full_name || user?.email || '',
+        navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
+          state: {
             approvers,
-            pdfBase64: null,
-          });
-        } catch (emailErr) {
-          console.error('Failed to notify approvers after cancelled waiver re-submit:', emailErr);
-        }
-        setRejectedEditMode(false);
-        setShowForm(false);
-        setActiveTab('myforms');
-        fetchMyForms();
-        setPageMessage({ type: 'success', text: `Waiver ${formData.waiverId} re-submitted successfully! Approvers have been notified.` });
-        setTimeout(() => setPageMessage(null), 5000);
+            submittedBy: user?.full_name,
+            description: formData.description,
+            reason: formData.reason,
+            isUpdate: false,
+          },
+        });
         return;
       }
 // New waiver — save as New, notify requestors only
@@ -975,6 +962,17 @@ setTimeout(() => setPageMessage(null), 5000);
     if (!cancelTarget || !cancelTarget.reason.trim()) return;
     try {
       await api.updateWaiverStatus(cancelTarget.waiverId, 'Cancelled', cancelTarget.reason, `Requestor: ${user?.full_name || ''}`);
+
+      try {
+        await api.sendWaiverStatusNotification({
+          waiverId: cancelTarget.waiverId,
+          status: 'Cancelled',
+          actionBy: user?.full_name || '',
+          cancelReason: cancelTarget.reason,
+        });
+      } catch (emailErr) {
+        console.error('Failed to send cancellation email:', emailErr);
+      }
 
       setMyForms(prev => prev.map(w =>
         w.waiver_id === cancelTarget.waiverId ? { ...w, status: 'Cancelled' } : w
@@ -1510,16 +1508,34 @@ setTimeout(() => setPageMessage(null), 5000);
                             </td>
 
                             <td style={{ fontSize: '13px', color: '#555', maxWidth: '180px' }}>
-                              {w.cancelled_by && w.cancelled_by.toLowerCase().startsWith('approver:') ? (
+                              {w.cancelled_by && !w.cancelled_by.toLowerCase().startsWith('requestor:') && w.status === 'New' ? (
                                 <div>
                                   <div style={{ fontWeight: 500, color: '#c62828' }}>
-                                    Rejected by {w.cancelled_by.split(':').slice(1).join(':').trim()}
+                                    Rejected by {w.cancelled_by.includes(':') ? w.cancelled_by.split(':').slice(1).join(':').trim() : w.cancelled_by}
                                   </div>
-                                  {w.cancel_reason && (
-                                    <div style={{ marginTop: '4px', fontSize: '12px', color: '#444', background: '#fdecea', padding: '4px 8px', borderRadius: '4px', borderLeft: '3px solid #c62828' }}>
-                                      {w.cancel_reason}
-                                    </div>
-                                  )}
+                                  {w.cancel_reason && (() => {
+                                    const isExpanded = expandedCancelReason === w.waiver_id;
+                                    return (
+                                      <div>
+                                        <span
+                                          className="mf-cancel-toggle"
+                                          onClick={() => setExpandedCancelReason(isExpanded ? null : w.waiver_id)}
+                                        >
+                                          {isExpanded ? 'Hide reason ▲' : 'View reason ▼'}
+                                        </span>
+                                        {isExpanded && (
+                                          <div style={{
+                                            marginTop: '4px', padding: '8px 12px',
+                                            background: '#fdecea', border: '1px solid #f5c6cb',
+                                            borderLeft: '3px solid #c62828', borderRadius: '4px',
+                                            fontSize: '12px', color: '#444', lineHeight: '1.5'
+                                          }}>
+                                            {w.cancel_reason}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               ) : '-'}
                             </td>
@@ -1551,8 +1567,8 @@ setTimeout(() => setPageMessage(null), 5000);
                                 {status === 'Cancelled' && (
                                   <button
                                     className="add-btn"
-                                    style={{ background: '#fd7e14', color: '#fff', border: '1px solid #fd7e14' }}
-                                    onClick={() => handleEditRejectedForm(w.waiver_id)}
+                                    style={{ background: '#28a745', color: '#fff', border: '1px solid #28a745' }}
+                                    onClick={() => handleEditMyForm(w.waiver_id)}
                                   >
                                     Edit
                                   </button>
@@ -2305,8 +2321,8 @@ setTimeout(() => setPageMessage(null), 5000);
               disabled={submitting}
             >
               {submitting
-                ? (requestorEditMode && waiverStatus === 'Pending Approval' ? 'Updating...' : 'Submitting...')
-                : (requestorEditMode && waiverStatus === 'Pending Approval' ? 'UPDATE' : 'SUBMIT')}
+                ? (requestorEditMode && waiverStatus === 'Pending Approval' ? 'Updating...' : !requestorEditMode && !rejectedEditMode && !approverEditMode ? 'Creating...' : 'Submitting...')
+                : (requestorEditMode && waiverStatus === 'Pending Approval' ? 'UPDATE' : !requestorEditMode && !rejectedEditMode && !approverEditMode ? 'Create Form' : 'SUBMIT')}
             </button>
 
 
