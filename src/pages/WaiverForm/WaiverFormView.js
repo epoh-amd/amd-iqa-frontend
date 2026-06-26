@@ -152,7 +152,7 @@ const WaiverFormView = ({
   waiverStatus, formData, setFormData, handleChange, handleSubmit,
   subcontractors, assemblyLevels,
   waiverId, sendingEmailIdx, setSendingEmailIdx, emailBannerTimer, requestorEditMode: reqEdit,
-  openSection,
+  openSection, toggleSection,
   materialRows, materialActions, materialImportRef,
   handleMaterialChange, handleMaterialFileChange, handleMaterialImport,
   handleReplaceClick, removeMaterialRow, addMaterialRow, toFileUrl,
@@ -375,6 +375,7 @@ const WaiverFormView = ({
       {/* Material Waiver Section */}
       <MaterialWaiverSection
         openSection={openSection}
+        toggleSection={toggleSection}
         materialRows={materialRows}
         materialActions={materialActions}
         materialImportRef={materialImportRef}
@@ -390,6 +391,7 @@ const WaiverFormView = ({
       {/* Process Waiver Section */}
       <ProcessWaiverSection
         openSection={openSection}
+        toggleSection={toggleSection}
         processData={processData}
         setProcessData={setProcessData}
         PROCESS_AREAS={PROCESS_AREAS}
@@ -401,6 +403,7 @@ const WaiverFormView = ({
       {/* Test Waiver Section */}
       <TestWaiverSection
         openSection={openSection}
+        toggleSection={toggleSection}
         testData={testData}
         setTestData={setTestData}
         TEST_AREAS={TEST_AREAS}

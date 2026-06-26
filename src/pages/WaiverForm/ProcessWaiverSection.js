@@ -64,7 +64,7 @@ const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Sel
 };
 
 const ProcessWaiverSection = ({
-  openSection,
+  openSection, toggleSection,
   processData,
   setProcessData,
   PROCESS_AREAS,

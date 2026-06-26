@@ -64,7 +64,7 @@ const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Sel
 };
 
 const TestWaiverSection = ({
-  openSection,
+  openSection, toggleSection,
   testData,
   setTestData,
   TEST_AREAS,

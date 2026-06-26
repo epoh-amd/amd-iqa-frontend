@@ -773,7 +773,10 @@ const WaiverForm = () => {
   };
 
   const toggleSection = (section) => {
-    setOpenSection(openSection === section ? "" : section);
+    setOpenSection(prev => {
+      const arr = Array.isArray(prev) ? prev : (prev ? [prev] : []);
+      return arr.includes(section) ? arr.filter(s => s !== section) : [...arr, section];
+    });
   };
 
   const addMaterialRow = () => {
@@ -1443,6 +1446,7 @@ setTimeout(() => setPageMessage(null), 5000);
           setSendingEmailIdx={setSendingEmailIdx}
           emailBannerTimer={emailBannerTimer}
           openSection={openSection}
+          toggleSection={toggleSection}
           materialRows={materialRows}
           materialActions={materialActions}
           materialImportRef={materialImportRef}
