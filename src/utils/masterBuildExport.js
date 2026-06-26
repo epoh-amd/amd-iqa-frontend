@@ -48,12 +48,24 @@ const buildsWithDetails = selectedBuilds.map(build => {
     // Define section headers and their columns
     const sections = [
       {
+        title: 'Reference',
+        columns: [
+          { header: 'Created Date', key: 'created_date_formatted' }
+        ]
+      },
+      {
         title: 'Build and ChangeGear Information',
         columns: [
           { header: 'Build Engineer', key: 'build_engineer' },
           { header: 'Build Name', key: 'build_name' },
           { header: 'Jira Ticket No.', key: 'jira_ticket_no' },
           { header: 'Changegear Asset ID', key: 'changegear_asset_id' }
+        ]
+      },
+      {
+        title: 'General Information',
+        columns: [
+          { header: 'Location', key: 'location' }
         ]
       },
       {
@@ -166,6 +178,15 @@ const buildsWithDetails = selectedBuilds.map(build => {
           
           // Handle special cases
           switch (col.key) {
+            case 'created_date_formatted':
+              if (build.created_at) {
+                const date = new Date(build.created_at);
+                if (!isNaN(date.getTime())) {
+                  value = date.toLocaleDateString();
+                }
+              }
+              break;
+
             case 'dimm_sns_combined':
               // Combine all DIMM S/Ns into one cell
               value = build.dimmSNs ? build.dimmSNs.join(', ') : '';
