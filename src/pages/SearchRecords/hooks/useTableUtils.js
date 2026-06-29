@@ -13,7 +13,7 @@ const useTableUtils = (results, collapsedSections, setCpuModal, setDimmModal) =>
   const getColumnCount = (section) => {
     switch (section) {
       case 'general': return 2;
-      case 'systemInfo': return 10;
+      case 'systemInfo': return 11;
       case 'cpuInfo': return 2;
       case 'componentInfo': return 4;
       case 'testing': return 4;

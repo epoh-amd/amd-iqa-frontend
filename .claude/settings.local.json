@@ -8,7 +8,12 @@
       "Read(//c/Users/epoh/Downloads/amd-iqa-backend-main \\(3\\)/amd-iqa-backend-main/routes/**)",
       "Bash(grep -rn \"Weekly Dashboard Report\\\\|quality.*pie\\\\|pie.*quality\" \"C:/Users/epoh/Downloads/amd-iqa-backend-main/amd-iqa-backend-main\" --include=\"*.js\" -l -i | head -10)",
       "Read(//c/Users/epoh/Downloads/amd-iqa-backend-main/amd-iqa-backend-main/**)",
-      "Bash(grep -v \"node_modules\\\\|//\")"
+      "Bash(grep -v \"node_modules\\\\|//\")",
+      "Bash(grep -n \"Please navigate\\\\|waiver form\\\\|all forms tab\\\\|AMD PDQD System\" \"C:/Users/epoh/Downloads/amd-iqa-backend-main/amd-iqa-backend-main/routes/email.js\" | head -20)",
+      "Read(//c/Users/epoh/Downloads/amd-iqa-backend-main/amd-iqa-backend-main/routes/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\epoh\\Downloads\\amd-iqa-backend-main\\amd-iqa-backend-main\\routes"
     ]
   }
 }
