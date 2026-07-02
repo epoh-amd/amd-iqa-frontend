@@ -95,8 +95,8 @@ const ProcessWaiverSection = ({
           />
         </div>
 
-        {/* Per-area instructions + file */}
-        {(processData.areas || []).map(area => (
+        {/* Per-area instructions + file — sorted by PROCESS_AREAS order */}
+        {[...(processData.areas || [])].sort((a, b) => PROCESS_AREAS.indexOf(a) - PROCESS_AREAS.indexOf(b)).map(area => (
           <div key={area} style={{ marginBottom: '16px', padding: '12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
             <label style={{ display: 'block', fontWeight: 600, marginBottom: '6px', fontSize: '13px' }}>
               Instructions ({area}) <span style={{ color: '#dc3545' }}>*</span>

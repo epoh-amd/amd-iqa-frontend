@@ -21,7 +21,6 @@ const MaterialWaiverSection = ({
 
     {openSection.includes("material") && (
       <div className="accordion-body">
-
         <div className="table-wrapper">
           <table className="material-table">
             <thead>

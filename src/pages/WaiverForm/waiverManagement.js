@@ -184,7 +184,6 @@ const WaiverManagement = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [approveTarget, setApproveTarget] = useState(null); // waiverId
-  const [closedTarget, setClosedTarget] = useState(null);   // waiverId
   const [historyModal, setHistoryModal] = useState(null); // { waiverId, records }
   const [historyLoading, setHistoryLoading] = useState(false);
   const navigate = useNavigate();
@@ -303,7 +302,6 @@ const WaiverManagement = () => {
                     <option value="all">All Status</option>
                     <option value="Pending Approval">Pending Approval</option>
                     <option value="Approved">Approved</option>
-                    <option value="Closed">Closed</option>
                     <option value="Cancelled">Cancelled</option>
                     <option value="Rejected">Rejected</option>
                   </select>
@@ -328,6 +326,7 @@ const WaiverManagement = () => {
                         <th>Submitted By</th>
                         <th>Submitted Date</th>
                         <th>Approved By</th>
+                        <th>Status</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -359,6 +358,27 @@ const WaiverManagement = () => {
                           <td>{w.submitted_at ? new Date(w.submitted_at).toLocaleDateString() : '-'}</td>
                           <td style={{ fontSize: '13px', color: w.approved_by ? '#2e7d32' : '#aaa' }}>
                             {w.approved_by || '-'}
+                          </td>
+                          <td>
+                            {(() => {
+                              const statusColor = {
+                                'New': { bg: '#e8f4fd', color: '#1a73e8' },
+                                'Pending Approval': { bg: '#fff8e1', color: '#f57c00' },
+                                'Approved': { bg: '#e8f5e9', color: '#2e7d32' },
+                                'Cancelled': { bg: '#fff3e0', color: '#e65100' },
+                                'Rejected': { bg: '#fdecea', color: '#c62828' },
+                                'Closed': { bg: '#f0f0f0', color: '#555' },
+                              }[w.status] || { bg: '#cfcfcf49', color: '#555' };
+                              return (
+                                <span style={{
+                                  padding: '3px 10px', borderRadius: '12px', fontSize: '12px',
+                                  fontWeight: 600, background: statusColor.bg, color: statusColor.color,
+                                  whiteSpace: 'nowrap'
+                                }}>
+                                  {w.status || 'New'}
+                                </span>
+                              );
+                            })()}
                           </td>
                           <td>
                         {w.status === 'Rejected' ? (() => {
@@ -423,24 +443,10 @@ const WaiverManagement = () => {
                                 className="add-btn"
                                 style={{ padding: '4px 12px', fontSize: '13px' }}
                                 onClick={() => {
-                                  const match = w.waiver_id.match(/^(WV\d+)-([A-Z]+)$/);
-                                  const nextChar = match
-                                    ? String.fromCharCode(match[2].charCodeAt(match[2].length - 1) + 1)
-                                    : 'B';
-                                  const newId = match ? `${match[1]}-${nextChar}` : `${w.waiver_id}-B`;
-                                  navigate(`/waiver-form?approverAmend=true&id=${w.waiver_id}&amendId=${newId}`);
+                                  navigate(`/waiver-form?approverAmend=true&id=${w.waiver_id}`);
                                 }}
                               >
                                 Edit
-                              </button>
-                            )}
-                            {w.status === 'Approved' && (
-                              <button
-                                className="wm-btn-cancel"
-                                disabled={actionLoading === w.waiver_id}
-                                onClick={() => setClosedTarget(w.waiver_id)}
-                              >
-                                Closed
                               </button>
                             )}
                             {/^WV\d+-[B-Z]$/.test(w.waiver_id) && (
@@ -588,27 +594,6 @@ const WaiverManagement = () => {
         </div>
       )}
 
-      {closedTarget && (
-        <div className="waiver-modal-overlay">
-          <div className="waiver-modal">
-            <h3>Close Waiver</h3>
-            <p>Confirm closing <strong>{closedTarget}</strong> — this action cannot be undone.</p>
-            <div className="waiver-modal-actions">
-              <button className="waiver-modal-cancel" onClick={() => setClosedTarget(null)}>Go Back</button>
-              <button
-                className="waiver-modal-delete"
-                onClick={() => {
-                  const id = closedTarget;
-                  setClosedTarget(null);
-                  handleAction(id, 'Closed');
-                }}
-              >
-                Yes, Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Version History Modal */}
       {historyModal && (

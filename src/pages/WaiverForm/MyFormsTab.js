@@ -62,13 +62,11 @@ const MyFormsTab = ({
           style={{ padding: '9px 14px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '14px', cursor: 'pointer' }}
         >
           <option value="all">All Status</option>
-          <option value="Draft">Draft</option>
           <option value="New">New</option>
           <option value="Pending Approval">Pending Approval</option>
           <option value="Approved">Approved</option>
           <option value="Cancelled">Cancelled</option>
           <option value="Rejected">Rejected</option>
-          <option value="Closed">Closed</option>
         </select>
       </div>
 
@@ -116,8 +114,7 @@ const MyFormsTab = ({
                 : cancelledBy.trim();
 
               let displayText = status;
-              if (status === 'Approved' && w.approved_by) displayText = `Approved by ${w.approved_by}`;
-              else if (isApproverReject) displayText = `Rejected by ${cancellerName}`;
+              if (isApproverReject) displayText = `Rejected by ${cancellerName}`;
               else if (isRequestorCancel) displayText = 'Cancelled (by you)';
               else if (status === 'Cancelled' && cancelledBy) displayText = `Cancelled by ${cancellerName}`;
               else if (status === 'Rejected' && cancelledBy) displayText = `Rejected by ${cancellerName}`;
@@ -140,6 +137,21 @@ const MyFormsTab = ({
                       <span className="mf-status-badge" style={{ background: statusColor.bg, color: statusColor.color }}>
                         {displayText}
                       </span>
+                      {status === 'Approved' && w.approved_by && (
+                        <div>
+                          <span
+                            onClick={() => setExpandedCancelReason(isExpanded ? null : w.waiver_id)}
+                            style={{ cursor: 'pointer', fontSize: '11px', color: '#2e7d32' }}
+                          >
+                            {isExpanded ? '▲' : '▼'}
+                          </span>
+                          {isExpanded && (
+                            <div style={{ fontSize: '12px', color: '#1b5e20', marginTop: '2px' }}>
+                              by {w.approved_by}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {w.modified_by && (
                         <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
                           Modified by {w.modified_by}
@@ -209,47 +221,53 @@ const MyFormsTab = ({
                   </td>
 
                   <td>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      {(status === 'New' || status === 'Pending Approval' || status === 'Cancelled') && (
-                        <button
-                          className="add-btn"
-                          style={{ background: '#28a745', color: '#fff', border: '1px solid #28a745' }}
-                          onClick={() => handleEditMyForm(w.waiver_id)}
-                        >
-                          Edit
-                        </button>
-                      )}
-                      <button className="add-btn" onClick={() => handleDuplicate(w.waiver_id)}>
-                        Duplicate
-                      </button>
-                      {/^WV\d+-[B-Z]$/.test(w.waiver_id) && (
-                        <button
-                          className="add-btn"
-                          style={{ background: '#6c757d', border: '1px solid #6c757d', color: '#fff' }}
-                          onClick={async () => {
-                            try {
-                              const chain = await api.getWaiverHistory(w.waiver_id);
-                              const details = await Promise.all(chain.map(r => api.getWaiverDetails(r.waiver_id).catch(() => r)));
-                              setHistoryModal({ waiverId: w.waiver_id, records: details });
-                            } catch { setHistoryModal({ waiverId: w.waiver_id, records: [] }); }
-                          }}
-                        >
-                          Version History
-                        </button>
-                      )}
-                      {status !== 'Cancelled' && status !== 'Rejected' && (
-                        <button
-                          className="delete-btn"
-                          style={{ border: '1px solid #dc3545', padding: '4px 12px', borderRadius: '4px' }}
-                          onClick={() => setCancelTarget(
-                            cancelTarget?.waiverId === w.waiver_id
-                              ? null
-                              : { waiverId: w.waiver_id, reason: '' }
-                          )}
-                        >
-                          Cancel
-                        </button>
-                      )}
+                    <div style={{ display: 'flex', flexDirection: 'row', gap: '4px', flexWrap: 'nowrap' }}>
+                      {(() => {
+                        const canEdit = status === 'New' || status === 'Pending Approval' || status === 'Cancelled';
+                        const canVersionHistory = /^WV\d+-[B-Z]$/.test(w.waiver_id);
+                        const canCancel = status !== 'Cancelled' && status !== 'Rejected' && status !== 'Approved';
+                        const btnBase = {
+                          padding: '4px 10px', fontSize: '12px', borderRadius: '4px',
+                          border: '1px solid #0d6efd', cursor: 'pointer', fontWeight: 500,
+                          whiteSpace: 'nowrap'
+                        };
+                        const activeStyle = { ...btnBase, background: '#0d6efd', color: '#fff' };
+                        const disabledStyle = { ...btnBase, background: '#e9ecef', color: '#aaa', border: '1px solid #dee2e6', cursor: 'not-allowed' };
+                        return (
+                          <>
+                            <button
+                              style={canEdit ? activeStyle : disabledStyle}
+                              disabled={!canEdit}
+                              onClick={() => canEdit && handleEditMyForm(w.waiver_id)}
+                            >Edit</button>
+                            <button
+                              style={activeStyle}
+                              onClick={() => handleDuplicate(w.waiver_id)}
+                            >Duplicate</button>
+                            <button
+                              style={canCancel ? activeStyle : disabledStyle}
+                              disabled={!canCancel}
+                              onClick={() => canCancel && setCancelTarget(
+                                cancelTarget?.waiverId === w.waiver_id
+                                  ? null
+                                  : { waiverId: w.waiver_id, reason: '' }
+                              )}
+                            >Cancel</button>
+                            <button
+                              style={canVersionHistory ? activeStyle : disabledStyle}
+                              disabled={!canVersionHistory}
+                              onClick={async () => {
+                                if (!canVersionHistory) return;
+                                try {
+                                  const chain = await api.getWaiverHistory(w.waiver_id);
+                                  const details = await Promise.all(chain.map(r => api.getWaiverDetails(r.waiver_id).catch(() => r)));
+                                  setHistoryModal({ waiverId: w.waiver_id, records: details });
+                                } catch { setHistoryModal({ waiverId: w.waiver_id, records: [] }); }
+                              }}
+                            >Revision</button>
+                          </>
+                        );
+                      })()}
                     </div>
                     {cancelTarget?.waiverId === w.waiver_id && (
                       <div style={{ marginTop: '8px' }}>

@@ -4,9 +4,10 @@ import MaterialWaiverSection from './MaterialWaiverSection';
 import ProcessWaiverSection from './ProcessWaiverSection';
 import TestWaiverSection from './TestWaiverSection';
 
-const RequestorInput = ({ value, onChange }) => {
+const RequestorInput = ({ value, onChange, showNotFoundMessage = false }) => {
   const [suggestions, setSuggestions] = React.useState([]);
   const [open, setOpen] = React.useState(false);
+  const [noResults, setNoResults] = React.useState(false);
   const [dropPos, setDropPos] = React.useState({ top: 0, left: 0, width: 0 });
   const debounce = React.useRef(null);
   const inputRef = React.useRef(null);
@@ -14,7 +15,7 @@ const RequestorInput = ({ value, onChange }) => {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   React.useEffect(() => {
-    const handler = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    const handler = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) { setOpen(false); setNoResults(false); } };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
@@ -22,18 +23,19 @@ const RequestorInput = ({ value, onChange }) => {
   const handleChange = (val) => {
     onChange(val);
     clearTimeout(debounce.current);
-    if (!val.trim()) { setSuggestions([]); setOpen(false); return; }
+    if (!val.trim()) { setSuggestions([]); setOpen(false); setNoResults(false); return; }
     debounce.current = setTimeout(async () => {
       try {
         const res = await fetch(`${API_URL}/users/search-email?q=${encodeURIComponent(val)}`);
         const data = await res.json();
         setSuggestions(data);
-        if (data.length > 0 && inputRef.current) {
+        if (inputRef.current) {
           const rect = inputRef.current.getBoundingClientRect();
           setDropPos({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: rect.width });
         }
-        setOpen(data.length > 0);
-      } catch { setSuggestions([]); setOpen(false); }
+        setNoResults(data.length === 0);
+        setOpen(true);
+      } catch { setSuggestions([]); setOpen(false); setNoResults(false); }
     }, 250);
   };
 
@@ -41,6 +43,7 @@ const RequestorInput = ({ value, onChange }) => {
     onChange(row.full_name || row.email);
     setSuggestions([]);
     setOpen(false);
+    setNoResults(false);
   };
 
   return (
@@ -58,7 +61,7 @@ const RequestorInput = ({ value, onChange }) => {
         }}
         style={{ width: '100%', boxSizing: 'border-box' }}
       />
-      {open && (
+      {open && suggestions.length > 0 && (
         <ul style={{
           position: 'fixed', top: dropPos.top, left: dropPos.left, width: dropPos.width, zIndex: 9999,
           background: '#fff', border: '1px solid #ccc', borderRadius: '4px',
@@ -78,6 +81,14 @@ const RequestorInput = ({ value, onChange }) => {
             </li>
           ))}
         </ul>
+      )}
+      {showNotFoundMessage && noResults && value.trim() && (
+        <div style={{
+          marginTop: '4px', fontSize: '12px', color: '#c62828',
+          lineHeight: '1.5'
+        }}>
+          Name not found, please email <a href="mailto:iqadashboard.support@amd.com" style={{ color: '#1a73e8' }}>iqadashboard.support@amd.com</a> to get the user access to this PDQD dashboard.
+        </div>
       )}
     </div>
   );
@@ -272,6 +283,7 @@ const WaiverFormView = ({
           <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '6px', alignItems: 'center' }}>
             <RequestorInput
               value={val || ''}
+              showNotFoundMessage={true}
               onChange={(v) => {
                 const updated = [...(Array.isArray(formData.requestor) ? formData.requestor : [formData.requestor || ''])];
                 updated[idx] = v;
@@ -331,7 +343,7 @@ const WaiverFormView = ({
       <div className="form-section">
         <div className="field-inline">
           <label>Waiver Start Date <span style={{ color: '#dc3545' }}>*</span></label>
-          <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} />
+          <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} {...(!requestorEditMode && !approverEditMode && !rejectedEditMode && !approverAmendMode ? { min: new Date().toISOString().split('T')[0] } : {})} />
         </div>
       </div>
 

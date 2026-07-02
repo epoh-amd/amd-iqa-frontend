@@ -410,13 +410,12 @@ const WaiverForm = () => {
     })();
   }, []); // run once on mount
 
-  // Approver amend: detect ?approverAmend=true&id=ORIGINAL_ID&amendId=NEW_ID from URL
+  // Approver amend: detect ?approverAmend=true&id=ORIGINAL_ID from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('approverAmend') !== 'true') return;
     const originalId = params.get('id');
-    const amendId = params.get('amendId');
-    if (!originalId || !amendId) return;
+    if (!originalId) return;
 
     setApproverAmendMode(true);
     setParentWaiverId(originalId);
@@ -426,9 +425,10 @@ const WaiverForm = () => {
     (async () => {
       try {
         const data = await api.getWaiverDetails(originalId);
-        setWaiverId(amendId);
+        // Keep original ID during editing; new -B ID assigned at submit
+        setWaiverId(originalId);
         setFormData({
-          waiverId: amendId,
+          waiverId: originalId,
           partNumber: data.partNumber || '',
           revision: data.revision || '',
           description: data.description || '',
@@ -886,7 +886,13 @@ const WaiverForm = () => {
 
       // Approver amending an approved waiver — creates new version as New, notifies requestors
       if (approverAmendMode) {
-        await api.submitWaiver({ ...payload, status: 'New', parentWaiverId });
+        // Compute the next amendment ID (e.g. WV26700-A → WV26700-B) at submit time
+        const match = parentWaiverId.match(/^(WV\d+)-([A-Z]+)$/);
+        const nextChar = match
+          ? String.fromCharCode(match[2].charCodeAt(match[2].length - 1) + 1)
+          : 'B';
+        const amendId = match ? `${match[1]}-${nextChar}` : `${parentWaiverId}-B`;
+        await api.submitWaiver({ ...payload, waiverId: amendId, status: 'New', parentWaiverId });
 
         const requestorList = Array.isArray(formData.requestor)
           ? formData.requestor.filter(Boolean)
@@ -894,7 +900,7 @@ const WaiverForm = () => {
 
         try {
           await api.sendRequestorNotification({
-            waiverId: formData.waiverId,
+            waiverId: amendId,
             partNumber: formData.partNumber,
             description: formData.description,
             revision: formData.revision,
@@ -911,7 +917,7 @@ const WaiverForm = () => {
         setShowForm(false);
         setActiveTab('myforms');
         fetchMyForms();
-        setPageMessage({ type: 'success', text: `Waiver ${formData.waiverId} created and requestors have been notified.` });
+        setPageMessage({ type: 'success', text: `Waiver ${amendId} created and requestors have been notified.` });
         setTimeout(() => setPageMessage(null), 5000);
         return;
       }
