@@ -116,7 +116,7 @@ const MyFormsTab = ({
 
               let displayText = status;
               if (isApproverReject) displayText = `Rejected by ${cancellerName}`;
-              else if (isRequestorCancel) displayText = 'Cancelled (by you)';
+              else if (isRequestorCancel) displayText = cancellerName ? `Cancelled by ${cancellerName}` : 'Cancelled (by you)';
               else if (status === 'Cancelled' && cancelledBy) displayText = `Cancelled by ${cancellerName}`;
               else if (status === 'Rejected' && cancelledBy) displayText = `Rejected by ${cancellerName}`;
 
@@ -158,7 +158,7 @@ const MyFormsTab = ({
                           Modified by {w.modified_by}
                         </div>
                       )}
-                      {(status === 'Rejected' || status === 'Cancelled') && cancelReason && (
+                      {(status === 'Rejected' || status === 'Cancelled') && cancelReason && cancelReason.trim() && (
                         <div>
                           <span className="mf-cancel-toggle" onClick={() => setExpandedCancelReason(isExpanded ? null : w.waiver_id)}>
                             {isExpanded ? 'Hide reason ▲' : 'View reason ▼'}

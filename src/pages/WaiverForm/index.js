@@ -1104,7 +1104,9 @@ setTimeout(() => setPageMessage(null), 5000);
       }
 
       setMyForms(prev => prev.map(w =>
-        w.waiver_id === cancelTarget.waiverId ? { ...w, status: 'Cancelled' } : w
+        w.waiver_id === cancelTarget.waiverId
+          ? { ...w, status: 'Cancelled', cancel_reason: cancelTarget.reason, cancelled_by: `Requestor: ${user?.full_name || ''}` }
+          : w
       ));
       setCancelTarget(null);
     } catch (err) {

@@ -135,6 +135,8 @@
     padding: 8px;
     border-bottom: 1px solid #eee;
     vertical-align: top;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
   
   /* Inputs */

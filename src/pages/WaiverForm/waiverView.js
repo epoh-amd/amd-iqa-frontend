@@ -288,6 +288,16 @@ const WaiverView = () => {
                     <div className="accordion-body">
                         <div className="table-wrapper">
                             <table className="material-table">
+                                <colgroup>
+                                    <col style={{ width: '12%' }} />
+                                    <col style={{ width: '18%' }} />
+                                    <col style={{ width: '7%' }} />
+                                    <col style={{ width: '10%' }} />
+                                    <col style={{ width: '12%' }} />
+                                    <col style={{ width: '18%' }} />
+                                    <col style={{ width: '10%' }} />
+                                    <col style={{ width: '13%' }} />
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th>Current Part Number</th>

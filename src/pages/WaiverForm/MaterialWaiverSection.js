@@ -23,6 +23,17 @@ const MaterialWaiverSection = ({
       <div className="accordion-body">
         <div className="table-wrapper">
           <table className="material-table">
+            <colgroup>
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '18%' }} />
+              <col style={{ width: '6%' }} />
+              <col style={{ width: '8%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '18%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '4%' }} />
+            </colgroup>
             <thead>
               <tr>
                 <th>Current Part Number <span style={{ color: '#dc3545' }}>*</span></th>
