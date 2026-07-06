@@ -215,6 +215,7 @@ const WaiverForm = () => {
   const [requestorEditMode, setRequestorEditMode] = useState(false);
   const [rejectedEditMode, setRejectedEditMode] = useState(false);
   const [approverAmendMode, setApproverAmendMode] = useState(false);
+  const [amendFromAllForms, setAmendFromAllForms] = useState(false);
   const [parentWaiverId, setParentWaiverId] = useState(null);
 
 
@@ -418,6 +419,7 @@ const WaiverForm = () => {
     if (!originalId) return;
 
     setApproverAmendMode(true);
+    setAmendFromAllForms(false);
     setParentWaiverId(originalId);
     isEditingRef.current = false;
     const toDate = (v) => v ? v.toString().slice(0, 10) : '';
@@ -846,7 +848,7 @@ const WaiverForm = () => {
     }
 
     if (errors.length > 0) {
-      setSubmitMessage({ type: 'error', text: `Please fill in the following required fields:\n• ${errors.join('\n• ')}` });
+      setSubmitMessage({ type: 'error', text: `Waiver unable to submit due to the following required fields not filled:\n• ${errors.join('\n• ')}\n\nNote: Edited fields will be saved automatically.` });
       return;
     }
 
@@ -914,6 +916,7 @@ const WaiverForm = () => {
         }
 
         setApproverAmendMode(false);
+        setAmendFromAllForms(false);
         setShowForm(false);
         setActiveTab('myforms');
         fetchMyForms();
@@ -1259,6 +1262,56 @@ setTimeout(() => setPageMessage(null), 5000);
   };
 
 
+  const handleEditApprovedMyForm = async (waiverId) => {
+    setApproverAmendMode(true);
+    setAmendFromAllForms(true);
+    setRequestorEditMode(false);
+    setApproverEditMode(false);
+    setRejectedEditMode(false);
+    setParentWaiverId(waiverId);
+    isEditingRef.current = false;
+    try {
+      const data = await api.getWaiverDetails(waiverId);
+      const toDate = (v) => v ? v.toString().slice(0, 10) : '';
+      setWaiverId(waiverId);
+      setFormData({
+        waiverId,
+        partNumber: data.partNumber || '',
+        revision: data.revision || '',
+        description: data.description || '',
+        subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
+        assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
+        requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
+        startDate: toDate(data.startDate) || new Date().toISOString().split('T')[0],
+        endDate: toDate(data.endDate),
+        waiverType: data.waiverType || [],
+        reason: data.reason || '',
+        workorder: data.workorder || '',
+        workorderQty: data.workorderQty || '',
+        currentPart: '', newPart: '', action: '', instructions: ''
+      });
+      const sectionMap = { 'Material Waiver': 'material', 'Process Waiver': 'process', 'Test Waiver': 'test', 'Spec Deviation': 'spec', 'Rework Waiver': 'rework', 'Label Waiver': 'label' };
+      setOpenSection((data.waiverType || []).map(t => sectionMap[t]).filter(Boolean));
+      setMaterialRows((data.materialRows || []).map(r => ({
+        currentPart: r.current_part || r.currentPart || '',
+        currentPartDescription: r.current_part_description || r.currentPartDescription || '',
+        noOfPer: r.no_of_per || r.noOfPer || '',
+        refdes: r.refdes || '',
+        newPart: r.new_part || r.newPart || '',
+        newPartDescription: r.new_part_description || r.newPartDescription || '',
+        action: r.action || '',
+        instructions: r.instructions || '',
+        file: r.file_path || r.file || null
+      })));
+      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: null });
+      setWaiverStatus('Approved');
+      setShowForm(true);
+    } catch (err) {
+      console.error('Failed to load approved waiver for edit:', err);
+    }
+  };
+
   const handleEditRejectedForm = async (waiverId) => {
     setRejectedEditMode(true);
     setRequestorEditMode(false);
@@ -1417,6 +1470,7 @@ setTimeout(() => setPageMessage(null), 5000);
               setShowCancelConfirm={setShowCancelConfirm}
               setHistoryModal={setHistoryModal}
               handleEditMyForm={handleEditMyForm}
+              handleEditApprovedMyForm={handleEditApprovedMyForm}
               handleDuplicate={handleDuplicate}
               navigate={navigate}
             />
@@ -1432,6 +1486,7 @@ setTimeout(() => setPageMessage(null), 5000);
           setEmailSentBanner={setEmailSentBanner}
           approverEditMode={approverEditMode}
           approverAmendMode={approverAmendMode}
+          amendFromAllForms={amendFromAllForms}
           requestorEditMode={requestorEditMode}
           rejectedEditMode={rejectedEditMode}
           navigate={navigate}

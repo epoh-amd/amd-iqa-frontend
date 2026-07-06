@@ -158,7 +158,7 @@ const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Sel
 
 const WaiverFormView = ({
   emailSentBanner, setEmailSentBanner,
-  approverEditMode, approverAmendMode, requestorEditMode, rejectedEditMode,
+  approverEditMode, approverAmendMode, amendFromAllForms, requestorEditMode, rejectedEditMode,
   navigate, setShowForm, setActiveTab, fetchMyForms, setRejectedEditMode, handleBackToList,
   waiverStatus, formData, setFormData, handleChange, handleSubmit,
   subcontractors, assemblyLevels,
@@ -196,8 +196,8 @@ const WaiverFormView = ({
       <button
         type="button"
         onClick={
-          (approverEditMode || approverAmendMode) ? () => navigate(-1) :
-            (requestorEditMode || rejectedEditMode) ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); setRejectedEditMode(false); } :
+          (approverEditMode || (approverAmendMode && !amendFromAllForms)) ? () => navigate(-1) :
+            (requestorEditMode || rejectedEditMode || amendFromAllForms) ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); setRejectedEditMode(false); } :
               handleBackToList
         }
         style={{
@@ -206,7 +206,7 @@ const WaiverFormView = ({
           fontSize: '13px', fontWeight: 500
         }}
       >
-        {(approverEditMode || approverAmendMode) ? '← Back to Management' : (requestorEditMode || rejectedEditMode) ? '← Back to All Forms' : '← Back to Drafts'}
+        {(approverEditMode || (approverAmendMode && !amendFromAllForms)) ? '← Back to Management' : (requestorEditMode || rejectedEditMode || amendFromAllForms) ? '← Back to All Forms' : '← Back to Drafts'}
       </button>
       {waiverStatus && (
         <span style={{

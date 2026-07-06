@@ -32,12 +32,14 @@ const DraftsTab = ({ draftsLoading, drafts, handleEditDraft, handleDeleteDraft }
                   : '-'}
               </td>
               <td style={{ display: 'flex', gap: '8px' }}>
-                <button className="add-btn" onClick={() => handleEditDraft(draft)}>
+                <button
+                  style={{ background: '#0d6efd', color: '#fff', border: '1px solid #0d6efd', padding: '4px 12px', borderRadius: '4px', fontSize: '13px', cursor: 'pointer', fontWeight: 500 }}
+                  onClick={() => handleEditDraft(draft)}
+                >
                   Edit
                 </button>
                 <button
-                  className="delete-btn"
-                  style={{ border: '1px solid #dc3545', padding: '4px 12px', borderRadius: '4px' }}
+                  style={{ background: '#0d6efd', color: '#fff', border: '1px solid #0d6efd', padding: '4px 12px', borderRadius: '4px', fontSize: '13px', cursor: 'pointer', fontWeight: 500 }}
                   onClick={() => handleDeleteDraft(draft.waiver_id)}
                 >
                   Delete

@@ -256,9 +256,11 @@ const WaiverView = () => {
                 <label>Waiver Type</label>
                 {waiverType.length > 0 ? (
                     <div className="radio-group">
-                        {waiverType.map(t => (
-                            <span key={t} className="wv-tag">{t}</span>
-                        ))}
+                        {['Material Waiver', 'Process Waiver', 'Test Waiver']
+                            .filter(t => waiverType.includes(t))
+                            .map(t => (
+                                <span key={t} className="wv-tag">{t}</span>
+                            ))}
                     </div>
                 ) : (
                     <span className="wv-value">-</span>

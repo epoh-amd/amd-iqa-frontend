@@ -15,6 +15,7 @@ const MyFormsTab = ({
   setShowCancelConfirm,
   setHistoryModal,
   handleEditMyForm,
+  handleEditApprovedMyForm,
   handleDuplicate,
   navigate,
 }) => {
@@ -223,9 +224,9 @@ const MyFormsTab = ({
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'row', gap: '4px', flexWrap: 'nowrap' }}>
                       {(() => {
-                        const canEdit = status === 'New' || status === 'Pending Approval' || status === 'Cancelled';
+                        const canEdit = status === 'New' || status === 'Pending Approval' || status === 'Cancelled' || status === 'Approved';
                         const canVersionHistory = /^WV\d+-[B-Z]$/.test(w.waiver_id);
-                        const canCancel = status !== 'Cancelled' && status !== 'Rejected' && status !== 'Approved';
+                        const canCancel = status !== 'Cancelled' && status !== 'Rejected';
                         const btnBase = {
                           padding: '4px 10px', fontSize: '12px', borderRadius: '4px',
                           border: '1px solid #0d6efd', cursor: 'pointer', fontWeight: 500,
@@ -238,7 +239,14 @@ const MyFormsTab = ({
                             <button
                               style={canEdit ? activeStyle : disabledStyle}
                               disabled={!canEdit}
-                              onClick={() => canEdit && handleEditMyForm(w.waiver_id)}
+                              onClick={() => {
+                                if (!canEdit) return;
+                                if (status === 'Approved') {
+                                  handleEditApprovedMyForm(w.waiver_id);
+                                } else {
+                                  handleEditMyForm(w.waiver_id);
+                                }
+                              }}
                             >Edit</button>
                             <button
                               style={activeStyle}
