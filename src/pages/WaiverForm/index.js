@@ -211,6 +211,7 @@ const WaiverForm = () => {
   const [pageMessage, setPageMessage] = useState(null);
 
   const isEditingRef = React.useRef(false);
+  const hasUserEditedRef = React.useRef(false);
   const [approverEditMode, setApproverEditMode] = useState(false);
   const [requestorEditMode, setRequestorEditMode] = useState(false);
   const [rejectedEditMode, setRejectedEditMode] = useState(false);
@@ -616,6 +617,7 @@ const WaiverForm = () => {
   // Auto-save to waivers table when editing from All Forms tab
   useEffect(() => {
     if (!requestorEditMode || approverAmendMode || !waiverId || !formData.partNumber) return;
+    if (!hasUserEditedRef.current) return;
 
     const timeout = setTimeout(async () => {
       try {
@@ -656,6 +658,7 @@ const WaiverForm = () => {
 
 
   const handleMaterialChange = (index, field, value) => {
+    hasUserEditedRef.current = true;
     const updated = [...materialRows];
     updated[index][field] = value;
     setMaterialRows(updated);
@@ -737,6 +740,7 @@ const WaiverForm = () => {
   };
 
   const handleChange = (e) => {
+    hasUserEditedRef.current = true;
     const { name, value, type, checked } = e.target;
 
     if (name === "waiverType") {
@@ -1215,6 +1219,7 @@ setTimeout(() => setPageMessage(null), 5000);
   const handleEditMyForm = async (waiverId) => {
     setRequestorEditMode(true);
     isEditingRef.current = false;
+    hasUserEditedRef.current = false;
     try {
       const data = await api.getWaiverDetails(waiverId);
       setWaiverId(waiverId);

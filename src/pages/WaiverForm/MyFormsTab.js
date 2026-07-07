@@ -67,7 +67,6 @@ const MyFormsTab = ({
           <option value="Pending Approval">Pending Approval</option>
           <option value="Approved">Approved</option>
           <option value="Cancelled">Cancelled</option>
-          <option value="Rejected">Rejected</option>
         </select>
       </div>
 
@@ -210,14 +209,16 @@ const MyFormsTab = ({
 
                   <td style={{ whiteSpace: 'nowrap', fontSize: '13px', color: '#555' }}>
                     {w.updated_at ? (() => {
-                      const raw = w.updated_at;
-                      let date;
-                      if (typeof raw === 'string' && !raw.endsWith('Z') && !raw.includes('+')) {
-                        date = new Date(raw.replace(' ', 'T') + '+08:00');
-                      } else {
-                        date = new Date(raw);
-                      }
-                      return isNaN(date) ? '-' : date.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+                      const date = new Date(w.updated_at);
+                      if (isNaN(date)) return '-';
+                      // MySQL server clock is 12h behind MYT — add 12h to correct
+                      const corrected = new Date(date.getTime() + 12 * 60 * 60 * 1000);
+                      return corrected.toLocaleString('en-MY', {
+                        timeZone: 'Asia/Kuala_Lumpur',
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit',
+                        hour12: true
+                      });
                     })() : '-'}
                   </td>
 
