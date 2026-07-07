@@ -658,7 +658,6 @@ const WaiverForm = () => {
 
 
   const handleMaterialChange = (index, field, value) => {
-    hasUserEditedRef.current = true;
     const updated = [...materialRows];
     updated[index][field] = value;
     setMaterialRows(updated);
@@ -740,7 +739,6 @@ const WaiverForm = () => {
   };
 
   const handleChange = (e) => {
-    hasUserEditedRef.current = true;
     const { name, value, type, checked } = e.target;
 
     if (name === "waiverType") {
@@ -1263,6 +1261,8 @@ setTimeout(() => setPageMessage(null), 5000);
       setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
       setWaiverStatus(data.status || null);
       setShowForm(true);
+      // Allow auto-save only after form data is fully loaded (2s delay)
+      setTimeout(() => { hasUserEditedRef.current = true; }, 2000);
     } catch (err) {
       console.error('Failed to load waiver for edit:', err);
     }
