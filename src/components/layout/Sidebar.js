@@ -94,18 +94,18 @@ const Sidebar = ({ collapsed }) => {
       icon: AlertTriangle, 
       show: canAccessCLF() 
     },
-    { 
-      path: '/waiver-form', 
-      label: 'Waiver Form', 
-      icon: FileText, 
-      show: canAccessCustomerPortal()   // or create a new permission if needed
+    {
+      path: '/waiver-form',
+      label: 'Waiver Form',
+      icon: FileText,
+      show: canAccessCustomerPortal() || canStartBuild() || canContinueBuild() || canViewBuilds()
     },
-    {                                          // ← ADD THIS
-    path: '/waiver-management',
-    label: 'Waiver Management',
-    icon: Clipboard,
-    show: canAccessCustomerPortal()
-  }
+    {
+      path: '/waiver-management',
+      label: 'Waiver Management',
+      icon: Clipboard,
+      show: canAccessCustomerPortal() || canStartBuild() || canContinueBuild() || canViewBuilds()
+    }
 
   ].filter(item => item.show);
 
