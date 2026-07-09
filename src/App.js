@@ -118,7 +118,7 @@ function App() {
                         <Route
                           path="/waiver-form"
                           element={
-                            <ProtectedRoute requiredPermissions={['customer_portal']}>
+                            <ProtectedRoute requiredPermissions={['customer_portal', 'start_build', 'continue_build', 'allocation']}>
                               <WaiverForm />
                             </ProtectedRoute>
                           }
@@ -127,14 +127,14 @@ function App() {
                         <Route
                           path="/waiver-management"
                           element={
-                            <ProtectedRoute requiredPermissions={['customer_portal']}>
+                            <ProtectedRoute requiredPermissions={['customer_portal', 'start_build', 'continue_build', 'allocation']}>
                               <WaiverManagement />
                             </ProtectedRoute>
                           }
                         />
 
                         <Route path="/waiver-view" element={
-                          <ProtectedRoute requiredPermissions={['customer_portal']}>
+                          <ProtectedRoute requiredPermissions={['customer_portal', 'start_build', 'continue_build', 'allocation']}>
                             <WaiverView />
                           </ProtectedRoute>
                         } />
