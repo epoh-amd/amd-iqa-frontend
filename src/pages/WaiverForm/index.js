@@ -482,6 +482,8 @@ const WaiverForm = () => {
   const [showForm, setShowForm] = useState(false);
   const [drafts, setDrafts] = useState([]);
   const [draftsLoading, setDraftsLoading] = useState(false);
+  const [autoSaveBanner, setAutoSaveBanner] = useState(false);
+  const autoSaveBannerTimer = useRef(null);
 
   const [submitMessage, setSubmitMessage] = useState(null);
 
@@ -598,6 +600,9 @@ const WaiverForm = () => {
           labelData,
           openSection
         });
+        clearTimeout(autoSaveBannerTimer.current);
+        setAutoSaveBanner(true);
+        autoSaveBannerTimer.current = setTimeout(() => setAutoSaveBanner(false), 2000);
       } catch (error) {
         console.error("Auto-save draft failed:", error);
       }
@@ -616,8 +621,7 @@ const WaiverForm = () => {
 
   // Auto-save to waivers table when editing from All Forms tab
   useEffect(() => {
-    if (!requestorEditMode || approverAmendMode || !waiverId || !formData.partNumber) return;
-    if (!hasUserEditedRef.current) return;
+    if ((!requestorEditMode && !rejectedEditMode) || approverAmendMode || !waiverId || !formData.partNumber) return;
 
     const timeout = setTimeout(async () => {
       try {
@@ -646,6 +650,9 @@ const WaiverForm = () => {
           labelData: activeTypes.includes('Label Waiver') ? labelData : { instructions: '', file: null },
           openSections: openSection,
         });
+        clearTimeout(autoSaveBannerTimer.current);
+        setAutoSaveBanner(true);
+        autoSaveBannerTimer.current = setTimeout(() => setAutoSaveBanner(false), 2000);
       } catch (error) {
         console.error("Auto-save waiver failed:", error);
       }
@@ -1217,7 +1224,6 @@ setTimeout(() => setPageMessage(null), 5000);
   const handleEditMyForm = async (waiverId) => {
     setRequestorEditMode(true);
     isEditingRef.current = false;
-    hasUserEditedRef.current = false;
     try {
       const data = await api.getWaiverDetails(waiverId);
       setWaiverId(waiverId);
@@ -1261,8 +1267,6 @@ setTimeout(() => setPageMessage(null), 5000);
       setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
       setWaiverStatus(data.status || null);
       setShowForm(true);
-      // Allow auto-save only after form data is fully loaded (2s delay)
-      setTimeout(() => { hasUserEditedRef.current = true; }, 2000);
     } catch (err) {
       console.error('Failed to load waiver for edit:', err);
     }
@@ -1489,6 +1493,7 @@ setTimeout(() => setPageMessage(null), 5000);
       ) : (
         /* ── Form view ── */
         <WaiverFormView
+          autoSaveBanner={autoSaveBanner}
           emailSentBanner={emailSentBanner}
           setEmailSentBanner={setEmailSentBanner}
           approverEditMode={approverEditMode}

@@ -157,6 +157,7 @@ const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Sel
 };
 
 const WaiverFormView = ({
+  autoSaveBanner,
   emailSentBanner, setEmailSentBanner,
   approverEditMode, approverAmendMode, amendFromAllForms, requestorEditMode, rejectedEditMode,
   navigate, setShowForm, setActiveTab, fetchMyForms, setRejectedEditMode, handleBackToList,
@@ -172,6 +173,19 @@ const WaiverFormView = ({
   submitMessage, submitting,
 }) => (
   <>
+    {autoSaveBanner && (
+      <div style={{
+        position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)',
+        zIndex: 9999, display: 'flex', alignItems: 'center', gap: '8px',
+        background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724',
+        borderRadius: '8px', padding: '12px 20px', fontSize: '14px', fontWeight: 500,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+      }}>
+        <span style={{ fontSize: '16px' }}>&#10003;</span>
+        <span>Changes auto saved</span>
+      </div>
+    )}
+
     {emailSentBanner && (
       <div style={{
         position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)',
