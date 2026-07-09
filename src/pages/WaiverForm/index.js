@@ -212,6 +212,7 @@ const WaiverForm = () => {
 
   const isEditingRef = React.useRef(false);
   const hasUserEditedRef = React.useRef(false);
+  const isLoadingDraftRef = React.useRef(false);
   const [approverEditMode, setApproverEditMode] = useState(false);
   const [requestorEditMode, setRequestorEditMode] = useState(false);
   const [rejectedEditMode, setRejectedEditMode] = useState(false);
@@ -579,6 +580,8 @@ const WaiverForm = () => {
     if (!userId) return;
     // Don't save to drafts when editing an existing waiver from All Forms
     if (requestorEditMode || approverEditMode || rejectedEditMode || approverAmendMode) return;
+    // Don't trigger auto-save while draft data is being loaded into state
+    if (isLoadingDraftRef.current) return;
 
     // prevent saving empty initial state
     const isEmpty =
@@ -1171,6 +1174,7 @@ setTimeout(() => setPageMessage(null), 5000);
 
   const handleEditDraft = async (draft) => {
     isEditingRef.current = true;
+    isLoadingDraftRef.current = true;
     setShowForm(true);
     setWaiverId(draft.waiver_id);
 
@@ -1196,6 +1200,9 @@ setTimeout(() => setPageMessage(null), 5000);
 
     } catch (err) {
       console.error('Failed to load draft for edit:', err);
+    } finally {
+      // Allow auto-save after React has flushed the state updates (next tick)
+      setTimeout(() => { isLoadingDraftRef.current = false; }, 0);
     }
   };
 
