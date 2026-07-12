@@ -21,92 +21,91 @@ export const useQualityManagement = (builds, setBuilds) => {
 
   // Handle FPY status change
   const handleFpyStatusChange = (buildIndex, status) => {
-    const updatedBuilds = [...builds];
-    updatedBuilds[buildIndex].qualityDetails.fpyStatus = status;
-    
-    // Reset failure details if status changed to Pass
-    if (status === 'Pass') {
-      updatedBuilds[buildIndex].qualityDetails.problemDescription = '';
-      updatedBuilds[buildIndex].qualityDetails.numberOfFailures = '';
-      updatedBuilds[buildIndex].qualityDetails.failureModes = [];
-      updatedBuilds[buildIndex].qualityDetails.failureCategories = [];
-      updatedBuilds[buildIndex].qualityDetails.canRework = '';
-    }
-    
-    // Clear errors
-    if (updatedBuilds[buildIndex].errors.fpyStatus) {
-      delete updatedBuilds[buildIndex].errors.fpyStatus;
-    }
-    
+    const updatedBuilds = builds.map((b, i) => {
+      if (i !== buildIndex) return b;
+      const newErrors = { ...b.errors };
+      delete newErrors.fpyStatus;
+      const newQuality = status === 'Pass'
+        ? { ...b.qualityDetails, fpyStatus: status, problemDescription: '', numberOfFailures: '', failureModes: [], failureCategories: [], canRework: '' }
+        : { ...b.qualityDetails, fpyStatus: status };
+      return { ...b, qualityDetails: newQuality, errors: newErrors };
+    });
     setBuilds(updatedBuilds);
   };
 
   // Handle problem description change - NEW HANDLER
   const handleProblemDescriptionChange = (buildIndex, value) => {
-    const updatedBuilds = [...builds];
-    updatedBuilds[buildIndex].qualityDetails.problemDescription = value;
-    
-    // Clear error
-    if (updatedBuilds[buildIndex].errors.problemDescription) {
-      delete updatedBuilds[buildIndex].errors.problemDescription;
-    }
-    
+    const updatedBuilds = builds.map((b, i) => {
+      if (i !== buildIndex) return b;
+      const newErrors = { ...b.errors };
+      delete newErrors.problemDescription;
+      return {
+        ...b,
+        qualityDetails: { ...b.qualityDetails, problemDescription: value },
+        errors: newErrors
+      };
+    });
     setBuilds(updatedBuilds);
   };
 
   // Handle number of failures change
   const handleNumberOfFailuresChange = (buildIndex, value) => {
-    const updatedBuilds = [...builds];
     const numberOfFailures = parseInt(value) || 0;
-    
-    updatedBuilds[buildIndex].qualityDetails.numberOfFailures = value;
-    
-    // Resize failure arrays
-    updatedBuilds[buildIndex].qualityDetails.failureModes = Array(numberOfFailures).fill('');
-    updatedBuilds[buildIndex].qualityDetails.failureCategories = Array(numberOfFailures).fill('');
-    
-    // Clear related errors
-    if (updatedBuilds[buildIndex].errors.numberOfFailures) {
-      delete updatedBuilds[buildIndex].errors.numberOfFailures;
-    }
-    
+    const updatedBuilds = builds.map((b, i) => {
+      if (i !== buildIndex) return b;
+      const newErrors = { ...b.errors };
+      delete newErrors.numberOfFailures;
+      return {
+        ...b,
+        qualityDetails: {
+          ...b.qualityDetails,
+          numberOfFailures: value,
+          failureModes: Array(numberOfFailures).fill(''),
+          failureCategories: Array(numberOfFailures).fill('')
+        },
+        errors: newErrors
+      };
+    });
     setBuilds(updatedBuilds);
   };
 
   // Handle failure mode change
   const handleFailureModeChange = (buildIndex, failureIndex, mode) => {
-    const updatedBuilds = [...builds];
-    updatedBuilds[buildIndex].qualityDetails.failureModes[failureIndex] = mode;
-    
-    // Auto-populate failure category
     const category = getFailureCategoryForMode(mode);
-    updatedBuilds[buildIndex].qualityDetails.failureCategories[failureIndex] = category;
-    
-    // Clear error for this failure mode
-    if (updatedBuilds[buildIndex].errors[`failureMode${failureIndex}`]) {
-      delete updatedBuilds[buildIndex].errors[`failureMode${failureIndex}`];
-    }
-    
+    const updatedBuilds = builds.map((b, i) => {
+      if (i !== buildIndex) return b;
+      const newModes = [...b.qualityDetails.failureModes];
+      const newCategories = [...b.qualityDetails.failureCategories];
+      newModes[failureIndex] = mode;
+      newCategories[failureIndex] = category;
+      const newErrors = { ...b.errors };
+      delete newErrors[`failureMode${failureIndex}`];
+      return {
+        ...b,
+        qualityDetails: { ...b.qualityDetails, failureModes: newModes, failureCategories: newCategories },
+        errors: newErrors
+      };
+    });
     setBuilds(updatedBuilds);
   };
 
   // Handle can rework change
   const handleCanReworkChange = (buildIndex, value) => {
-    const updatedBuilds = [...builds];
-    updatedBuilds[buildIndex].qualityDetails.canRework = value;
-    
-    // Clear error
-    if (updatedBuilds[buildIndex].errors.canRework) {
-      delete updatedBuilds[buildIndex].errors.canRework;
-    }
-    
+    const updatedBuilds = builds.map((b, i) => {
+      if (i !== buildIndex) return b;
+      const newErrors = { ...b.errors };
+      delete newErrors.canRework;
+      return { ...b, qualityDetails: { ...b.qualityDetails, canRework: value }, errors: newErrors };
+    });
     setBuilds(updatedBuilds);
   };
 
   // Handle save option change
   const handleSaveOptionChange = (buildIndex, option) => {
-    const updatedBuilds = [...builds];
-    updatedBuilds[buildIndex].qualityDetails.saveOption = option;
+    const updatedBuilds = builds.map((b, i) => {
+      if (i !== buildIndex) return b;
+      return { ...b, qualityDetails: { ...b.qualityDetails, saveOption: option } };
+    });
     setBuilds(updatedBuilds);
   };
 

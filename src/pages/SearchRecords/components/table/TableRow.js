@@ -252,16 +252,8 @@ const TableRow = ({
           </td>
           <td className="read-only-cell col-wide">{build.problem_description || '-'}</td>
           <td className="read-only-cell col-standard">
-            {build.fpy_status === 'Fail' && (
-              <span 
-                className="link-text"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  loadFailureDetails(build.chassis_sn);
-                }}
-              >
-                View Failures
-              </span>
+            {build.failure_modes_combined && (
+              <div style={{ fontSize: '12px' }}>{build.failure_modes_combined}</div>
             )}
           </td>
           <td className="read-only-cell col-standard">

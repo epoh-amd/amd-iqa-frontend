@@ -45,15 +45,15 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(styleSheet);
 }
 
-const ReworkMode = ({ 
-  originalBuild, 
-  onSaveRework, 
+const ReworkMode = ({
+  originalBuild,
+  onSaveRework,
   onCancel,
   partNumberSuggestions,
   handlePartNumberSearchChange,
   selectPartNumber,
   showPartNumberDropdown,
-  setShowPartNumberDropdown 
+  setShowPartNumberDropdown
 }) => {
   const [reworkBuild, setReworkBuild] = useState(() => ({
     ...originalBuild,
@@ -181,11 +181,40 @@ const ReworkMode = ({
     failureModes,
     handleFpyStatusChange,
     handleProblemDescriptionChange,
-    handleNumberOfFailuresChange,
-    handleFailureModeChange,
     getFailureCategoryForMode,
     getAllFailureModes
   } = useQualityManagement([reworkBuild], (builds) => setReworkBuild(builds[0]));
+
+  const handleNumberOfFailuresChange = (value) => {
+    const numberOfFailures = parseInt(value) || 0;
+    setReworkBuild(prev => ({
+      ...prev,
+      qualityDetails: {
+        ...prev.qualityDetails,
+        numberOfFailures: value,
+        failureModes: Array(numberOfFailures).fill(''),
+        failureCategories: Array(numberOfFailures).fill('')
+      }
+    }));
+  };
+
+  const handleFailureModeChange = (idx, mode) => {
+    const category = getFailureCategoryForMode(mode);
+    setReworkBuild(prev => {
+      const newModes = [...prev.qualityDetails.failureModes];
+      const newCategories = [...prev.qualityDetails.failureCategories];
+      newModes[idx] = mode;
+      newCategories[idx] = category;
+      return {
+        ...prev,
+        qualityDetails: {
+          ...prev.qualityDetails,
+          failureModes: newModes,
+          failureCategories: newCategories
+        }
+      };
+    });
+  };
 
   // Load rework history
   useEffect(() => {
@@ -926,23 +955,58 @@ const ReworkMode = ({
         <h3>Testing Results (Required)</h3>
         <div className="testing-section">
           {/* Problem Description for Failed Testing */}
-          {(reworkBuild.systemInfo.visualInspection === 'Fail' || 
-            reworkBuild.systemInfo.bootStatus === 'No' || 
-            reworkBuild.systemInfo.dimmsDetectedStatus === 'No' || 
+          {(reworkBuild.systemInfo.visualInspection === 'Fail' ||
+            reworkBuild.systemInfo.bootStatus === 'No' ||
+            reworkBuild.systemInfo.dimmsDetectedStatus === 'No' ||
             reworkBuild.systemInfo.lomWorkingStatus === 'No') && (
-            <div className="test-row">
-              <label>Problem Description:</label>
-              <textarea
-                value={reworkBuild.systemInfo.problemDescription || ''}
-                onChange={(e) => handleTestingChange('problemDescription', e.target.value)}
-                placeholder="Describe the issues found during testing..."
-                className={errors.problemDescription ? 'error' : ''}
-                rows="3"
-              />
-              {errors.problemDescription && <div className="field-error">{errors.problemDescription}</div>}
-            </div>
+            <>
+              <div className="test-row">
+                <label>Problem Description:</label>
+                <textarea
+                  value={reworkBuild.systemInfo.problemDescription || ''}
+                  onChange={(e) => handleTestingChange('problemDescription', e.target.value)}
+                  placeholder="Describe the issues found during testing..."
+                  className={errors.problemDescription ? 'error' : ''}
+                  rows="3"
+                />
+                {errors.problemDescription && <div className="field-error">{errors.problemDescription}</div>}
+              </div>
+
+              <div className="test-row">
+                <label>Number of Failures:</label>
+                <select
+                  value={reworkBuild.qualityDetails.numberOfFailures || ''}
+                  onChange={(e) => handleNumberOfFailuresChange(e.target.value)}
+                >
+                  <option value="">Select</option>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+
+              {(reworkBuild.qualityDetails.failureModes || []).map((mode, idx) => (
+                <div className="test-row" key={`failure-mode-${idx}`}>
+                  <label>Failure Mode #{idx + 1}:</label>
+                  <select
+                    value={mode || ''}
+                    onChange={(e) => handleFailureModeChange(idx, e.target.value)}
+                  >
+                    <option value="">Select Failure Mode</option>
+                    {getAllFailureModes().map((fm, fmIdx) => (
+                      <option key={fmIdx} value={fm}>{fm}</option>
+                    ))}
+                  </select>
+                  {mode && (
+                    <span style={{ marginLeft: '10px', color: '#666', fontSize: '0.9em' }}>
+                      Category: {getFailureCategoryForMode(mode)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </>
           )}
-          
+
           {/* Visual Inspection */}
           <div className="test-row">
             <label>Visual Inspection:</label>

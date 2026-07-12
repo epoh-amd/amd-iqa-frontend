@@ -172,18 +172,18 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
   useEffect(() => {
     const loadReworkData = async () => {
       const newData = {};
-  
+
       for (let i = 0; i < builds.length; i++) {
         const chassisSN = builds[i]?.systemInfo?.chassisSN;
-  
+
         if (!chassisSN) continue;
-  
+
         try {
           const res = await api.getReworkPass(chassisSN);
-  
+
           if (res) {
             newData[i] = {
-              status: 'Yes', // since record exists
+              status: 'Yes',
               notes: res.notes || ''
             };
           }
@@ -191,14 +191,16 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
           console.error('Error loading rework:', err);
         }
       }
-  
+
       setReworkData(newData);
     };
-  
+
     if (builds?.length) {
       loadReworkData();
     }
-  }, [builds]);
+  // Only re-run when chassis SNs change, not on every quality field edit
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [builds.map(b => b?.systemInfo?.chassisSN).join(',')]);
 
   // Part number search state
   const [partNumberSuggestions, setPartNumberSuggestions] = useState({
@@ -230,8 +232,18 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
   );
 
   // Use ref to track previous testing results and FPY status to prevent infinite loop
-  const prevTestingResultsRef = useRef(null);
-  const prevFpyStatusRef = useRef(null);
+  // Pre-initialize with the loaded build's testing results so the auto-recalculate
+  // effect doesn't fire on first render and overwrite the saved FPY/failure data.
+  const initialBuild = builds[0];
+  const prevTestingResultsRef = useRef(
+    JSON.stringify([
+      initialBuild?.systemInfo?.visualInspection,
+      initialBuild?.systemInfo?.bootStatus,
+      initialBuild?.systemInfo?.dimmsDetectedStatus,
+      initialBuild?.systemInfo?.lomWorkingStatus
+    ])
+  );
+  const prevFpyStatusRef = useRef(initialBuild?.qualityDetails?.fpyStatus ?? null);
 
   // Calculate FPY status based on testing results (auto-calculated)
   useEffect(() => {
@@ -263,19 +275,11 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
           prevFpyStatusRef.current = fpyStatus;
 
           setBuilds(prevBuilds => {
-            const updatedBuilds = [...prevBuilds];
-            updatedBuilds[0].qualityDetails.fpyStatus = fpyStatus;
-
-            // Reset failure details if FPY becomes Pass
-            if (fpyStatus === 'Pass') {
-              updatedBuilds[0].qualityDetails.problemDescription = '';
-              updatedBuilds[0].qualityDetails.numberOfFailures = '';
-              updatedBuilds[0].qualityDetails.failureModes = [];
-              updatedBuilds[0].qualityDetails.failureCategories = [];
-              updatedBuilds[0].qualityDetails.canRework = '';
-            }
-
-            return updatedBuilds;
+            const b = prevBuilds[0];
+            const newQuality = fpyStatus === 'Pass'
+              ? { ...b.qualityDetails, fpyStatus, problemDescription: '', numberOfFailures: '', failureModes: [], failureCategories: [], canRework: '' }
+              : { ...b.qualityDetails, fpyStatus };
+            return [{ ...b, qualityDetails: newQuality }, ...prevBuilds.slice(1)];
           });
         } else if (prevFpyStatusRef.current === null) {
           // Initialize the ref on first render
@@ -506,7 +510,8 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
         systemInfo: {
           ...updatedReworkBuild.systemInfo,
           uploadedPhotos: uploadedPhotos
-        }
+        },
+        qualityDetails: updatedReworkBuild.qualityDetails
       };
 
       // Save rework to database - calls PATCH /api/builds/:chassisSN/rework

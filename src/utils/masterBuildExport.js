@@ -32,7 +32,7 @@ const buildsWithDetails = selectedBuilds.map(build => {
     dimms_detected_notes:     detail.dimms_detected_notes     ?? build.dimms_detected_notes,
     lom_working_status:       detail.lom_working_status       ?? build.lom_working_status,
     lom_working_notes:        detail.lom_working_notes        ?? build.lom_working_notes,
-    problem_description:      detail.problem_description      ?? build.problem_description,
+    problem_description:      detail.problem_description      || build.problem_description,
     failures: detail.failures || [],
     dimmSNs:  detail.dimmSNs  || (build.dimm_sns ? build.dimm_sns.split(',').filter(Boolean) : []),
   };
