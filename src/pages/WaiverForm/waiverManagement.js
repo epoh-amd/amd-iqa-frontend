@@ -303,6 +303,7 @@ const WaiverManagement = () => {
                     <option value="all">All Status</option>
                     <option value="Pending Approval">Pending Approval</option>
                     <option value="Approved">Approved</option>
+                    <option value="Closed">Closed</option>
                     <option value="Cancelled">Cancelled</option>
                     <option value="Rejected">Rejected</option>
                   </select>
@@ -327,6 +328,8 @@ const WaiverManagement = () => {
                         <th>Submitted By</th>
                         <th>Submitted Date</th>
                         <th>Approved By</th>
+                        <th>Approved At</th>
+                        <th>Closed At</th>
                         <th>Status</th>
                         <th>Action</th>
                       </tr>
@@ -359,6 +362,32 @@ const WaiverManagement = () => {
                           <td>{w.submitted_at ? new Date(w.submitted_at).toLocaleDateString() : '-'}</td>
                           <td style={{ fontSize: '13px', color: w.approved_by ? '#2e7d32' : '#aaa' }}>
                             {w.approved_by || '-'}
+                          </td>
+                          <td style={{ whiteSpace: 'nowrap', fontSize: '13px', color: '#555' }}>
+                            {w.approved_at ? (() => {
+                              const date = new Date(w.approved_at);
+                              if (isNaN(date)) return '-';
+                              const corrected = new Date(date.getTime() + 12 * 60 * 60 * 1000);
+                              return corrected.toLocaleString('en-MY', {
+                                timeZone: 'Asia/Kuala_Lumpur',
+                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                                hour12: true
+                              });
+                            })() : '-'}
+                          </td>
+                          <td style={{ whiteSpace: 'nowrap', fontSize: '13px', color: '#555' }}>
+                            {w.closed_at ? (() => {
+                              const date = new Date(w.closed_at);
+                              if (isNaN(date)) return '-';
+                              const corrected = new Date(date.getTime() + 12 * 60 * 60 * 1000);
+                              return corrected.toLocaleString('en-MY', {
+                                timeZone: 'Asia/Kuala_Lumpur',
+                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                                hour12: true
+                              });
+                            })() : '-'}
                           </td>
                           <td>
                             {(() => {
