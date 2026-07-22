@@ -184,6 +184,7 @@ const WaiverManagement = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [approveTarget, setApproveTarget] = useState(null); // waiverId
+  const [closeTarget, setCloseTarget] = useState(null); // waiverId
   const [historyModal, setHistoryModal] = useState(null); // { waiverId, records }
   const [historyLoading, setHistoryLoading] = useState(false);
   const navigate = useNavigate();
@@ -230,7 +231,7 @@ const WaiverManagement = () => {
       await api.updateWaiverStatus(waiverId, status, reason, cancelledBy, approvedBy);
       setApprovals(prev => prev.filter(w => w.waiver_id !== waiverId));
       setCancelTarget(null);
-      if (status === 'Approved' || status === 'Rejected') {
+      if (status === 'Approved' || status === 'Rejected' || status === 'Closed') {
         api.sendWaiverStatusNotification({
           waiverId,
           status,
@@ -449,6 +450,16 @@ const WaiverManagement = () => {
                                 Edit
                               </button>
                             )}
+                            {w.status === 'Approved' && (
+                              <button
+                                className="add-btn"
+                                style={{ padding: '4px 12px', fontSize: '13px', background: '#6c757d', border: '1px solid #6c757d', color: '#fff' }}
+                                disabled={actionLoading === w.waiver_id}
+                                onClick={() => setCloseTarget(w.waiver_id)}
+                              >
+                                Close
+                              </button>
+                            )}
                             {/^WV\d+-[B-Z]$/.test(w.waiver_id) && (
                               <button
                                 className="add-btn"
@@ -594,6 +605,29 @@ const WaiverManagement = () => {
         </div>
       )}
 
+
+      {closeTarget && (
+        <div className="waiver-modal-overlay">
+          <div className="waiver-modal">
+            <h3>Close Waiver</h3>
+            <p>Confirm closing <strong>{closeTarget}</strong> — this action cannot be undone.</p>
+            <div className="waiver-modal-actions">
+              <button className="waiver-modal-cancel" onClick={() => setCloseTarget(null)}>Go Back</button>
+              <button
+                className="add-btn"
+                style={{ background: '#6c757d', border: '1px solid #6c757d', color: '#fff' }}
+                onClick={() => {
+                  const id = closeTarget;
+                  setCloseTarget(null);
+                  handleAction(id, 'Closed');
+                }}
+              >
+                Yes, Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Version History Modal */}
       {historyModal && (

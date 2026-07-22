@@ -919,6 +919,7 @@ const WaiverForm = () => {
             description: formData.description,
             revision: formData.revision,
             assemblyLevel: formData.assemblyLevel,
+            subcontractor: formData.subcontractor,
             reason: formData.reason,
             submittedBy: user?.full_name || user?.email || '',
             requestors: requestorList,
@@ -988,6 +989,7 @@ try {
     description: formData.description,
     revision: formData.revision,
     assemblyLevel: formData.assemblyLevel,
+    subcontractor: formData.subcontractor,
     reason: formData.reason,
     submittedBy: user?.full_name || user?.email || '',
     requestors: requestorList,
@@ -1041,6 +1043,12 @@ setTimeout(() => setPageMessage(null), 5000);
 
   const handleDuplicate = async (waiverId) => {
     isEditingRef.current = false;
+    isLoadingDraftRef.current = true;
+    setRequestorEditMode(false);
+    setApproverEditMode(false);
+    setRejectedEditMode(false);
+    setApproverAmendMode(false);
+    setWaiverStatus(null);
     const newId = generateWaiverId();
     setWaiverId(newId);
 
@@ -1094,6 +1102,8 @@ setTimeout(() => setPageMessage(null), 5000);
 
     } catch (err) {
       console.error('Duplicate failed:', err);
+    } finally {
+      setTimeout(() => { isLoadingDraftRef.current = false; }, 0);
     }
 
     setShowForm(true);

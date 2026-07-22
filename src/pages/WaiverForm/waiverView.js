@@ -88,6 +88,7 @@ const WaiverView = () => {
                     description: data.description,
                     revision: data.revision,
                     assemblyLevel: data.assemblyLevel,
+                    subcontractor: data.subcontractor,
                     reason: data.reason,
                     submittedBy: data.submittedBy,
                     approvers: state.approvers || [],

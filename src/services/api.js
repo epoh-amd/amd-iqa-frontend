@@ -349,10 +349,10 @@ sendFailBuildEmail: async (build, recipients = [], cc = [], emailBody = '') => {
   });
   return response.data;
 },
-sendRequestorNotification: async ({ waiverId, partNumber, description, revision, assemblyLevel, reason, submittedBy, requestors }) => {
+sendRequestorNotification: async ({ waiverId, partNumber, description, revision, assemblyLevel, subcontractor, reason, submittedBy, requestors }) => {
   try {
     const response = await axios.post(`${API_URL}/email/waiver/requestor-notify`, {
-      waiverId, partNumber, description, revision, assemblyLevel, reason, submittedBy, requestors
+      waiverId, partNumber, description, revision, assemblyLevel, subcontractor, reason, submittedBy, requestors
     });
     return response.data;
   } catch (error) {
@@ -360,7 +360,7 @@ sendRequestorNotification: async ({ waiverId, partNumber, description, revision,
   }
 },
 
-sendNewWaiverNotification: async ({ waiverId, partNumber, description, revision, assemblyLevel, reason, submittedBy, approvers, requestors, isUpdate, parentWaiverId, pdfBase64, uploadedFilePaths }) => {
+sendNewWaiverNotification: async ({ waiverId, partNumber, description, revision, assemblyLevel, subcontractor, reason, submittedBy, approvers, requestors, isUpdate, parentWaiverId, pdfBase64, uploadedFilePaths }) => {
   try {
     const response = await axios.post(`${API_URL}/email/waiver/notify`, {
       waiverId,
@@ -368,6 +368,7 @@ sendNewWaiverNotification: async ({ waiverId, partNumber, description, revision,
       description,
       revision,
       assemblyLevel,
+      subcontractor,
       reason,
       submittedBy,
       approvers,

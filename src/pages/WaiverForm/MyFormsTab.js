@@ -1,5 +1,6 @@
 import React from 'react';
 import api from '../../services/api';
+import * as XLSX from 'xlsx';
 
 const MyFormsTab = ({
   myFormsLoading,
@@ -43,6 +44,35 @@ const MyFormsTab = ({
   const q = myFormsSearch.toLowerCase();
   const filtered = filterForms(myForms, q, myFormsStatusFilter);
 
+  const handleExport = () => {
+    const rows = filtered.map(w => {
+      const cancelledBy = w.cancelled_by || '';
+      const cancellerName = cancelledBy.includes(':')
+        ? cancelledBy.split(':').slice(1).join(':').trim()
+        : cancelledBy.trim();
+      const status = w.status || 'New';
+      let remarks = '-';
+      if (cancelledBy && !cancelledBy.toLowerCase().startsWith('requestor:') && status === 'New') {
+        remarks = `Rejected by ${cancellerName}${w.cancel_reason ? ': ' + w.cancel_reason : ''}`;
+      }
+      return {
+        'Waiver ID': w.waiver_id || '-',
+        'Product Part Number': w.part_number || '-',
+        'Product Part Description': w.description || '-',
+        'Revision': w.revision || '-',
+        'Reason / Justification': w.reason || '-',
+        'Status': status,
+        'Remarks': remarks,
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'All Forms');
+    const timestamp = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `Waiver_All_Forms_${timestamp}.xlsx`);
+  };
+
   return (
     <div style={{ marginTop: '20px' }}>
       <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
@@ -66,8 +96,23 @@ const MyFormsTab = ({
           <option value="New">New</option>
           <option value="Pending Approval">Pending Approval</option>
           <option value="Approved">Approved</option>
+          <option value="Closed">Closed</option>
           <option value="Cancelled">Cancelled</option>
         </select>
+        <button
+          onClick={handleExport}
+          disabled={filtered.length === 0}
+          style={{
+            padding: '9px 18px', fontSize: '14px', fontWeight: 500,
+            background: filtered.length === 0 ? '#e9ecef' : '#198754',
+            color: filtered.length === 0 ? '#aaa' : '#fff',
+            border: 'none', borderRadius: '6px',
+            cursor: filtered.length === 0 ? 'not-allowed' : 'pointer',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          Export
+        </button>
       </div>
 
       {myFormsLoading ? (
@@ -101,6 +146,7 @@ const MyFormsTab = ({
                 'New': { bg: '#e8f4fd', color: '#1a73e8' },
                 'Pending Approval': { bg: '#fff8e1', color: '#f57c00' },
                 'Approved': { bg: '#e8f5e9', color: '#2e7d32' },
+                'Closed': { bg: '#f0f0f0', color: '#555' },
                 'Cancelled': { bg: '#fff3e0', color: '#e65100' },
                 'Rejected': { bg: '#fdecea', color: '#c62828' },
               }[status] || { bg: '#cfcfcf49', color: '#555' };
