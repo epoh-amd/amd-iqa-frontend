@@ -161,13 +161,6 @@ const ManageSection = ({ configKey, label, description, type, icon, color, bg, i
   );
 };
 
-const ALLOWED_USER_MANAGEMENT_EMAILS = [
-  'ErnQi.Poh@amd.com',
-  'LayLing.Chew@amd.com',
-  'SLTeh.Teh@amd.com',
-  'BeowHwa.Yap@amd.com'
-
-];
 
 const WaiverManagement = () => {
   const { user } = useAuth();
@@ -561,7 +554,11 @@ const WaiverManagement = () => {
 
       {/* Config Layout - hidden when approvals is shown */}
       {!showApprovals && (() => {
-        const canManage = ALLOWED_USER_MANAGEMENT_EMAILS.some(
+        const allowedEmails = [
+          ...(Array.isArray(config?.notifiers) ? config.notifiers : []),
+          ...(Array.isArray(config?.approvers) ? config.approvers : []),
+        ];
+        const canManage = allowedEmails.some(
           email => email.toLowerCase() === (user?.email || '').toLowerCase()
         );
 

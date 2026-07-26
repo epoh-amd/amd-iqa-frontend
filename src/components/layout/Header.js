@@ -289,6 +289,14 @@ const Header = ({ toggleSidebar }) => {
                           >
                             User Incident Ticketing System
                           </a>
+
+                          <h3 style={{ color: '#1565c0', marginTop: '32px', textAlign: 'left' }}>Waiver System</h3>
+                          <p style={{ marginBottom: '16px', color: '#6c757d', fontSize: '14px', lineHeight: '1.5' }}>
+                            A Waiver System allows users to submit waiver requests through a centralized platform. The system records each request, routes it for approval, and tracks its status until completion.
+                          </p>
+                          <a href="https://amdcloud.sharepoint.com/:p:/r/sites/ServerPlatEngOps-PG_SPEO/Shared%20Documents/SPEO-SCM/SQA/QnR/Automated%20IQA%20Dashboard/User%20Guides/Waiver%20System%20User%20Guide.pptx?d=wd2f172d4ebb44788ae3bc39e5779bcce&csf=1&web=1&e=H9kobw" target="_blank" rel="noopener noreferrer" className="guide-link">
+                            <span style={{ background: '#1565c0', color: '#fff', padding: '6px 18px', borderRadius: '4px', fontWeight: 500, textDecoration: 'none', display: 'inline-block', boxShadow: '0 1px 4px rgba(21,101,192,0.08)' }}>View Waiver System Guide</span>
+                          </a>
                           <div className="contact-section" style={{ marginTop: '32px' }}>
                             <h4 style={{ color: '#1565c0' }}>Contact Us</h4>
                             <a href="mailto:iqadashboard.support@amd.com" className="contact-email" style={{ color: '#1565c0', fontWeight: 500 }}>
