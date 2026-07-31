@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';  
-import Sidebar from './Sidebar';  
-import Header from './Header';  
+import React, { useState, useEffect } from 'react';
+import Sidebar from './Sidebar';
+import Header from './Header';
+import Chatbot from '../Chatbot/Chatbot';
 import '../../assets/css/layout.css';  
   
 const Layout = ({ children }) => {  
@@ -42,8 +43,9 @@ const Layout = ({ children }) => {
           </main>  
         </div>  
       </div>  
-    </div>  
-  );  
-};  
-  
+      <Chatbot />
+    </div>
+  );
+};
+
 export default Layout;
