@@ -206,6 +206,13 @@ const Header = ({ toggleSidebar }) => {
                             <span style={{ background: '#1565c0', color: '#fff', padding: '6px 18px', borderRadius: '4px', fontWeight: 500, textDecoration: 'none', display: 'inline-block', boxShadow: '0 1px 4px rgba(21,101,192,0.08)' }}>View User Role Guide</span>
                           </a>
                         </div>
+                        <div className="guide-section">
+                          <h3 style={{ color: '#1565c0' }}>How to Request User Access</h3>
+                          <p>New user? Learn how to request access to the PDQD system.</p>
+                          <a href="https://amdcloud.sharepoint.com/:p:/r/sites/ServerPlatEngOps-PG_SPEO/_layouts/15/Doc.aspx?sourcedoc=%7BD759D60C-EBAA-4EB5-950D-8A13C3DCD9F7%7D&file=How%20to%20Request%20User%20Access%20for%20PDQD.pptx&action=edit&mobileredirect=true" target="_blank" rel="noopener noreferrer" className="guide-link">
+                            <span style={{ background: '#1565c0', color: '#fff', padding: '6px 18px', borderRadius: '4px', fontWeight: 500, textDecoration: 'none', display: 'inline-block', boxShadow: '0 1px 4px rgba(21,101,192,0.08)' }}>View User Access Guide</span>
+                          </a>
+                        </div>
                         <div className="guide-divider" style={{ borderTop: '1px solid #e0e0e0', margin: '32px 0' }}></div>
                         <div className="faq-section">
                           <h3 style={{ color: '#1565c0', textAlign: 'left' }}>Frequently Asked Questions</h3>

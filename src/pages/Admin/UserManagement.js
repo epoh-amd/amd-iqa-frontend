@@ -687,6 +687,7 @@ const UserManagement = () => {
                     <li>Continue Build - Resume existing builds</li>
                     <li>Edit Build - Edit build details</li>
                     <li>Build Allocation - View build assignments</li>
+                    <li>Waiver Management - Create and manage waivers</li>
                   </ul>
                 </div>
 

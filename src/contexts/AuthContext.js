@@ -176,7 +176,7 @@ export const AuthProvider = ({ children }) => {
       case 'cat2':
         return ['search', 'clf', 'start_build', 'continue_build'];
       case 'cat3':
-        return ['dashboard', 'search', 'clf', 'start_build', 'continue_build', 'allocation'];
+        return ['dashboard', 'search', 'clf', 'start_build', 'continue_build', 'allocation', 'waiver_form'];
       case 'cat4':
         return ['dashboard', 'search', 'clf', 'start_build', 'continue_build', 'allocation', 'user_management'];
       case 'customer':

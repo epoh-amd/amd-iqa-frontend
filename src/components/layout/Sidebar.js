@@ -13,7 +13,8 @@ import {
   Users,
   Headphones,
   Edit,
-  RotateCcw 
+  RotateCcw,
+  TrendingUp
 } from 'lucide-react';  
   
 const Sidebar = ({ collapsed }) => {  
@@ -104,6 +105,12 @@ const Sidebar = ({ collapsed }) => {
       path: '/waiver-management',
       label: 'Waiver Management',
       icon: Clipboard,
+      show: canAccessCustomerPortal() || canStartBuild() || canContinueBuild() || canViewBuilds()
+    },
+    {
+      path: '/escape-tracker',
+      label: 'Escape Tracker',
+      icon: TrendingUp,
       show: canAccessCustomerPortal() || canStartBuild() || canContinueBuild() || canViewBuilds()
     }
 

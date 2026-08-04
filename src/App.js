@@ -23,6 +23,7 @@ const Profile = React.lazy(() => import('./pages/Profile'));
 const AdminDashboard = React.lazy(() => import('./pages/Admin'));
 const WaiverManagement = React.lazy(() => import('./pages/WaiverForm/waiverManagement'));
 const WaiverView = React.lazy(() => import('./pages/WaiverForm/waiverView'));
+const EscapeTracker = React.lazy(() => import('./pages/EscapeTracker'));
 
 
 
@@ -141,6 +142,12 @@ function App() {
 
 
 
+
+                        <Route path="/escape-tracker" element={
+                          <ProtectedRoute requiredPermissions={['customer_portal', 'start_build', 'continue_build', 'allocation']}>
+                            <EscapeTracker />
+                          </ProtectedRoute>
+                        } />
 
                         {/* Admin Routes */}
                         <Route path="/admin/*" element={
