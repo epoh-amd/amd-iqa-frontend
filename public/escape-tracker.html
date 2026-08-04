@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subcontractor Escape Tracker</title>
+<style>
+  :root {
+    --blue: #00549A;
+    --blue-light: #EBF3FF;
+    --blue-mid: #0070CC;
+    --red: #C83200;
+    --green: #007A3D;
+    --yellow: #B06000;
+    --grey: #F4F6F9;
+    --border: #CCD8E8;
+    --text: #1A1A2E;
+    --text-muted: #6B7A99;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Calibri, Arial, sans-serif; background: var(--grey); color: var(--text); font-size: 14px; }
+
+  /* ── Header ── */
+  .app-header { background: var(--blue); color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .app-header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
+  .app-header .subtitle { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+  .header-actions { display: flex; gap: 10px; }
+
+  /* ── Nav tabs ── */
+  .nav { background: #fff; border-bottom: 2px solid var(--border); display: flex; padding: 0 24px; gap: 4px; }
+  .nav button { background: none; border: none; padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .nav button:hover { color: var(--blue); }
+  .nav button.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* ── Main layout ── */
+  .page { display: none; padding: 20px 24px; max-width: 1400px; }
+  .page.active { display: block; }
+
+  /* ── Dashboard ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi-card { background: #fff; border-radius: 8px; border: 1px solid var(--border); padding: 16px 20px; }
+  .kpi-card .label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-card .value { font-size: 32px; font-weight: 700; color: var(--blue); margin-top: 4px; }
+  .kpi-card.open .value   { color: var(--red); }
+  .kpi-card.inprog .value { color: var(--yellow); }
+  .kpi-card.closed .value { color: var(--green); }
+
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .charts-row-full { margin-bottom: 20px; }
+  .chart-card { background: #fff; border-radius: 8px; border: 1px solid var(--border); padding: 18px 20px; }
+  .chart-card h3 { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 14px; }
+
+  /* Bar chart */
+  .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .bar-label { width: 80px; font-size: 12px; color: var(--text); text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; background: var(--grey); border-radius: 4px; height: 20px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--blue); border-radius: 4px; transition: width 0.4s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+  .bar-fill span { font-size: 11px; font-weight: 700; color: #fff; }
+  .bar-fill.open-bar   { background: var(--red); }
+  .bar-fill.closed-bar { background: var(--green); }
+  .bar-fill.inprog-bar { background: var(--yellow); }
+
+  /* Donut chart via conic-gradient */
+  .donut-wrap { display: flex; align-items: center; gap: 24px; }
+  .donut { width: 120px; height: 120px; border-radius: 50%; flex-shrink: 0; }
+  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ── Log page ── */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+  .toolbar input, .toolbar select { border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px; font-size: 13px; background: #fff; color: var(--text); }
+  .toolbar input { width: 220px; }
+  .toolbar input:focus, .toolbar select:focus { outline: none; border-color: var(--blue); }
+
+  .table-wrap { background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th { background: var(--blue); color: #fff; padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
+  tbody tr:hover { background: var(--blue-light); }
+  tbody tr:last-child { border-bottom: none; }
+  td { padding: 9px 12px; vertical-align: top; }
+  td.wrap { max-width: 220px; white-space: normal; word-break: break-word; }
+  td.nowrap { white-space: nowrap; }
+  .empty-state { text-align: center; padding: 48px; color: var(--text-muted); font-size: 14px; }
+
+  /* Status badges */
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+  .badge-open     { background: #FDECEA; color: var(--red); }
+  .badge-inprog   { background: #FFF3E0; color: var(--yellow); }
+  .badge-closed   { background: #E8F5E9; color: var(--green); }
+  .badge-onhold   { background: #F3F4F6; color: #555; }
+  .badge-cancelled{ background: #F3F4F6; color: #888; text-decoration: line-through; }
+
+  /* ── Modal / Form ── */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: #fff; border-radius: 10px; width: 720px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,50,0.18); }
+  .modal-header { background: var(--blue); color: #fff; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; border-radius: 10px 10px 0 0; }
+  .modal-header h2 { font-size: 16px; font-weight: 700; }
+  .modal-close { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; line-height: 1; opacity: 0.8; }
+  .modal-close:hover { opacity: 1; }
+  .modal-body { padding: 22px; }
+  .modal-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); }
+  .form-group input, .form-group select, .form-group textarea {
+    border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px;
+    font-size: 13px; font-family: inherit; color: var(--text); background: #fff;
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--blue); }
+  .form-group textarea { resize: vertical; min-height: 68px; }
+  .form-section-title { grid-column: 1 / -1; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--blue); letter-spacing: 0.5px; padding-top: 6px; border-top: 1px solid var(--border); }
+
+  /* ── Buttons ── */
+  .btn { padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary   { background: var(--blue); color: #fff; }
+  .btn-primary:hover { background: var(--blue-mid); }
+  .btn-success   { background: var(--green); color: #fff; }
+  .btn-success:hover { background: #00653A; }
+  .btn-danger    { background: var(--red); color: #fff; }
+  .btn-danger:hover  { background: #A02800; }
+  .btn-outline   { background: #fff; color: var(--blue); border: 1.5px solid var(--blue); }
+  .btn-outline:hover { background: var(--blue-light); }
+  .btn-ghost     { background: none; color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--grey); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* ── Export page ── */
+  .export-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 640px; }
+  .export-card { background: #fff; border-radius: 8px; border: 1px solid var(--border); padding: 22px; }
+  .export-card h3 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .export-card p  { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+
+  #photo-drop-zone.drag-over { border-color: var(--blue); background: var(--blue-light); }
+  #photo-drop-zone:focus { border-color: var(--blue); background: var(--blue-light); box-shadow: 0 0 0 3px rgba(0,84,154,0.15); }
+  #photo-drop-zone.paste-ready { border-color: var(--green); background: #E8F5E9; }
+  .photo-thumb { position:relative; display:inline-block; }
+  .photo-thumb img { width:90px;height:70px;object-fit:cover;border-radius:5px;border:1px solid var(--border);display:block; }
+  .photo-thumb .remove-photo { position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:12px;line-height:18px;text-align:center;padding:0; }
+  .photo-lightbox { position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:300;display:flex;align-items:center;justify-content:center;cursor:zoom-out; }
+  .photo-lightbox img { max-width:90vw;max-height:90vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,0.5); }
+
+  .dash-filter-btn { padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text-muted);transition:all 0.15s; }
+  .dash-filter-btn.active { background:var(--blue);color:#fff;border-color:var(--blue); }
+  .dash-filter-btn:hover:not(.active) { border-color:var(--blue);color:var(--blue); }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: #1A2A3A; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity 0.3s; z-index: 200; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <h1>Subcontractor Escape Tracker</h1>
+    <div class="subtitle">AMD Quality &amp; Reliability — Internal Use Only</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline" onclick="openForm(null)" style="color:#444;border-color:rgba(255,255,255,0.5)">+ Log Escape</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
+  <button onclick="showPage('log',this)">Escape Log</button>
+  <button onclick="showPage('management',this)">Escape Management</button>
+  <button onclick="showPage('export',this)">Export</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page active">
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">Filter:</span>
+    <div id="kpi-sub-filters" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+  </div>
+  <div class="kpi-row" id="kpi-row"></div>
+  <div style="margin-bottom:16px;">
+    <div class="chart-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <h3 style="margin:0;">Total Escapes by Subcontractor</h3>
+        <div id="dash-supplier-filters" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+      <div class="bar-chart" id="chart-supplier"></div>
+    </div>
+  </div>
+  <div style="margin-bottom:20px;">
+    <div class="chart-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <h3 style="margin:0;">Escape Summary by Phase</h3>
+        <div id="dash-fm-filters" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+      <div id="chart-failmode"></div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Escape ID</th><th>Subcontractor</th><th>Date Reported</th>
+        <th>Product Description</th><th>Failure Mode</th><th>Issue Status</th><th>Open TPT (days)</th>
+      </tr></thead>
+      <tbody id="dash-open-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- LOG -->
+<div id="page-log" class="page">
+  <div class="toolbar">
+    <input type="text" id="search-input" placeholder="Search escapes..." oninput="renderLog()">
+    <select id="filter-supplier" onchange="renderLog()">
+      <option value="">All Subcontractors</option>
+      <option>Sanmina</option><option>Flex</option><option>Pegatron</option><option>Wistron</option><option>MSI</option><option>Lenovo</option>
+    </select>
+    <input type="date" id="filter-from" onchange="renderLog()" title="Date Reported from">
+    <input type="date" id="filter-to"   onchange="renderLog()" title="Date Reported to">
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear Filters</button>
+    <button class="btn btn-primary btn-sm" onclick="openForm(null)" style="margin-left:auto">+ Log New Escape</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Escape ID</th><th>Subcontractor</th><th>Date Reported</th>
+        <th>Part Number</th><th>Build Rev</th><th>Phase</th><th>Product Description</th><th>Serial Number</th><th>Problem Statement</th><th>Defect Photo</th><th>Failure Mode</th>
+        <th>Qty Aff.</th><th>Issue Status</th><th>Issue Close Date</th><th>Open TPT (days)</th><th>Closure TPT (days)</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="log-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ESCAPE MANAGEMENT -->
+<div id="page-management" class="page">
+  <h2 style="font-size:16px;font-weight:700;color:var(--blue);margin-bottom:6px">Escape Management</h2>
+  <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">Manage escape records and configure dropdown options.</p>
+
+  <!-- Config Section -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;">
+
+    <!-- Subcontractors -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:18px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--blue);margin-bottom:12px;">Subcontractors</div>
+      <ul id="list-suppliers" style="list-style:none;padding:0;margin:0 0 12px 0;display:flex;flex-direction:column;gap:6px;"></ul>
+      <div style="display:flex;gap:6px;">
+        <input type="text" id="input-supplier" placeholder="Add subcontractor..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
+        <button class="btn btn-primary btn-sm" onclick="addOption('suppliers','input-supplier')">Add</button>
+      </div>
+    </div>
+
+    <!-- Phases -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:18px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--blue);margin-bottom:12px;">Phases</div>
+      <ul id="list-phases" style="list-style:none;padding:0;margin:0 0 12px 0;display:flex;flex-direction:column;gap:6px;"></ul>
+      <div style="display:flex;gap:6px;">
+        <input type="text" id="input-phase" placeholder="Add phase..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
+        <button class="btn btn-primary btn-sm" onclick="addOption('phases','input-phase')">Add</button>
+      </div>
+    </div>
+
+    <!-- Failure Modes -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:18px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--blue);margin-bottom:12px;">Failure Modes</div>
+      <ul id="list-failmodes" style="list-style:none;padding:0;margin:0 0 12px 0;display:flex;flex-direction:column;gap:6px;"></ul>
+      <div style="display:flex;gap:6px;">
+        <input type="text" id="input-failmode" placeholder="Add failure mode..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
+        <button class="btn btn-primary btn-sm" onclick="addOption('failmodes','input-failmode')">Add</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- EXPORT -->
+<div id="page-export" class="page">
+  <h2 style="font-size:16px;font-weight:700;color:var(--blue);margin-bottom:6px">Export Data</h2>
+  <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">Generate reports from all current escape records.</p>
+  <div class="export-cards">
+    <div class="export-card">
+      <h3>Excel Report (.csv)</h3>
+      <p>Click below to copy all escape data to clipboard, then paste into Excel.</p>
+      <button class="btn btn-primary" id="btn-export-csv">Copy Data to Clipboard</button>
+      <div id="export-status" style="margin-top:8px;font-size:12px;color:var(--green);display:none;">✔ Copied! Open Excel and press Ctrl+V</div>
+    </div>
+  </div>
+</div>
+
+<!-- FORM MODAL -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeModalIfBackdrop(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Log New Escape</h2>
+      <button class="modal-close" onclick="closeForm()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Escape ID</label>
+          <input type="text" id="f-id" placeholder="Auto-generated" readonly style="background:#F4F6F9">
+        </div>
+        <div class="form-group">
+          <label>Subcontractor *</label>
+          <select id="f-supplier">
+            <option value="">— Select —</option>
+            <option>Sanmina</option><option>Flex</option><option>Pegatron</option><option>Wistron</option><option>MSI</option><option>Lenovo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date Reported *</label>
+          <input type="date" id="f-date-found" oninput="updateTPT()">
+        </div>
+        <div class="form-group">
+          <label>Issue Open TPT (Days)</label>
+          <input type="text" id="f-tpt" readonly style="background:#F4F6F9;font-weight:700;" placeholder="Auto-calculated">
+        </div>
+        <div class="form-group">
+          <label>Part Number</label>
+          <input type="text" id="f-pn" placeholder="e.g. 123-456-789">
+        </div>
+        <div class="form-group">
+          <label>Build Revision</label>
+          <input type="text" id="f-build-rev" placeholder="e.g. Rev A1, DVT2">
+        </div>
+        <div class="form-group">
+          <label>Phase</label>
+          <select id="f-phase">
+            <option value="">— Select —</option>
+            <option>Alpha</option>
+            <option>Beta</option>
+            <option>Rev A</option>
+            <option>EVT</option>
+            <option>DVT</option>
+            <option>PVT</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Product Description *</label>
+          <input type="text" id="f-assembly" placeholder="e.g. Arthur Beta PCBA">
+        </div>
+        <div class="form-group">
+          <label>Serial Number</label>
+          <input type="text" id="f-serial" placeholder="e.g. SN-2026-001234">
+        </div>
+        <div class="form-group"></div>
+        <div class="form-group full">
+          <label>Problem Statement *</label>
+          <textarea id="f-defect" placeholder="Describe the problem statement..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>Defect Photo</label>
+          <div id="photo-drop-zone" tabindex="0" style="border:2px dashed var(--border);border-radius:8px;padding:14px;background:#FAFBFD;min-height:90px;position:relative;outline:none;" onclick="document.getElementById('photo-drop-zone').focus()">
+            <div id="photo-placeholder" style="color:var(--text-muted);font-size:12px;text-align:center;padding:4px 0;">
+              <div style="margin-bottom:8px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();document.getElementById('photo-file-input').click()">Browse files</button>
+              </div>
+              <span style="font-size:12px;">or <b>click this box then Ctrl+V</b> to paste a screenshot &nbsp;|&nbsp; drag &amp; drop also works</span>
+            </div>
+            <div id="photo-previews" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
+            <input type="file" id="photo-file-input" accept="image/*" multiple style="display:none" onchange="handlePhotoFiles(this.files)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Failure Mode</label>
+          <select id="f-failmode">
+            <option value="">— Select —</option>
+            <option>Assembly Error</option>
+            <option>Not Seated</option>
+            <option>Lifted</option>
+            <option>Wrong Orientation</option>
+            <option>Missing Component</option>
+            <option>Solder Defect</option>
+            <option>Wrong Component</option>
+            <option>Mechanical Damage</option>
+            <option>ESD Damage</option>
+            <option>Contamination</option>
+            <option>Dimensional / Footprint</option>
+            <option>Label / Documentation</option>
+            <option>Electrical Short</option>
+            <option>Electrical Open</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Qty Affected</label>
+          <input type="number" id="f-qty-aff" min="0" placeholder="0">
+        </div>
+        <div class="form-section-title">Root Cause &amp; Corrective Action</div>
+        <div class="form-group full">
+          <label>Root Cause</label>
+          <textarea id="f-rc" placeholder="What caused the escape?"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>Corrective Action</label>
+          <textarea id="f-ca" placeholder="What was done or is planned to prevent recurrence?"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Issue Status</label>
+          <select id="f-issue-status">
+            <option>Open</option>
+            <option>Closed</option>
+            <option>Cancelled</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Issue Close Date</label>
+          <input type="date" id="f-close-date" oninput="updateTPT()">
+        </div>
+        <div class="form-group">
+          <label>Issue Closure TPT (Days)</label>
+          <input type="text" id="f-closure-tpt" readonly style="background:#F4F6F9;font-weight:700;" placeholder="Fill close date">
+        </div>
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea id="f-notes" placeholder="Additional context, links, attachments..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-delete" onclick="deleteEscape()" style="display:none;margin-right:auto">Delete</button>
+      <button class="btn btn-ghost" onclick="closeForm()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEscape()">Save Escape</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── TPT helper ───────────────────────────────────────────────────────────────
+function calcTPT(dateStr, closeDate) {
+  if (!dateStr) return '';
+  const start = new Date(dateStr);
+  const end   = closeDate ? new Date(closeDate) : new Date();
+  if (isNaN(start)) return '';
+  const days  = Math.floor((end - start) / 86400000);
+  return days >= 0 ? days : 0;
+}
+
+function updateTPT() {
+  const df = document.getElementById('f-date-found').value;
+  const cd = document.getElementById('f-close-date').value;
+  const openTPT    = calcTPT(df, '');        // always to today
+  const closureTPT = calcTPT(df, cd);        // to close date if set
+  document.getElementById('f-tpt').value         = openTPT    !== '' ? openTPT    + ' days' : '';
+  document.getElementById('f-closure-tpt').value = cd && closureTPT !== '' ? closureTPT + ' days' : '';
+}
+
+// ── Photo handling ───────────────────────────────────────────────────────────
+let currentPhotos = []; // array of base64 data URLs for the open form
+
+function handlePhotoFiles(files) {
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => { currentPhotos.push(e.target.result); renderPhotoPreviews(); };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPhotoPreviews() {
+  const zone = document.getElementById('photo-drop-zone');
+  const previews = document.getElementById('photo-previews');
+  const placeholder = document.getElementById('photo-placeholder');
+  placeholder.style.display = currentPhotos.length ? 'none' : 'block';
+  previews.innerHTML = currentPhotos.map((src, i) =>
+    `<div class="photo-thumb">
+      <img src="${src}" onclick="event.stopPropagation();showLightbox(${i})" title="Click to enlarge">
+      <button class="remove-photo" onclick="event.stopPropagation();removePhoto(${i})" title="Remove">&times;</button>
+    </div>`
+  ).join('');
+}
+
+function removePhoto(idx) {
+  currentPhotos.splice(idx, 1);
+  renderPhotoPreviews();
+}
+
+function showLightbox(idxOrEscapeId, photoIdx) {
+  let src;
+  if (typeof idxOrEscapeId === 'number') {
+    src = currentPhotos[idxOrEscapeId];
+  } else {
+    const esc = escapes.find(e => e.id === idxOrEscapeId);
+    src = esc && esc.photos && esc.photos[photoIdx||0];
+  }
+  if (!src) return;
+  const lb = document.createElement('div');
+  lb.className = 'photo-lightbox';
+  lb.innerHTML = `<img src="${src}">`;
+  lb.onclick = () => lb.remove();
+  document.body.appendChild(lb);
+}
+
+// Drag & drop + paste
+document.addEventListener('DOMContentLoaded', () => {
+  const zone = document.getElementById('photo-drop-zone');
+
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    handlePhotoFiles(e.dataTransfer.files);
+  });
+
+  zone.addEventListener('focus', () => zone.classList.add('paste-ready'));
+  zone.addEventListener('blur',  () => zone.classList.remove('paste-ready'));
+});
+
+// Paste handler — fires when zone is focused OR anywhere in modal
+document.addEventListener('paste', e => {
+  if (!document.getElementById('modal-backdrop').classList.contains('open')) return;
+  const items = Array.from(e.clipboardData.items);
+  const imgItem = items.find(i => i.type.startsWith('image/'));
+  if (!imgItem) return;
+  e.preventDefault();
+  handlePhotoFiles([imgItem.getAsFile()]);
+  // Flash the zone green to confirm
+  const zone = document.getElementById('photo-drop-zone');
+  zone.style.borderColor = 'var(--green)';
+  setTimeout(() => zone.style.borderColor = '', 1000);
+});
+
+// ── Data store ──────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'amd_escape_tracker_v1';
+let escapes = [];
+let editingId = null;
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) escapes = JSON.parse(raw);
+  } catch(e) { escapes = []; }
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(escapes));
+}
+function nextId() {
+  const year = new Date().getFullYear();
+  const existing = escapes.map(e => e.id).filter(id => id && id.startsWith('ESC-' + year));
+  const nums = existing.map(id => parseInt(id.split('-')[2]) || 0);
+  const next = nums.length ? Math.max(...nums) + 1 : 1;
+  return `ESC-${year}-${String(next).padStart(3, '0')}`;
+}
+
+// ── Navigation ──────────────────────────────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'log') renderLog();
+  if (name === 'management') renderManagement();
+}
+
+// ── Badge helper ────────────────────────────────────────────────────────────
+function badge(status) {
+  const map = { 'Open':'open', 'In Progress':'inprog', 'Closed':'closed', 'On Hold':'onhold', 'Cancelled':'cancelled' };
+  return `<span class="badge badge-${map[status]||'onhold'}">${status||''}</span>`;
+}
+
+// ── Dashboard ───────────────────────────────────────────────────────────────
+function renderDashboard() {
+  // KPI subcontractor filter buttons
+  const kpiFilterDiv = document.getElementById('kpi-sub-filters');
+  if (!kpiFilterDiv._inited) {
+    kpiFilterDiv._inited = true;
+    kpiFilterDiv._active = new Set();
+    const allBtn = document.createElement('button');
+    allBtn.className = 'dash-filter-btn active';
+    allBtn.textContent = 'All';
+    allBtn.dataset.sup = '__all__';
+    kpiFilterDiv.appendChild(allBtn);
+    ['Sanmina','Flex','Pegatron','Wistron','MSI','Lenovo'].forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'dash-filter-btn';
+      btn.textContent = s;
+      btn.dataset.sup = s;
+      kpiFilterDiv.appendChild(btn);
+    });
+    kpiFilterDiv.addEventListener('click', function(e) {
+      const btn = e.target.closest('.dash-filter-btn');
+      if (!btn) return;
+      if (btn.dataset.sup === '__all__') {
+        kpiFilterDiv._active.clear();
+        kpiFilterDiv.querySelectorAll('.dash-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      } else {
+        kpiFilterDiv.querySelector('[data-sup="__all__"]').classList.remove('active');
+        btn.classList.toggle('active');
+        if (btn.classList.contains('active')) kpiFilterDiv._active.add(btn.dataset.sup);
+        else kpiFilterDiv._active.delete(btn.dataset.sup);
+        if (kpiFilterDiv._active.size === 0) kpiFilterDiv.querySelector('[data-sup="__all__"]').classList.add('active');
+      }
+      renderDashboard();
+    });
+  }
+
+  const activeKpiFilter = kpiFilterDiv._active && kpiFilterDiv._active.size > 0 ? kpiFilterDiv._active : null;
+  const kpiEscapes      = activeKpiFilter ? escapes.filter(e => activeKpiFilter.has(e.supplier)) : escapes;
+  const kpiLabel        = activeKpiFilter ? [...activeKpiFilter].join(', ') : null;
+
+  const total    = kpiEscapes.length;
+  const open     = kpiEscapes.filter(e => e.status === 'Open').length;
+  const closed   = kpiEscapes.filter(e => e.status === 'Closed').length;
+  const cancelled= kpiEscapes.filter(e => e.status === 'Cancelled').length;
+
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi-card"><div class="label">Total Escapes${kpiLabel ? '<br><span style="font-weight:400;font-size:10px;color:var(--blue);">'+kpiLabel+'</span>' : ''}</div><div class="value">${total}</div></div>
+    <div class="kpi-card open"><div class="label">Open</div><div class="value">${open}</div></div>
+    <div class="kpi-card closed"><div class="label">Closed</div><div class="value">${closed}</div></div>
+    <div class="kpi-card inprog"><div class="label">Cancelled</div><div class="value">${cancelled}</div></div>`;
+
+  // Subcontractor filter buttons
+  const suppliers = ['Sanmina','Flex','Pegatron','Wistron','MSI','Lenovo'];
+  const filterDiv = document.getElementById('dash-supplier-filters');
+  if (!filterDiv._inited) {
+    filterDiv._inited = true;
+    filterDiv._active = new Set();
+    const allBtn = document.createElement('button');
+    allBtn.className = 'dash-filter-btn active';
+    allBtn.textContent = 'All';
+    allBtn.dataset.sup = '__all__';
+    filterDiv.appendChild(allBtn);
+    suppliers.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'dash-filter-btn';
+      btn.textContent = s;
+      btn.dataset.sup = s;
+      filterDiv.appendChild(btn);
+    });
+    filterDiv.addEventListener('click', function(e) {
+      const btn = e.target.closest('.dash-filter-btn');
+      if (!btn) return;
+      if (btn.dataset.sup === '__all__') {
+        filterDiv._active.clear();
+        filterDiv.querySelectorAll('.dash-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      } else {
+        filterDiv.querySelector('[data-sup="__all__"]').classList.remove('active');
+        btn.classList.toggle('active');
+        if (btn.classList.contains('active')) filterDiv._active.add(btn.dataset.sup);
+        else filterDiv._active.delete(btn.dataset.sup);
+        if (filterDiv._active.size === 0) {
+          filterDiv.querySelector('[data-sup="__all__"]').classList.add('active');
+        }
+      }
+      renderDashboard();
+    });
+  }
+
+  const activeFilter = filterDiv._active && filterDiv._active.size > 0 ? filterDiv._active : null;
+  const filteredEscapes = activeFilter ? escapes.filter(e => activeFilter.has(e.supplier)) : escapes;
+  const shownSuppliers  = activeFilter ? suppliers.filter(s => activeFilter.has(s)) : suppliers;
+
+  const maxCount = Math.max(1, ...shownSuppliers.map(s => filteredEscapes.filter(e => e.supplier === s).length));
+  document.getElementById('chart-supplier').innerHTML = shownSuppliers.map(s => {
+    const n = filteredEscapes.filter(e => e.supplier === s).length;
+    const pct = Math.round((n / maxCount) * 100);
+    return `<div class="bar-row">
+      <div class="bar-label">${s}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"><span>${n || ''}</span></div></div>
+    </div>`;
+  }).join('');
+
+  // Failure Mode by Phase — filter by subcontractor
+  const fmFilterDiv = document.getElementById('dash-fm-filters');
+  if (!fmFilterDiv._inited) {
+    fmFilterDiv._inited = true;
+    fmFilterDiv._active = new Set();
+    const allBtn = document.createElement('button');
+    allBtn.className = 'dash-filter-btn active';
+    allBtn.textContent = 'All';
+    allBtn.dataset.sup = '__all__';
+    fmFilterDiv.appendChild(allBtn);
+    suppliers.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'dash-filter-btn';
+      btn.textContent = s;
+      btn.dataset.sup = s;
+      fmFilterDiv.appendChild(btn);
+    });
+    fmFilterDiv.addEventListener('click', function(e) {
+      const btn = e.target.closest('.dash-filter-btn');
+      if (!btn) return;
+      if (btn.dataset.sup === '__all__') {
+        fmFilterDiv._active.clear();
+        fmFilterDiv.querySelectorAll('.dash-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      } else {
+        fmFilterDiv.querySelector('[data-sup="__all__"]').classList.remove('active');
+        btn.classList.toggle('active');
+        if (btn.classList.contains('active')) fmFilterDiv._active.add(btn.dataset.sup);
+        else fmFilterDiv._active.delete(btn.dataset.sup);
+        if (fmFilterDiv._active.size === 0) fmFilterDiv.querySelector('[data-sup="__all__"]').classList.add('active');
+      }
+      renderDashboard();
+    });
+  }
+
+  const activeFmFilter    = fmFilterDiv._active && fmFilterDiv._active.size > 0 ? fmFilterDiv._active : null;
+  const fmFilteredEscapes = activeFmFilter ? escapes.filter(e => activeFmFilter.has(e.supplier)) : escapes;
+
+  // Summary table: Escape ID | Phase | Failure Mode
+  const allSummaryPhases = ['Alpha','Beta','Rev A','EVT','DVT','PVT'];
+  const usedSummaryPhases = allSummaryPhases.filter(p => fmFilteredEscapes.some(e => e.phase === p));
+  const summaryFMs = [...new Set(fmFilteredEscapes.map(e => e.failMode || '—'))];
+
+  if (fmFilteredEscapes.length === 0) {
+    document.getElementById('chart-failmode').innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:12px 0;">No data recorded yet.</div>';
+  } else {
+    // Build header: Phase cols
+    const thPhases = usedSummaryPhases.map(p => `<th style="background:var(--blue);color:#fff;padding:7px 10px;font-size:10px;font-weight:700;text-align:center;white-space:nowrap;">${p}</th>`).join('');
+    // Build rows: one per failure mode
+    const rows = summaryFMs.map(fm => {
+      const cells = usedSummaryPhases.map(p => {
+        const ids = fmFilteredEscapes.filter(e => e.phase === p && (e.failMode || '—') === fm).map(e => e.id);
+        return `<td style="text-align:center;padding:6px 10px;font-size:11px;border-bottom:1px solid var(--border);">
+          ${ids.length ? `<span style="font-weight:700;color:var(--blue);">${ids.length}</span><br><span style="font-size:9px;color:var(--text-muted);">${ids.join('<br>')}</span>` : '<span style="color:#CCC;">—</span>'}
+        </td>`;
+      }).join('');
+      const rowTotal = fmFilteredEscapes.filter(e => (e.failMode || '—') === fm).length;
+      return `<tr>
+        <td style="padding:6px 10px;font-size:11px;font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;">${fm}</td>
+        ${cells}
+        <td style="text-align:center;padding:6px 10px;font-size:11px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--border);">${rowTotal}</td>
+      </tr>`;
+    }).join('');
+    // Total row
+    const totalCells = usedSummaryPhases.map(p => {
+      const n = fmFilteredEscapes.filter(e => e.phase === p).length;
+      return `<td style="text-align:center;padding:6px 10px;font-size:11px;font-weight:700;background:var(--blue-light);">${n}</td>`;
+    }).join('');
+    const grandTotal = fmFilteredEscapes.length;
+
+    document.getElementById('chart-failmode').innerHTML = `
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead>
+            <tr>
+              <th style="background:var(--blue);color:#fff;padding:7px 10px;font-size:10px;font-weight:700;text-align:left;">Failure Mode</th>
+              ${thPhases}
+              <th style="background:var(--blue);color:#fff;padding:7px 10px;font-size:10px;font-weight:700;text-align:center;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr>
+              <td style="padding:6px 10px;font-weight:700;font-size:11px;background:var(--blue-light);">Total</td>
+              ${totalCells}
+              <td style="text-align:center;padding:6px 10px;font-weight:700;font-size:12px;color:var(--blue);background:var(--blue-light);">${grandTotal}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // ── (Escapes by Subcontractor by Phase removed) ─────────────────────────────
+  if (false) { const phaseFilterDiv = document.getElementById('dash-phase-filters');
+  if (!phaseFilterDiv._inited) {
+    phaseFilterDiv._inited = true;
+    phaseFilterDiv._active = new Set();
+    const allBtn = document.createElement('button');
+    allBtn.className = 'dash-filter-btn active';
+    allBtn.textContent = 'All';
+    allBtn.dataset.sup = '__all__';
+    phaseFilterDiv.appendChild(allBtn);
+    suppliers.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'dash-filter-btn';
+      btn.textContent = s;
+      btn.dataset.sup = s;
+      phaseFilterDiv.appendChild(btn);
+    });
+    phaseFilterDiv.addEventListener('click', function(e) {
+      const btn = e.target.closest('.dash-filter-btn');
+      if (!btn) return;
+      if (btn.dataset.sup === '__all__') {
+        phaseFilterDiv._active.clear();
+        phaseFilterDiv.querySelectorAll('.dash-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      } else {
+        phaseFilterDiv.querySelector('[data-sup="__all__"]').classList.remove('active');
+        btn.classList.toggle('active');
+        if (btn.classList.contains('active')) phaseFilterDiv._active.add(btn.dataset.sup);
+        else phaseFilterDiv._active.delete(btn.dataset.sup);
+        if (phaseFilterDiv._active.size === 0) phaseFilterDiv.querySelector('[data-sup="__all__"]').classList.add('active');
+      }
+      renderDashboard();
+    });
+  }
+
+  const activePhaseFilter   = phaseFilterDiv._active && phaseFilterDiv._active.size > 0 ? phaseFilterDiv._active : null;
+  const phaseFilteredEscapes= activePhaseFilter ? escapes.filter(e => activePhaseFilter.has(e.supplier)) : escapes;
+  const phaseShownSuppliers = activePhaseFilter ? suppliers.filter(s => activePhaseFilter.has(s)) : suppliers;
+  const phaseMaxCount       = Math.max(1, ...phaseShownSuppliers.map(s => phaseFilteredEscapes.filter(e => e.supplier === s).length));
+  const usedPhases          = phases.filter(p => phaseFilteredEscapes.some(e => e.phase === p));
+
+  const phaseLegend = usedPhases.map((p, i) =>
+    `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;font-size:11px;">
+      <span style="width:10px;height:10px;border-radius:2px;background:${phaseColors[phases.indexOf(p) % phaseColors.length]};display:inline-block;"></span>${p}
+    </span>`).join('');
+
+  const phaseBars = phaseShownSuppliers.map(s => {
+    const total = phaseFilteredEscapes.filter(e => e.supplier === s).length;
+    if (!total) return '';
+    const segments = usedPhases.map(p => {
+      const n   = phaseFilteredEscapes.filter(e => e.supplier === s && e.phase === p).length;
+      const pct = Math.round((n / phaseMaxCount) * 100);
+      const ci  = phases.indexOf(p) % phaseColors.length;
+      return pct > 0 ? `<div style="width:${pct}%;background:${phaseColors[ci]};height:100%;display:inline-flex;align-items:center;justify-content:center;" title="${p}: ${n}"><span style="font-size:10px;font-weight:700;color:#fff;">${n}</span></div>` : '';
+    }).join('');
+    const untagged = phaseFilteredEscapes.filter(e => e.supplier === s && !e.phase).length;
+    const untaggedPct = Math.round((untagged / phaseMaxCount) * 100);
+    const blank = untaggedPct > 0 ? `<div style="width:${untaggedPct}%;background:#DDE6F0;height:100%;display:inline-flex;align-items:center;justify-content:center;" title="No phase: ${untagged}"><span style="font-size:10px;font-weight:700;color:#888;">${untagged}</span></div>` : '';
+    return `<div class="bar-row">
+      <div class="bar-label">${s}</div>
+      <div class="bar-track" style="display:flex;height:22px;">${segments}${blank}<span style="margin-left:6px;font-size:11px;color:var(--text-muted);line-height:22px;">${total}</span></div>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  } // end removed block
+
+  // All escapes table on dashboard
+  const openEscapes = filteredEscapes.slice().sort((a,b) => (a.dateFound||'').localeCompare(b.dateFound||''));
+  document.getElementById('dash-open-tbody').innerHTML = openEscapes.length
+    ? openEscapes.map(e => `<tr onclick="openForm('${e.id}')">
+        <td class="nowrap">${e.id}</td>
+        <td>${e.supplier||''}</td>
+        <td class="nowrap">${e.dateFound||''}</td>
+        <td class="wrap">${e.assembly||''}</td>
+        <td class="wrap">${e.failMode||''}</td>
+        <td>${badge(e.status||'Open')}</td>
+        <td style="text-align:center;font-weight:700;color:${calcTPT(e.dateFound,'')>30?'var(--red)':calcTPT(e.dateFound,'')>14?'var(--yellow)':'var(--text)'}">${calcTPT(e.dateFound,'')||''}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="7" class="empty-state">No escapes logged yet.</td></tr>';
+}
+
+// ── Log ──────────────────────────────────────────────────────────────────────
+function renderLog() {
+  const q   = (document.getElementById('search-input').value||'').toLowerCase();
+  const sup = document.getElementById('filter-supplier').value;
+  const frm = document.getElementById('filter-from').value;
+  const to  = document.getElementById('filter-to').value;
+
+  const filtered = escapes.filter(e => {
+    if (sup && e.supplier !== sup) return false;
+    if (frm && (e.dateFound||'') < frm) return false;
+    if (to  && (e.dateFound||'') > to)  return false;
+    if (q) {
+      const blob = [e.id,e.supplier,e.assembly,e.defect,e.failMode,e.pn,e.rc,e.ca,e.owner].join(' ').toLowerCase();
+      if (!blob.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b) => (a.dateFound||'').localeCompare(b.dateFound||''));
+
+  document.getElementById('log-tbody').innerHTML = filtered.length
+    ? filtered.map(e => `<tr onclick="openForm('${e.id}')">
+        <td class="nowrap">${e.id}</td>
+        <td>${e.supplier||''}</td>
+        <td class="nowrap">${e.dateFound||''}</td>
+        <td>${e.pn||''}</td>
+        <td>${e.buildRev||''}</td>
+        <td>${e.phase||''}</td>
+        <td class="wrap">${e.assembly||''}</td>
+        <td>${e.serial||''}</td>
+        <td class="wrap">${e.defect||''}</td>
+        <td style="text-align:center;">${e.photos&&e.photos.length ? `<img src="${e.photos[0]}" style="width:60px;height:46px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:pointer;" onclick="event.stopPropagation();showLightbox('${e.id}',0)" title="${e.photos.length} photo(s)">` : ''}</td>
+        <td class="wrap">${e.failMode||''}</td>
+        <td>${e.qtyAff||''}</td>
+        <td>${badge(e.status)}</td>
+        <td class="nowrap">${e.closeDate||''}</td>
+        <td style="text-align:center;font-weight:700;color:${calcTPT(e.dateFound,'')>30?'var(--red)':calcTPT(e.dateFound,'')>14?'var(--yellow)':'var(--text)'}">${calcTPT(e.dateFound,'')||''}</td>
+        <td style="text-align:center;font-weight:700;">${e.closeDate ? (calcTPT(e.dateFound,e.closeDate)||'') : ''}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openForm('${e.id}')">Edit</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="18" class="empty-state">No escapes match your filters.</td></tr>';
+}
+
+function clearFilters() {
+  document.getElementById('search-input').value='';
+  document.getElementById('filter-supplier').value='';
+  document.getElementById('filter-status').value='';
+  document.getElementById('filter-from').value='';
+  document.getElementById('filter-to').value='';
+  renderLog();
+}
+
+// ── Form ──────────────────────────────────────────────────────────────────────
+function openForm(id) {
+  editingId = id;
+  const e = id ? escapes.find(x => x.id === id) : null;
+  document.getElementById('modal-title').textContent = e ? 'Edit Escape — ' + e.id : 'Log New Escape';
+  document.getElementById('btn-delete').style.display = e ? 'inline-block' : 'none';
+
+  document.getElementById('f-id').value           = e ? e.id : nextId();
+  document.getElementById('f-supplier').value     = e ? (e.supplier||'') : '';
+  document.getElementById('f-date-found').value   = e ? (e.dateFound||'') : new Date().toISOString().slice(0,10);
+  document.getElementById('f-pn').value           = e ? (e.pn||'') : '';
+  document.getElementById('f-build-rev').value    = e ? (e.buildRev||'') : '';
+  document.getElementById('f-phase').value        = e ? (e.phase||'') : '';
+  document.getElementById('f-assembly').value     = e ? (e.assembly||'') : '';
+  document.getElementById('f-serial').value       = e ? (e.serial||'') : '';
+  document.getElementById('f-defect').value       = e ? (e.defect||'') : '';
+  document.getElementById('f-failmode').value     = e ? (e.failMode||'') : '';
+  document.getElementById('f-issue-status').value = e ? (e.status||'Open') : 'Open';
+  document.getElementById('f-qty-aff').value      = e ? (e.qtyAff||'') : '';
+  document.getElementById('f-close-date').value   = e ? (e.closeDate||'') : '';
+  currentPhotos = e ? (e.photos || []) : [];
+  updateTPT();
+  renderPhotoPreviews();
+  document.getElementById('f-rc').value           = e ? (e.rc||'') : '';
+  document.getElementById('f-ca').value           = e ? (e.ca||'') : '';
+  document.getElementById('f-notes').value        = e ? (e.notes||'') : '';
+
+  document.getElementById('modal-backdrop').classList.add('open');
+}
+
+function closeForm() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  editingId = null;
+}
+
+function closeModalIfBackdrop(ev) {
+  if (ev.target === document.getElementById('modal-backdrop')) closeForm();
+}
+
+function saveEscape() {
+  const sup   = document.getElementById('f-supplier').value;
+  const df    = document.getElementById('f-date-found').value;
+  const asm   = document.getElementById('f-assembly').value.trim();
+  const defect= document.getElementById('f-defect').value.trim();
+  if (!sup || !df || !asm || !defect) { toast('Please fill in required fields (*)'); return; }
+
+  const obj = {
+    id:           document.getElementById('f-id').value,
+    supplier:     sup,
+    dateFound:    df,
+    pn:           document.getElementById('f-pn').value.trim(),
+    buildRev:     document.getElementById('f-build-rev').value.trim(),
+    phase:        document.getElementById('f-phase').value,
+    assembly:     asm,
+    serial:       document.getElementById('f-serial').value.trim(),
+    defect:       defect,
+    failMode:     document.getElementById('f-failmode').value,
+    status:       document.getElementById('f-issue-status').value,
+    qtyAff:       document.getElementById('f-qty-aff').value,
+    closeDate:    document.getElementById('f-close-date').value,
+    photos:       [...currentPhotos],
+    rc:           document.getElementById('f-rc').value.trim(),
+    ca:           document.getElementById('f-ca').value.trim(),
+    notes:        document.getElementById('f-notes').value.trim(),
+    updatedAt:    new Date().toISOString()
+  };
+
+  if (editingId) {
+    const idx = escapes.findIndex(e => e.id === editingId);
+    if (idx >= 0) escapes[idx] = obj;
+  } else {
+    escapes.push(obj);
+  }
+  save();
+  closeForm();
+  renderDashboard();
+  renderLog();
+  toast(editingId ? 'Escape updated.' : 'Escape logged: ' + obj.id);
+}
+
+function deleteEscape() {
+  if (!editingId) return;
+  if (!confirm('Delete escape ' + editingId + '? This cannot be undone.')) return;
+  escapes = escapes.filter(e => e.id !== editingId);
+  save();
+  closeForm();
+  renderDashboard();
+  renderLog();
+  toast('Escape deleted.');
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const headers = ['Escape ID','Subcontractor','Date Reported','Part Number','Build Revision','Phase','Product Description','Serial Number',
+    'Problem Statement','Failure Mode','Qty Affected','Root Cause','Corrective Action',
+    'Issue Status','Issue Close Date','Issue Open TPT (days)','Issue Closure TPT (days)','Notes'];
+  const rows = escapes.map(e => [
+    e.id, e.supplier, e.dateFound, e.pn, e.buildRev, e.phase, e.assembly, e.serial,
+    e.defect, e.failMode, e.qtyAff, e.rc, e.ca,
+    e.status, e.closeDate, calcTPT(e.dateFound,''), e.closeDate ? calcTPT(e.dateFound,e.closeDate) : '', e.notes
+  ].map(v => '"' + (v||'').replace(/"/g,'""') + '"'));
+  const csv = '﻿' + [headers.map(h=>'"'+h+'"'), ...rows].join('\r\n');
+  download('Subcontractor_Escape_Tracker.csv', csv, 'text/csv;charset=utf-8;');
+  toast('CSV exported.');
+}
+
+
+
+function download(filename, content, mime) {
+  showExportModal(filename, content);
+}
+
+function showExportModal(filename, content) {
+  const existing = document.getElementById('export-modal');
+  if (existing) existing.remove();
+
+  const m = document.createElement('div');
+  m.id = 'export-modal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:flex;align-items:center;justify-content:center;';
+  m.innerHTML = `
+    <div style="background:#fff;border-radius:10px;width:640px;max-width:95vw;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.2);font-family:Calibri,Arial,sans-serif;">
+      <div style="font-size:16px;font-weight:700;color:#00549A;margin-bottom:6px;">Export — ${filename}</div>
+      <p style="font-size:12px;color:#6B7A99;margin-bottom:16px;line-height:1.6;">
+        Choose how to export your data:
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+        <button id="btn-copy-csv" style="padding:10px 16px;background:#00549A;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">
+          📋 &nbsp;Copy to Clipboard — then paste into Excel directly (Ctrl+V in Excel)
+        </button>
+        <button id="btn-open-tab" style="padding:10px 16px;background:#fff;color:#00549A;border:1.5px solid #00549A;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;">
+          🗗 &nbsp;Open in new tab — then press Ctrl+S to save as .csv
+        </button>
+      </div>
+      <textarea id="export-content" style="width:100%;height:160px;font-size:10px;font-family:monospace;border:1px solid #CCD8E8;border-radius:6px;padding:8px;resize:vertical;box-sizing:border-box;" readonly></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+        <button onclick="document.getElementById('export-modal').remove()" style="padding:7px 18px;background:#F4F6F9;border:1px solid #CCD8E8;border-radius:6px;font-size:13px;cursor:pointer;">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+
+  document.getElementById('export-content').value = content;
+
+  document.getElementById('btn-copy-csv').addEventListener('click', () => {
+    const ta = document.getElementById('export-content');
+    ta.select();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(content).then(() => {
+        document.getElementById('btn-copy-csv').textContent = '✔  Copied! Now paste into Excel (Ctrl+V)';
+      }).catch(() => {
+        document.execCommand('copy');
+        document.getElementById('btn-copy-csv').textContent = '✔  Copied! Now paste into Excel (Ctrl+V)';
+      });
+    } else {
+      document.execCommand('copy');
+      document.getElementById('btn-copy-csv').textContent = '✔  Copied! Now paste into Excel (Ctrl+V)';
+    }
+  });
+
+  document.getElementById('btn-open-tab').addEventListener('click', () => {
+    const w = window.open('', '_blank');
+    w.document.write('<pre style="font-family:monospace;font-size:12px;">' + content.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</pre>');
+    w.document.title = filename;
+    w.document.close();
+  });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ── Options store ─────────────────────────────────────────────────────────────
+const OPTS_KEY = 'amd_escape_options_v1';
+let options = {
+  suppliers: ['Sanmina','Flex','Pegatron','Wistron','MSI','Lenovo'],
+  phases:    ['Alpha','Beta','Rev A','EVT','DVT','PVT'],
+  failmodes: ['Assembly Error','Not Seated','Lifted','Wrong Orientation','Missing Component',
+               'Solder Defect','Wrong Component','Mechanical Damage','ESD Damage',
+               'Contamination','Dimensional / Footprint','Label / Documentation',
+               'Electrical Short','Electrical Open','Other']
+};
+
+function loadOptions() {
+  try {
+    const raw = localStorage.getItem(OPTS_KEY);
+    if (raw) options = JSON.parse(raw);
+  } catch(e) {}
+}
+
+function saveOptions() {
+  localStorage.setItem(OPTS_KEY, JSON.stringify(options));
+}
+
+function renderOptionList(key, listId) {
+  const ul = document.getElementById(listId);
+  if (!ul) return;
+  ul.innerHTML = options[key].map((item, i) => `
+    <li style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:4px 8px;background:var(--grey);border-radius:4px;">
+      <span>${item}</span>
+      <button onclick="removeOption('${key}',${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;line-height:1;padding:0 4px;" title="Remove">&times;</button>
+    </li>`).join('');
+}
+
+function renderAllOptionLists() {
+  renderOptionList('suppliers', 'list-suppliers');
+  renderOptionList('phases',    'list-phases');
+  renderOptionList('failmodes', 'list-failmodes');
+  syncDropdowns();
+}
+
+function addOption(key, inputId) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if (!val) return;
+  if (options[key].includes(val)) { toast('Already exists.'); return; }
+  options[key].push(val);
+  saveOptions();
+  input.value = '';
+  renderAllOptionLists();
+  toast('Added: ' + val);
+}
+
+function removeOption(key, idx) {
+  const removed = options[key][idx];
+  if (!confirm('Remove "' + removed + '"?')) return;
+  options[key].splice(idx, 1);
+  saveOptions();
+  renderAllOptionLists();
+  toast('Removed: ' + removed);
+}
+
+function syncDropdowns() {
+  // Sync form dropdowns with options
+  const supplierSelects = ['f-supplier','filter-supplier','mgmt-filter-supplier'];
+  supplierSelects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const current = el.value;
+    const isFilter = id.includes('filter');
+    el.innerHTML = (isFilter ? '<option value="">All Subcontractors</option>' : '<option value="">— Select —</option>') +
+      options.suppliers.map(s => `<option${s===current?' selected':''}>${s}</option>`).join('');
+  });
+
+  const phaseSelects = ['f-phase'];
+  phaseSelects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const current = el.value;
+    el.innerHTML = '<option value="">— Select —</option>' +
+      options.phases.map(p => `<option${p===current?' selected':''}>${p}</option>`).join('');
+  });
+
+  const failSelects = ['f-failmode'];
+  failSelects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const current = el.value;
+    el.innerHTML = '<option value="">— Select —</option>' +
+      options.failmodes.map(f => `<option${f===current?' selected':''}>${f}</option>`).join('');
+  });
+}
+
+// ── Escape Management ────────────────────────────────────────────────────────
+function renderManagement() {
+  renderAllOptionLists();
+  const q   = (document.getElementById('mgmt-search').value||'').toLowerCase();
+  const sup = document.getElementById('mgmt-filter-supplier').value;
+  const st  = document.getElementById('mgmt-filter-status').value;
+
+  const filtered = escapes.filter(e => {
+    if (sup && e.supplier !== sup) return false;
+    if (st  && e.status   !== st)  return false;
+    if (q) {
+      const blob = [e.id,e.supplier,e.assembly,e.defect,e.failMode,e.rc,e.ca].join(' ').toLowerCase();
+      if (!blob.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b) => (b.dateFound||'').localeCompare(a.dateFound||''));
+
+  document.getElementById('mgmt-tbody').innerHTML = filtered.length
+    ? filtered.map(e => `<tr onclick="openForm('${e.id}')">
+        <td class="nowrap">${e.id}</td>
+        <td>${e.supplier||''}</td>
+        <td class="nowrap">${e.dateFound||''}</td>
+        <td class="wrap">${e.assembly||''}</td>
+        <td class="wrap">${e.failMode||''}</td>
+        <td>${badge(e.status||'Open')}</td>
+        <td class="wrap">${e.rc||'-'}</td>
+        <td class="wrap">${e.ca||'-'}</td>
+        <td class="nowrap">${e.closeDate||'-'}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openForm('${e.id}')">Edit</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="10" class="empty-state">No escapes match your filters.</td></tr>';
+}
+
+function clearMgmtFilters() {
+  document.getElementById('mgmt-search').value = '';
+  document.getElementById('mgmt-filter-supplier').value = '';
+  document.getElementById('mgmt-filter-status').value = '';
+  renderManagement();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+load();
+loadOptions();
+syncDropdowns();
+renderDashboard();
+
+document.getElementById('btn-export-csv').addEventListener('click', function() {
+  const headers = ['Escape ID','Subcontractor','Date Reported','Part Number','Build Revision','Phase','Product Description','Serial Number',
+    'Problem Statement','Failure Mode','Qty Affected','Root Cause','Corrective Action',
+    'Issue Status','Issue Close Date','Issue Open TPT (days)','Issue Closure TPT (days)','Notes'];
+  const rows = escapes.map(function(e) {
+    return [
+      e.id, e.supplier, e.dateFound, e.pn, e.buildRev, e.phase, e.assembly, e.serial,
+      e.defect, e.failMode, e.qtyAff, e.rc, e.ca,
+      e.status, e.closeDate,
+      calcTPT(e.dateFound,''),
+      e.closeDate ? calcTPT(e.dateFound, e.closeDate) : '',
+      e.notes
+    ].map(function(v){ return '"' + (v||'').toString().replace(/"/g,'""') + '"'; });
+  });
+  const tsv = [headers.join('\t')].concat(rows.map(function(r){ return r.join('\t'); })).join('\n');
+  navigator.clipboard.writeText(tsv).then(function() {
+    var st = document.getElementById('export-status');
+    st.style.display = 'block';
+    setTimeout(function(){ st.style.display = 'none'; }, 4000);
+  }).catch(function() {
+    alert('Could not copy automatically. Please open the browser console.');
+  });
+});
+</script>
+</body>
+</html>
