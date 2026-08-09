@@ -4,7 +4,8 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
-const GeneralInfoTable = ({ builds, handleInputChange, removeBuild }) => {
+const GeneralInfoTable = ({ builds, handleInputChange, removeBuild, isBuildSelected, isAllSelected, toggleBuildSelection, toggleSelectAll }) => {
+  const hasSelection = typeof isBuildSelected === 'function';
   
   const getBuildReference = (build, buildIndex) => {
     return build.systemInfo?.bmcName || `Build ${buildIndex + 1}`;
@@ -24,6 +25,17 @@ const GeneralInfoTable = ({ builds, handleInputChange, removeBuild }) => {
       <table className="builds-table">
         <thead>
           <tr>
+            {hasSelection && (
+              <th style={{ width: '40px', textAlign: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  onChange={toggleSelectAll}
+                  title="Select all"
+                  style={{ cursor: 'pointer' }}
+                />
+              </th>
+            )}
             <th className="row-actions">Actions</th>
             <th className="build-reference">Build Reference</th>
             <th>Location</th>
@@ -33,15 +45,25 @@ const GeneralInfoTable = ({ builds, handleInputChange, removeBuild }) => {
         </thead>
         <tbody>
           {builds.map((build, buildIndex) => (
-            <tr key={build.id} className={`build-row ${build.status}`}>
+            <tr key={build.id} className={`build-row ${build.status}`} style={{ opacity: hasSelection && !isBuildSelected(buildIndex) ? 0.4 : 1 }}>
+              {hasSelection && (
+                <td style={{ textAlign: 'center' }}>
+                  <input
+                    type="checkbox"
+                    checked={isBuildSelected(buildIndex)}
+                    onChange={() => toggleBuildSelection(buildIndex)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                </td>
+              )}
               <td className="row-actions">
-                <button 
+                <button
                   className="btn-icon"
                   onClick={() => removeBuild(buildIndex)}
-                  disabled={builds.length === 1}  
-                >  
-                  <FontAwesomeIcon icon={faTrash} />  
-                </button>  
+                  disabled={builds.length === 1}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
               </td>
               <td className="build-reference">{getBuildReference(build, buildIndex)}</td>
               <td>

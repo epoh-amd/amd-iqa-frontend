@@ -215,10 +215,38 @@ useEffect(() => {
             {/* Testing */}
             {systemInfoSubStep === 'testing' && (
               <>
-                <th>Visual Inspection</th>
-                <th>Boot to OS/Shell</th>
-                <th>DIMMs Detected</th>
-                <th>LOM Working</th>
+                <th>
+                  Visual Inspection
+                  <button
+                    type="button"
+                    onClick={() => builds.forEach((_, i) => handleInputChange(i, 'systemInfo', 'visualInspection', 'Pass'))}
+                    style={{ display: 'block', marginTop: '4px', fontSize: '11px', padding: '2px 8px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >All Pass</button>
+                </th>
+                <th>
+                  Boot to OS/Shell
+                  <button
+                    type="button"
+                    onClick={() => builds.forEach((_, i) => handleInputChange(i, 'systemInfo', 'bootStatus', 'Yes'))}
+                    style={{ display: 'block', marginTop: '4px', fontSize: '11px', padding: '2px 8px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >All Pass</button>
+                </th>
+                <th>
+                  DIMMs Detected
+                  <button
+                    type="button"
+                    onClick={() => builds.forEach((_, i) => handleInputChange(i, 'systemInfo', 'dimmsDetectedStatus', 'Yes'))}
+                    style={{ display: 'block', marginTop: '4px', fontSize: '11px', padding: '2px 8px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >All Pass</button>
+                </th>
+                <th>
+                  LOM Working
+                  <button
+                    type="button"
+                    onClick={() => builds.forEach((_, i) => handleInputChange(i, 'systemInfo', 'lomWorkingStatus', 'Yes'))}
+                    style={{ display: 'block', marginTop: '4px', fontSize: '11px', padding: '2px 8px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >All Pass</button>
+                </th>
                 <th>Extract Log</th>
               </>
             )}

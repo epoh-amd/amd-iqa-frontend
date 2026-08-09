@@ -111,7 +111,7 @@ const Sidebar = ({ collapsed }) => {
       path: '/escape-tracker',
       label: 'Escape Tracker',
       icon: TrendingUp,
-      show: canAccessCustomerPortal() || canStartBuild() || canContinueBuild() || canViewBuilds()
+      show: false
     }
 
   ].filter(item => item.show);

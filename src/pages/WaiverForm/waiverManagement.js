@@ -465,11 +465,20 @@ const WaiverManagement = () => {
                               <button
                                 className="add-btn"
                                 style={{ padding: '4px 12px', fontSize: '13px' }}
+                                onClick={() => navigate(`/waiver-form?workorderEdit=true&id=${w.waiver_id}`)}
+                              >
+                                Edit
+                              </button>
+                            )}
+                            {w.status === 'Approved' && (
+                              <button
+                                className="add-btn"
+                                style={{ padding: '4px 12px', fontSize: '13px' }}
                                 onClick={() => {
                                   navigate(`/waiver-form?approverAmend=true&id=${w.waiver_id}`);
                                 }}
                               >
-                                Edit
+                                Edit (Rev Change)
                               </button>
                             )}
                             {w.status === 'Approved' && (

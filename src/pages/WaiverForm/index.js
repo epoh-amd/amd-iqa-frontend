@@ -171,16 +171,17 @@ const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Sel
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 const toFileUrl = (filePath) => filePath ? `${BASE_URL}${filePath.replace('/drafts/', '/api/drafts/')}` : '';
 
+// Returns today's date in YYYY-MM-DD using local timezone (not UTC)
+const getLocalToday = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 const generateWaiverId = () => {
-  const year = new Date().getFullYear().toString().slice(-2); // 2026 -> 26
-
-  const runningNumber = Math.floor(Math.random() * 999)
-    .toString()
-    .padStart(3, "0"); // 001, 002...
-
-  const amendment = "A";
-
-  return `WV${year}${runningNumber}-${amendment}`;
+  // Fallback only — sequential ID is fetched from backend
+  const year = new Date().getFullYear().toString().slice(-2);
+  const runningNumber = Math.floor(Math.random() * 999).toString().padStart(3, '0');
+  return `WV${year}${runningNumber}-A`;
 };
 
 
@@ -217,6 +218,7 @@ const WaiverForm = () => {
   const [requestorEditMode, setRequestorEditMode] = useState(false);
   const [rejectedEditMode, setRejectedEditMode] = useState(false);
   const [approverAmendMode, setApproverAmendMode] = useState(false);
+  const [workorderEditMode, setWorkorderEditMode] = useState(false);
   const [amendFromAllForms, setAmendFromAllForms] = useState(false);
   const [parentWaiverId, setParentWaiverId] = useState(null);
 
@@ -252,7 +254,7 @@ const WaiverForm = () => {
           subcontractor: "",
           assemblyLevel: "",
           requestor: "",
-          startDate: new Date().toISOString().split("T")[0],
+          startDate: getLocalToday(),
           endDate: "",
           waiverType: [],
           reason: "",
@@ -314,7 +316,7 @@ const WaiverForm = () => {
           subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
           assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
           requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
-          startDate: toDate(data.startDate) || new Date().toISOString().split('T')[0],
+          startDate: toDate(data.startDate) || getLocalToday(),
           endDate: toDate(data.endDate),
           waiverType: data.waiverType || [],
           reason: data.reason || '',
@@ -375,7 +377,7 @@ const WaiverForm = () => {
           subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
           assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
           requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
-          startDate: toDate(data.startDate) || new Date().toISOString().split('T')[0],
+          startDate: toDate(data.startDate) || getLocalToday(),
           endDate: toDate(data.endDate),
           waiverType: data.waiverType || [],
           reason: data.reason || '',
@@ -439,7 +441,7 @@ const WaiverForm = () => {
           subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
           assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
           requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
-          startDate: toDate(data.startDate) || new Date().toISOString().split('T')[0],
+          startDate: toDate(data.startDate) || getLocalToday(),
           endDate: toDate(data.endDate),
           waiverType: data.waiverType || [],
           reason: data.reason || '',
@@ -477,6 +479,65 @@ const WaiverForm = () => {
     })();
   }, []); // run once on mount
 
+  // Workorder edit: detect ?workorderEdit=true&id=WAIVER_ID from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('workorderEdit') !== 'true') return;
+    const editId = params.get('id');
+    if (!editId) return;
+
+    setWorkorderEditMode(true);
+    const toDate = (v) => v ? v.toString().slice(0, 10) : '';
+
+    (async () => {
+      try {
+        const data = await api.getWaiverDetails(editId);
+        setWaiverId(editId);
+        setFormData({
+          waiverId: editId,
+          partNumber: data.partNumber || '',
+          revision: data.revision || '',
+          description: data.description || '',
+          subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
+          assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
+          requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
+          startDate: toDate(data.startDate) || getLocalToday(),
+          endDate: toDate(data.endDate),
+          waiverType: data.waiverType || [],
+          reason: data.reason || '',
+          workorder: data.workorder || '',
+          workorderQty: data.workorderQty || '',
+          currentPart: '', newPart: '', action: '', instructions: ''
+        });
+        const sectionMap = {
+          'Material Waiver': 'material', 'Process Waiver': 'process',
+          'Test Waiver': 'test', 'Spec Deviation': 'spec',
+          'Rework Waiver': 'rework', 'Label Waiver': 'label'
+        };
+        setOpenSection((data.waiverType || []).map(t => sectionMap[t]).filter(Boolean));
+        setMaterialRows((data.materialRows || [{ currentPart: '', currentPartDescription: '', newPart: '', newPartDescription: '', action: '', instructions: '', file: null }]).map(r => ({
+          currentPart: r.current_part || r.currentPart || '',
+          currentPartDescription: r.current_part_description || r.currentPartDescription || '',
+          noOfPer: r.no_of_per || r.noOfPer || '',
+          refdes: r.refdes || '',
+          newPart: r.new_part || r.newPart || '',
+          newPartDescription: r.new_part_description || r.newPartDescription || '',
+          action: r.action || '',
+          instructions: r.instructions || '',
+          file: r.file_path || r.file || null
+        })));
+        setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+        setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+        setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
+        setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
+        setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+        setWaiverStatus(data.status || null);
+        setShowForm(true);
+      } catch (err) {
+        console.error('Failed to load waiver for workorder edit:', err);
+      }
+    })();
+  }, []);
 
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('drafts');  // 'drafts' | 'myforms'
@@ -508,7 +569,7 @@ const WaiverForm = () => {
     subcontractor: "",
     assemblyLevel: "",
     requestor: "",
-    startDate: new Date().toISOString().split("T")[0],
+    startDate: getLocalToday(),
     endDate: "",
     waiverType: [],
     reason: "",
@@ -579,7 +640,7 @@ const WaiverForm = () => {
   useEffect(() => {
     if (!userId) return;
     // Don't save to drafts when editing an existing waiver from All Forms
-    if (requestorEditMode || approverEditMode || rejectedEditMode || approverAmendMode) return;
+    if (requestorEditMode || approverEditMode || rejectedEditMode || approverAmendMode || workorderEditMode) return;
     // Don't trigger auto-save while draft data is being loaded into state
     if (isLoadingDraftRef.current) return;
 
@@ -819,6 +880,22 @@ const WaiverForm = () => {
     e.preventDefault();
     setSubmitMessage(null);
 
+    // Workorder edit — skip all validation, just save
+    if (workorderEditMode) {
+      setSubmitting(true);
+      try {
+        await api.updateWaiverWorkorder(formData.waiverId, formData.workorder, formData.workorderQty);
+        setWorkorderEditMode(false);
+        navigate('/waiver-management');
+      } catch (err) {
+        console.error('Workorder update failed:', err);
+        setSubmitMessage({ type: 'error', text: 'Failed to update workorder. Please try again.' });
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     // Validate required fields
     const activeTypes = formData.waiverType || [];
     const errors = [];
@@ -890,6 +967,8 @@ const WaiverForm = () => {
         labelData: activeTypes.includes('Label Waiver') ? labelData : { instructions: '', file: null },
         openSections: openSection,
       };
+
+      // Workorder-only edit
 
       // Approver editing an existing submitted waiver
       if (approverEditMode) {
@@ -1063,7 +1142,7 @@ setTimeout(() => setPageMessage(null), 5000);
         subcontractor: data.subcontractor || '',
         assemblyLevel: data.assemblyLevel || '',
         requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: getLocalToday(),
         endDate: data.endDate || '',
         waiverType: data.waiverType || [],
         reason: data.reason || '',
@@ -1136,23 +1215,25 @@ setTimeout(() => setPageMessage(null), 5000);
     }
   };
 
-  const handleCreateNew = () => {
+  const handleCreateNew = async () => {
     isEditingRef.current = false;
     setRequestorEditMode(false);
     setApproverEditMode(false);
     setRejectedEditMode(false);
     setWaiverStatus(null);
 
-    setWaiverId(generateWaiverId());
+    const nextId = await api.getNextWaiverId() || generateWaiverId();
+    setWaiverId(nextId);
 
     setFormData({
+      waiverId: nextId,
       partNumber: '',
       revision: '',
       description: '',
       subcontractor: [],
       assemblyLevel: [],
-      requestor: [''],
-      startDate: new Date().toISOString().split('T')[0],
+      requestor: [user?.full_name || user?.email || ''],
+      startDate: getLocalToday(),
       endDate: '',
       waiverType: [],
       reason: '',
@@ -1252,7 +1333,7 @@ setTimeout(() => setPageMessage(null), 5000);
         subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
         assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
         requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
-        startDate: data.startDate ? data.startDate.toString().slice(0, 10) : new Date().toISOString().split('T')[0],
+        startDate: data.startDate ? data.startDate.toString().slice(0, 10) : getLocalToday(),
         endDate: data.endDate ? data.endDate.toString().slice(0, 10) : '',
         waiverType: data.waiverType || [],
         reason: data.reason || '',
@@ -1310,7 +1391,7 @@ setTimeout(() => setPageMessage(null), 5000);
         subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
         assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
         requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
-        startDate: toDate(data.startDate) || new Date().toISOString().split('T')[0],
+        startDate: toDate(data.startDate) || getLocalToday(),
         endDate: toDate(data.endDate),
         waiverType: data.waiverType || [],
         reason: data.reason || '',
@@ -1355,7 +1436,7 @@ setTimeout(() => setPageMessage(null), 5000);
         subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
         assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
         requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
-        startDate: data.startDate ? data.startDate.toString().slice(0, 10) : new Date().toISOString().split('T')[0],
+        startDate: data.startDate ? data.startDate.toString().slice(0, 10) : getLocalToday(),
         endDate: data.endDate ? data.endDate.toString().slice(0, 10) : '',
         waiverType: data.waiverType || [],
         reason: data.reason || '',
@@ -1518,6 +1599,7 @@ setTimeout(() => setPageMessage(null), 5000);
           amendFromAllForms={amendFromAllForms}
           requestorEditMode={requestorEditMode}
           rejectedEditMode={rejectedEditMode}
+          workorderEditMode={workorderEditMode}
           navigate={navigate}
           setShowForm={setShowForm}
           setActiveTab={setActiveTab}

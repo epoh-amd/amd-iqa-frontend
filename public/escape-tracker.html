@@ -74,7 +74,7 @@
   .toolbar input { width: 220px; }
   .toolbar input:focus, .toolbar select:focus { outline: none; border-color: var(--blue); }
 
-  .table-wrap { background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+  .table-wrap { background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   thead th { background: var(--blue); color: #fff; padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
   tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
@@ -158,7 +158,7 @@
 
 <div class="app-header">
   <div>
-    <h1>Subcontractor Escape Tracker</h1>
+    <h1>Customer Line Fallout</h1>
     <div class="subtitle">AMD Quality &amp; Reliability — Internal Use Only</div>
   </div>
   <div class="header-actions">
@@ -168,7 +168,7 @@
 
 <div class="nav">
   <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
-  <button onclick="showPage('log',this)">Escape Log</button>
+  <button onclick="showPage('log',this)">Fallout Log</button>
   <button onclick="showPage('management',this)">Escape Management</button>
   <button onclick="showPage('export',this)">Export</button>
 </div>
@@ -177,14 +177,18 @@
 <div id="page-dashboard" class="page active">
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
     <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">Filter:</span>
-    <div id="kpi-sub-filters" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    <select id="kpi-sub-filters" onchange="renderDashboard()" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;cursor:pointer;">
+      <option value="">All Subcontractors</option>
+    </select>
   </div>
   <div class="kpi-row" id="kpi-row"></div>
   <div style="margin-bottom:16px;">
     <div class="chart-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
         <h3 style="margin:0;">Total Escapes by Subcontractor</h3>
-        <div id="dash-supplier-filters" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        <select id="dash-supplier-filters" onchange="renderDashboard()" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;cursor:pointer;">
+          <option value="">All Subcontractors</option>
+        </select>
       </div>
       <div class="bar-chart" id="chart-supplier"></div>
     </div>
@@ -192,8 +196,10 @@
   <div style="margin-bottom:20px;">
     <div class="chart-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-        <h3 style="margin:0;">Escape Summary by Phase</h3>
-        <div id="dash-fm-filters" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        <h3 style="margin:0;">Total Fallout by Phase</h3>
+        <select id="dash-fm-filters" onchange="renderDashboard()" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;cursor:pointer;">
+          <option value="">All Subcontractors</option>
+        </select>
       </div>
       <div id="chart-failmode"></div>
     </div>
@@ -227,7 +233,7 @@
       <thead><tr>
         <th>Escape ID</th><th>Subcontractor</th><th>Date Reported</th>
         <th>Part Number</th><th>Build Rev</th><th>Phase</th><th>Product Description</th><th>Serial Number</th><th>Problem Statement</th><th>Defect Photo</th><th>Failure Mode</th>
-        <th>Qty Aff.</th><th>Issue Status</th><th>Issue Close Date</th><th>Open TPT (days)</th><th>Closure TPT (days)</th><th>Actions</th>
+        <th>Qty Aff.</th><th>Issue Status</th><th style="min-width:130px;white-space:nowrap;">Issue Close Date</th><th style="white-space:nowrap;">Open TPT (days)</th><th style="white-space:nowrap;">Closure TPT (days)</th><th>Actions</th>
       </tr></thead>
       <tbody id="log-tbody"></tbody>
     </table>
@@ -352,16 +358,16 @@
           <textarea id="f-defect" placeholder="Describe the problem statement..."></textarea>
         </div>
         <div class="form-group full">
-          <label>Defect Photo</label>
+          <label>Defect Photos <span style="font-weight:400;color:var(--text-muted);font-size:11px;">(multiple allowed)</span></label>
           <div id="photo-drop-zone" tabindex="0" style="border:2px dashed var(--border);border-radius:8px;padding:14px;background:#FAFBFD;min-height:90px;position:relative;outline:none;" onclick="document.getElementById('photo-drop-zone').focus()">
+            <div style="text-align:center;margin-bottom:8px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();document.getElementById('photo-file-input').click()">Browse files</button>
+            </div>
             <div id="photo-placeholder" style="color:var(--text-muted);font-size:12px;text-align:center;padding:4px 0;">
-              <div style="margin-bottom:8px;">
-                <button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();document.getElementById('photo-file-input').click()">Browse files</button>
-              </div>
-              <span style="font-size:12px;">or <b>click this box then Ctrl+V</b> to paste a screenshot &nbsp;|&nbsp; drag &amp; drop also works</span>
+              <span style="font-size:12px;">Select multiple files at once &nbsp;|&nbsp; <b>Ctrl+V</b> to paste &nbsp;|&nbsp; drag &amp; drop also works</span>
             </div>
             <div id="photo-previews" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
-            <input type="file" id="photo-file-input" accept="image/*" multiple style="display:none" onchange="handlePhotoFiles(this.files)">
+            <input type="file" id="photo-file-input" accept="image/*" multiple style="display:none" onchange="handlePhotoFiles(this.files); this.value=''">
           </div>
         </div>
         <div class="form-group">
@@ -429,6 +435,25 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Remove Option Confirm Modal -->
+<div id="remove-option-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:10px;width:360px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,50,0.18);overflow:hidden;">
+    <div style="background:var(--blue);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-weight:700;font-size:15px;">Remove Item</span>
+      <button onclick="closeRemoveModal()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;">&times;</button>
+    </div>
+    <div style="padding:20px 22px;">
+      <p style="font-size:14px;color:#333;margin:0 0 6px 0;">Are you sure you want to remove:</p>
+      <p id="remove-option-label" style="font-size:15px;font-weight:700;color:var(--blue);margin:0 0 16px 0;"></p>
+      <p style="font-size:12px;color:var(--text-muted);margin:0;">This action cannot be undone.</p>
+    </div>
+    <div style="padding:12px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn btn-ghost" onclick="closeRemoveModal()">Cancel</button>
+      <button class="btn btn-primary" id="remove-option-confirm-btn">Yes, Remove</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── TPT helper ───────────────────────────────────────────────────────────────
@@ -565,45 +590,22 @@ function badge(status) {
 }
 
 // ── Dashboard ───────────────────────────────────────────────────────────────
-function renderDashboard() {
-  // KPI subcontractor filter buttons
-  const kpiFilterDiv = document.getElementById('kpi-sub-filters');
-  if (!kpiFilterDiv._inited) {
-    kpiFilterDiv._inited = true;
-    kpiFilterDiv._active = new Set();
-    const allBtn = document.createElement('button');
-    allBtn.className = 'dash-filter-btn active';
-    allBtn.textContent = 'All';
-    allBtn.dataset.sup = '__all__';
-    kpiFilterDiv.appendChild(allBtn);
-    ['Sanmina','Flex','Pegatron','Wistron','MSI','Lenovo'].forEach(s => {
-      const btn = document.createElement('button');
-      btn.className = 'dash-filter-btn';
-      btn.textContent = s;
-      btn.dataset.sup = s;
-      kpiFilterDiv.appendChild(btn);
-    });
-    kpiFilterDiv.addEventListener('click', function(e) {
-      const btn = e.target.closest('.dash-filter-btn');
-      if (!btn) return;
-      if (btn.dataset.sup === '__all__') {
-        kpiFilterDiv._active.clear();
-        kpiFilterDiv.querySelectorAll('.dash-filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      } else {
-        kpiFilterDiv.querySelector('[data-sup="__all__"]').classList.remove('active');
-        btn.classList.toggle('active');
-        if (btn.classList.contains('active')) kpiFilterDiv._active.add(btn.dataset.sup);
-        else kpiFilterDiv._active.delete(btn.dataset.sup);
-        if (kpiFilterDiv._active.size === 0) kpiFilterDiv.querySelector('[data-sup="__all__"]').classList.add('active');
-      }
-      renderDashboard();
-    });
-  }
+function syncDashDropdowns() {
+  const suppliers = options.suppliers || [];
+  ['kpi-sub-filters', 'dash-supplier-filters', 'dash-fm-filters'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All Subcontractors</option>' +
+      suppliers.map(s => `<option value="${s}"${s === cur ? ' selected' : ''}>${s}</option>`).join('');
+  });
+}
 
-  const activeKpiFilter = kpiFilterDiv._active && kpiFilterDiv._active.size > 0 ? kpiFilterDiv._active : null;
-  const kpiEscapes      = activeKpiFilter ? escapes.filter(e => activeKpiFilter.has(e.supplier)) : escapes;
-  const kpiLabel        = activeKpiFilter ? [...activeKpiFilter].join(', ') : null;
+function renderDashboard() {
+  syncDashDropdowns();
+
+  const kpiSup = document.getElementById('kpi-sub-filters').value;
+  const kpiEscapes = kpiSup ? escapes.filter(e => e.supplier === kpiSup) : escapes;
 
   const total    = kpiEscapes.length;
   const open     = kpiEscapes.filter(e => e.status === 'Open').length;
@@ -611,52 +613,15 @@ function renderDashboard() {
   const cancelled= kpiEscapes.filter(e => e.status === 'Cancelled').length;
 
   document.getElementById('kpi-row').innerHTML = `
-    <div class="kpi-card"><div class="label">Total Escapes${kpiLabel ? '<br><span style="font-weight:400;font-size:10px;color:var(--blue);">'+kpiLabel+'</span>' : ''}</div><div class="value">${total}</div></div>
+    <div class="kpi-card"><div class="label">Total Fallout${kpiSup ? '<br><span style="font-weight:400;font-size:10px;color:var(--blue);">'+kpiSup+'</span>' : ''}</div><div class="value">${total}</div></div>
     <div class="kpi-card open"><div class="label">Open</div><div class="value">${open}</div></div>
     <div class="kpi-card closed"><div class="label">Closed</div><div class="value">${closed}</div></div>
     <div class="kpi-card inprog"><div class="label">Cancelled</div><div class="value">${cancelled}</div></div>`;
 
-  // Subcontractor filter buttons
-  const suppliers = ['Sanmina','Flex','Pegatron','Wistron','MSI','Lenovo'];
-  const filterDiv = document.getElementById('dash-supplier-filters');
-  if (!filterDiv._inited) {
-    filterDiv._inited = true;
-    filterDiv._active = new Set();
-    const allBtn = document.createElement('button');
-    allBtn.className = 'dash-filter-btn active';
-    allBtn.textContent = 'All';
-    allBtn.dataset.sup = '__all__';
-    filterDiv.appendChild(allBtn);
-    suppliers.forEach(s => {
-      const btn = document.createElement('button');
-      btn.className = 'dash-filter-btn';
-      btn.textContent = s;
-      btn.dataset.sup = s;
-      filterDiv.appendChild(btn);
-    });
-    filterDiv.addEventListener('click', function(e) {
-      const btn = e.target.closest('.dash-filter-btn');
-      if (!btn) return;
-      if (btn.dataset.sup === '__all__') {
-        filterDiv._active.clear();
-        filterDiv.querySelectorAll('.dash-filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      } else {
-        filterDiv.querySelector('[data-sup="__all__"]').classList.remove('active');
-        btn.classList.toggle('active');
-        if (btn.classList.contains('active')) filterDiv._active.add(btn.dataset.sup);
-        else filterDiv._active.delete(btn.dataset.sup);
-        if (filterDiv._active.size === 0) {
-          filterDiv.querySelector('[data-sup="__all__"]').classList.add('active');
-        }
-      }
-      renderDashboard();
-    });
-  }
-
-  const activeFilter = filterDiv._active && filterDiv._active.size > 0 ? filterDiv._active : null;
-  const filteredEscapes = activeFilter ? escapes.filter(e => activeFilter.has(e.supplier)) : escapes;
-  const shownSuppliers  = activeFilter ? suppliers.filter(s => activeFilter.has(s)) : suppliers;
+  const suppliers = options.suppliers || [];
+  const supplierSup = document.getElementById('dash-supplier-filters').value;
+  const filteredEscapes = supplierSup ? escapes.filter(e => e.supplier === supplierSup) : escapes;
+  const shownSuppliers  = supplierSup ? [supplierSup] : suppliers;
 
   const maxCount = Math.max(1, ...shownSuppliers.map(s => filteredEscapes.filter(e => e.supplier === s).length));
   document.getElementById('chart-supplier').innerHTML = shownSuppliers.map(s => {
@@ -668,43 +633,8 @@ function renderDashboard() {
     </div>`;
   }).join('');
 
-  // Failure Mode by Phase — filter by subcontractor
-  const fmFilterDiv = document.getElementById('dash-fm-filters');
-  if (!fmFilterDiv._inited) {
-    fmFilterDiv._inited = true;
-    fmFilterDiv._active = new Set();
-    const allBtn = document.createElement('button');
-    allBtn.className = 'dash-filter-btn active';
-    allBtn.textContent = 'All';
-    allBtn.dataset.sup = '__all__';
-    fmFilterDiv.appendChild(allBtn);
-    suppliers.forEach(s => {
-      const btn = document.createElement('button');
-      btn.className = 'dash-filter-btn';
-      btn.textContent = s;
-      btn.dataset.sup = s;
-      fmFilterDiv.appendChild(btn);
-    });
-    fmFilterDiv.addEventListener('click', function(e) {
-      const btn = e.target.closest('.dash-filter-btn');
-      if (!btn) return;
-      if (btn.dataset.sup === '__all__') {
-        fmFilterDiv._active.clear();
-        fmFilterDiv.querySelectorAll('.dash-filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      } else {
-        fmFilterDiv.querySelector('[data-sup="__all__"]').classList.remove('active');
-        btn.classList.toggle('active');
-        if (btn.classList.contains('active')) fmFilterDiv._active.add(btn.dataset.sup);
-        else fmFilterDiv._active.delete(btn.dataset.sup);
-        if (fmFilterDiv._active.size === 0) fmFilterDiv.querySelector('[data-sup="__all__"]').classList.add('active');
-      }
-      renderDashboard();
-    });
-  }
-
-  const activeFmFilter    = fmFilterDiv._active && fmFilterDiv._active.size > 0 ? fmFilterDiv._active : null;
-  const fmFilteredEscapes = activeFmFilter ? escapes.filter(e => activeFmFilter.has(e.supplier)) : escapes;
+  const fmSup = document.getElementById('dash-fm-filters').value;
+  const fmFilteredEscapes = fmSup ? escapes.filter(e => e.supplier === fmSup) : escapes;
 
   // Summary table: Escape ID | Phase | Failure Mode
   const allSummaryPhases = ['Alpha','Beta','Rev A','EVT','DVT','PVT'];
@@ -870,7 +800,7 @@ function renderLog() {
         <td class="wrap">${e.assembly||''}</td>
         <td>${e.serial||''}</td>
         <td class="wrap">${e.defect||''}</td>
-        <td style="text-align:center;">${e.photos&&e.photos.length ? `<img src="${e.photos[0]}" style="width:60px;height:46px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:pointer;" onclick="event.stopPropagation();showLightbox('${e.id}',0)" title="${e.photos.length} photo(s)">` : ''}</td>
+        <td style="text-align:center;min-width:80px;">${e.photos&&e.photos.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">${e.photos.map((p,pi) => `<img src="${p}" style="width:50px;height:40px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:pointer;" onclick="event.stopPropagation();showLightbox('${e.id}',${pi})" title="Photo ${pi+1} of ${e.photos.length}">`).join('')}</div>` : ''}</td>
         <td class="wrap">${e.failMode||''}</td>
         <td>${e.qtyAff||''}</td>
         <td>${badge(e.status)}</td>
@@ -1118,11 +1048,20 @@ function addOption(key, inputId) {
 
 function removeOption(key, idx) {
   const removed = options[key][idx];
-  if (!confirm('Remove "' + removed + '"?')) return;
-  options[key].splice(idx, 1);
-  saveOptions();
-  renderAllOptionLists();
-  toast('Removed: ' + removed);
+  document.getElementById('remove-option-label').textContent = '"' + removed + '"';
+  const modal = document.getElementById('remove-option-modal');
+  modal.style.display = 'flex';
+  document.getElementById('remove-option-confirm-btn').onclick = () => {
+    options[key].splice(idx, 1);
+    saveOptions();
+    renderAllOptionLists();
+    closeRemoveModal();
+    toast('Removed: ' + removed);
+  };
+}
+
+function closeRemoveModal() {
+  document.getElementById('remove-option-modal').style.display = 'none';
 }
 
 function syncDropdowns() {

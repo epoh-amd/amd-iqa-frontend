@@ -102,13 +102,16 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
         buildErrors.cpuProgramName = 'CPU Program Name is required';
         isValid = false;
       }
-      if (!build.systemInfo.m2PN && (!build.systemInfo.m2PNOther || !build.systemInfo.m2PNCustom)) {
-        buildErrors.m2PN = 'M.2 P/N is required';
-        isValid = false;
-      }
-      if (!build.systemInfo.m2SN) {
-        buildErrors.m2SN = 'M.2 S/N is required';
-        isValid = false;
+      const isStandardConfig = build.generalInfo?.isCustomConfig === 'No';
+      if (!isStandardConfig) {
+        if (!build.systemInfo.m2PN && (!build.systemInfo.m2PNOther || !build.systemInfo.m2PNCustom)) {
+          buildErrors.m2PN = 'M.2 P/N is required';
+          isValid = false;
+        }
+        if (!build.systemInfo.m2SN) {
+          buildErrors.m2SN = 'M.2 S/N is required';
+          isValid = false;
+        }
       }
       if (!build.systemInfo.dimmQty) {
         buildErrors.dimmQty = 'DIMM Quantity is required';

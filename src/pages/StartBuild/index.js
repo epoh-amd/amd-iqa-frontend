@@ -46,6 +46,8 @@ const StartBuild = () => {
   const [savedIndex, setSavedIndex] = useState(null);
   const [bulkImportStatus, setBulkImportStatus] = useState(null);
   const bulkImportRef = useRef(null);
+  const [selectedBuildIndices, setSelectedBuildIndices] = useState([]); // empty = all selected (default)
+  const allBuildsRef = useRef(null); // stores full build list before selection filter
 
   // ============ BUILDS STATE HOOK ============
   const {
@@ -71,6 +73,33 @@ const StartBuild = () => {
     calculateFpyStatus
   } = useBuildsState(systemInfoSubStep);
 
+  // ============ BUILD SELECTION (for bulk import) ============
+  // [] = all selected, [...indices] = only those indices selected
+  const toggleBuildSelection = (index) => {
+    setSelectedBuildIndices(prev => {
+      const buildsCount = builds.length;
+      const current = prev.length === 0 ? Array.from({ length: buildsCount }, (_, i) => i) : prev;
+      if (current.includes(index)) {
+        if (current.length === 1) return prev; // must keep at least one
+        return current.filter(i => i !== index);
+      }
+      const next = [...current, index];
+      return next.length === buildsCount ? [] : next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedBuildIndices(prev =>
+      prev.length === 0 ? [0] : []
+    );
+  };
+
+  const isAllSelected = selectedBuildIndices.length === 0;
+  const isBuildSelected = (index) => selectedBuildIndices.length === 0 || selectedBuildIndices.includes(index);
+  const effectiveSelection = selectedBuildIndices.length === 0
+    ? builds.map((_, i) => i)
+    : selectedBuildIndices;
+
   // ============ CUSTOM HOOKS ============
   const validation = useValidation(builds, setBuilds, currentStep, systemInfoSubStep);
 
@@ -87,7 +116,10 @@ const StartBuild = () => {
       validateChassisInfo: validation.validateChassisInfo,
       validateCpuInfo: validation.validateCpuInfo,
       validateComponentInfo: validation.validateComponentInfo
-    }
+    },
+    selectedBuildIndices,
+    setSelectedBuildIndices,
+    allBuildsRef
   );
 
   // ============ AUTO-SAVE & DRAFT MANAGEMENT ============
@@ -596,6 +628,8 @@ const StartBuild = () => {
         const assetId = String(row['Asset ID'] || '').trim();
         const projectName = String(row['Project name'] || '').trim();
         const socket = String(row['Socket'] || '').trim();
+        const bmcMac = String(row['BMC Mac'] || row['BMC MAC'] || '').trim();
+        const ethernetMac = String(row['Ethernet Mac'] || row['Ethernet MAC'] || '').trim();
 
 
         if (!chassisSN) { skipped++; continue; }
@@ -628,6 +662,8 @@ const StartBuild = () => {
             bmcName: assetName,
             projectName: mappedProjectName,
             cpuSocket: socket,
+            bmcMac,
+            ethernetMac,
           }
         });
 
@@ -858,6 +894,10 @@ const StartBuild = () => {
           builds={builds}
           handleInputChange={handleInputChange}
           removeBuild={removeBuild}
+          isBuildSelected={isBuildSelected}
+          isAllSelected={isAllSelected}
+          toggleBuildSelection={toggleBuildSelection}
+          toggleSelectAll={toggleSelectAll}
         />
       )}
 

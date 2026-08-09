@@ -11,7 +11,10 @@ export const useNavigation = (
   setBuilds,
   validateBeforeQualityIndicator,
   setShowReview,
-  validationFunctions
+  validationFunctions,
+  selectedBuildIndices,
+  setSelectedBuildIndices,
+  allBuildsRef
 ) => {
   const [saveResults, setSaveResults] = useState([]);
 
@@ -190,12 +193,15 @@ export const useNavigation = (
     
     for (let i = 0; i < builds.length; i++) {
       const build = builds[i];
-      
-      if (!build.systemInfo.m2PN && (!build.systemInfo.m2PNOther || !build.systemInfo.m2PNCustom)) {
-        errors.push(`Build ${i + 1}: M.2 P/N required`);
-      }
-      if (!build.systemInfo.m2SN) {
-        errors.push(`Build ${i + 1}: M.2 S/N required`);
+      const isStandard = build.generalInfo?.isCustomConfig === 'No';
+
+      if (!isStandard) {
+        if (!build.systemInfo.m2PN && (!build.systemInfo.m2PNOther || !build.systemInfo.m2PNCustom)) {
+          errors.push(`Build ${i + 1}: M.2 P/N required`);
+        }
+        if (!build.systemInfo.m2SN) {
+          errors.push(`Build ${i + 1}: M.2 S/N required`);
+        }
       }
       if (!build.systemInfo.dimmQty) {
         errors.push(`Build ${i + 1}: DIMM Quantity required`);
@@ -392,11 +398,22 @@ export const useNavigation = (
         setTimeout(() => setSaveResults([]), 7000);
         return;
       }
-      
-      const updatedBuilds = [...builds];
-      updatedBuilds.forEach(build => {
-        build.stepCompleted.generalInfo = true;
-      });
+
+      // Filter builds to selected only if a subset is selected
+      let buildsToProcess = [...builds];
+      if (selectedBuildIndices && selectedBuildIndices.length > 0) {
+        // Save full list so Previous can restore it
+        if (allBuildsRef) allBuildsRef.current = [...builds];
+        buildsToProcess = builds.filter((_, i) => selectedBuildIndices.includes(i));
+        if (setSelectedBuildIndices) setSelectedBuildIndices([]);
+      } else {
+        if (allBuildsRef) allBuildsRef.current = null;
+      }
+
+      const updatedBuilds = buildsToProcess.map(build => ({
+        ...build,
+        stepCompleted: { ...build.stepCompleted, generalInfo: true }
+      }));
       setBuilds(updatedBuilds);
       setCurrentStep('systemInfo');
       setSystemInfoSubStep('chassisInfo');
@@ -450,6 +467,11 @@ export const useNavigation = (
   const navigatePrevious = () => {
     if (currentStep === 'systemInfo') {
       if (systemInfoSubStep === 'chassisInfo') {
+        // Restore full builds list if we previously filtered by selection
+        if (allBuildsRef && allBuildsRef.current) {
+          setBuilds(allBuildsRef.current);
+          allBuildsRef.current = null;
+        }
         setCurrentStep('generalInfo');
       } else if (systemInfoSubStep === 'cpuInfo') {
         setSystemInfoSubStep('chassisInfo');

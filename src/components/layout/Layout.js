@@ -4,7 +4,7 @@ import Header from './Header';
 import Chatbot from '../Chatbot/Chatbot';
 import '../../assets/css/layout.css';  
   
-const Layout = ({ children }) => {  
+const Layout = ({ children }) => {
   const [sidebarActive, setSidebarActive] = useState(window.innerWidth >= 768);  
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);  
   

@@ -159,7 +159,7 @@ const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Sel
 const WaiverFormView = ({
   autoSaveBanner,
   emailSentBanner, setEmailSentBanner,
-  approverEditMode, approverAmendMode, amendFromAllForms, requestorEditMode, rejectedEditMode,
+  approverEditMode, approverAmendMode, amendFromAllForms, requestorEditMode, rejectedEditMode, workorderEditMode,
   navigate, setShowForm, setActiveTab, fetchMyForms, setRejectedEditMode, handleBackToList,
   waiverStatus, formData, setFormData, handleChange, handleSubmit,
   subcontractors, assemblyLevels,
@@ -210,6 +210,7 @@ const WaiverFormView = ({
       <button
         type="button"
         onClick={
+          workorderEditMode ? () => navigate('/waiver-management') :
           (approverEditMode || (approverAmendMode && !amendFromAllForms)) ? () => navigate(-1) :
             (requestorEditMode || rejectedEditMode || amendFromAllForms) ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); setRejectedEditMode(false); } :
               handleBackToList
@@ -220,7 +221,7 @@ const WaiverFormView = ({
           fontSize: '13px', fontWeight: 500
         }}
       >
-        {(approverEditMode || (approverAmendMode && !amendFromAllForms)) ? '← Back to Management' : (requestorEditMode || rejectedEditMode || amendFromAllForms) ? '← Back to All Forms' : '← Back to Drafts'}
+        {workorderEditMode ? '← Back to Management' : (approverEditMode || (approverAmendMode && !amendFromAllForms)) ? '← Back to Management' : (requestorEditMode || rejectedEditMode || amendFromAllForms) ? '← Back to All Forms' : '← Back to Drafts'}
       </button>
       {waiverStatus && (
         <span style={{
@@ -235,10 +236,17 @@ const WaiverFormView = ({
     </div>
 
     <form onSubmit={handleSubmit}>
+      {workorderEditMode && (
+        <div style={{ background: '#fff8e1', border: '1px solid #f57c00', borderRadius: '6px', padding: '10px 14px', marginBottom: '12px', fontSize: '13px', color: '#e65100', fontWeight: 500 }}>
+          ⚠ Only Workorder and Workorder Qty can be edited in this mode.
+        </div>
+      )}
       <p style={{ fontSize: '12px', color: '#888', marginBottom: '8px' }}>
         <span style={{ color: '#dc3545', fontWeight: 700 }}>*</span> indicates required fields
       </p>
 
+      {/* All sections except workorder — disabled in workorderEditMode */}
+      <div style={workorderEditMode ? { pointerEvents: 'none', opacity: 0.5 } : {}}>
       {/* Product Info */}
       <div className="form-section">
         <div className="waiver-id-row">
@@ -357,7 +365,7 @@ const WaiverFormView = ({
       <div className="form-section">
         <div className="field-inline">
           <label>Waiver Start Date <span style={{ color: '#dc3545' }}>*</span></label>
-          <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} {...(!requestorEditMode && !approverEditMode && !rejectedEditMode && !approverAmendMode ? { min: new Date().toISOString().split('T')[0] } : {})} />
+          <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} {...(!requestorEditMode && !approverEditMode && !rejectedEditMode && !approverAmendMode && !workorderEditMode ? { min: new Date().toISOString().split('T')[0] } : {})} />
         </div>
       </div>
 
@@ -386,6 +394,8 @@ const WaiverFormView = ({
         </div>
       </div>
 
+      </div>{/* end disabled wrapper */}
+
       {/* Workorder */}
       <div className="form-section-row">
         <div className="field-inline">
@@ -398,6 +408,7 @@ const WaiverFormView = ({
         </div>
       </div>
 
+      <div style={workorderEditMode ? { pointerEvents: 'none', opacity: 0.5 } : {}}>
       {/* Material Waiver Section */}
       <MaterialWaiverSection
         openSection={openSection}
@@ -435,6 +446,7 @@ const WaiverFormView = ({
         TEST_AREAS={TEST_AREAS}
         toFileUrl={toFileUrl}
       />
+      </div>{/* end waiver sections disabled wrapper */}
 
       {/* Submit message */}
       {submitMessage && (
@@ -450,8 +462,8 @@ const WaiverFormView = ({
 
       <button type="submit" className="submit-btn" disabled={submitting}>
         {submitting
-          ? (approverAmendMode ? 'Submitting...' : requestorEditMode && waiverStatus === 'Pending Approval' ? 'Updating...' : !requestorEditMode && !rejectedEditMode && !approverEditMode ? 'Creating...' : 'Submitting...')
-          : (approverAmendMode ? 'SUBMIT' : requestorEditMode && waiverStatus === 'Pending Approval' ? 'UPDATE' : !requestorEditMode && !rejectedEditMode && !approverEditMode ? 'Create Form' : 'SUBMIT')}
+          ? (workorderEditMode ? 'Updating...' : approverAmendMode ? 'Submitting...' : requestorEditMode && waiverStatus === 'Pending Approval' ? 'Updating...' : !requestorEditMode && !rejectedEditMode && !approverEditMode ? 'Creating...' : 'Submitting...')
+          : (workorderEditMode ? 'UPDATE' : approverAmendMode ? 'SUBMIT' : requestorEditMode && waiverStatus === 'Pending Approval' ? 'UPDATE' : !requestorEditMode && !rejectedEditMode && !approverEditMode ? 'Create Form' : 'SUBMIT')}
       </button>
 
     </form>

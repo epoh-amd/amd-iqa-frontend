@@ -590,6 +590,26 @@ deleteWaiver: async (waiverId) => {
   }
 },
 
+updateWaiverWorkorder: async (waiverId, workorder, workorderQty) => {
+  try {
+    const response = await axios.patch(`${API_URL}/waivers/${waiverId}/workorder`, { workorder, workorderQty });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating workorder:', error);
+    throw error;
+  }
+},
+
+getNextWaiverId: async () => {
+  try {
+    const response = await axios.get(`${API_URL}/waivers/next-id`);
+    return response.data.nextId;
+  } catch (error) {
+    console.error('Error fetching next waiver ID:', error);
+    return null;
+  }
+},
+
 getWaiversForApproval: async () => {
   try {
     const response = await axios.get(`${API_URL}/waivers/pending`);

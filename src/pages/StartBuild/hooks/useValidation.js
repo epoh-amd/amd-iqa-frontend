@@ -160,15 +160,17 @@ export const useValidation = (builds, setBuilds) => {
       const buildErrors = {};
       
       // ALL REQUIRED - cannot proceed without these
-      // Updated validation for M.2 P/N to handle custom entries
-      if (!build.systemInfo.m2PN && (!build.systemInfo.m2PNOther || !build.systemInfo.m2PNCustom)) {
-        buildErrors.m2PN = 'M.2 P/N is required';
-        isValid = false;
-      }
-      
-      if (!build.systemInfo.m2SN) {
-        buildErrors.m2SN = 'M.2 S/N is required';
-        isValid = false;
+      // M.2 P/N and S/N are optional for Standard configuration
+      const isStandard = build.generalInfo?.isCustomConfig === 'No';
+      if (!isStandard) {
+        if (!build.systemInfo.m2PN && (!build.systemInfo.m2PNOther || !build.systemInfo.m2PNCustom)) {
+          buildErrors.m2PN = 'M.2 P/N is required';
+          isValid = false;
+        }
+        if (!build.systemInfo.m2SN) {
+          buildErrors.m2SN = 'M.2 S/N is required';
+          isValid = false;
+        }
       }
       if (!build.systemInfo.dimmQty) {
         buildErrors.dimmQty = 'DIMM Quantity is required';
@@ -450,13 +452,16 @@ export const useValidation = (builds, setBuilds) => {
 
       // STRICT: Check Component Info completion - ALL REQUIRED
       if (!build.stepCompleted.componentInfo) {
-        if (!build.systemInfo.m2PN && (!build.systemInfo.m2PNOther || !build.systemInfo.m2PNCustom)) {
-          stepValidationErrors.push(`${buildRef}: M.2 P/N is required`);
-          allValid = false;
-        }
-        if (!build.systemInfo.m2SN) {
-          stepValidationErrors.push(`${buildRef}: M.2 S/N is required`);
-          allValid = false;
+        const isStandardConfig = build.generalInfo?.isCustomConfig === 'No';
+        if (!isStandardConfig) {
+          if (!build.systemInfo.m2PN && (!build.systemInfo.m2PNOther || !build.systemInfo.m2PNCustom)) {
+            stepValidationErrors.push(`${buildRef}: M.2 P/N is required`);
+            allValid = false;
+          }
+          if (!build.systemInfo.m2SN) {
+            stepValidationErrors.push(`${buildRef}: M.2 S/N is required`);
+            allValid = false;
+          }
         }
         if (!build.systemInfo.dimmQty) {
           stepValidationErrors.push(`${buildRef}: DIMM Quantity is required`);
@@ -629,13 +634,16 @@ export const useValidation = (builds, setBuilds) => {
         buildErrors.cpuProgramName = 'CPU Program Name is required';
         isValid = false;
       }
-      if (!build.systemInfo.m2PN && (!build.systemInfo.m2PNOther || !build.systemInfo.m2PNCustom)) {
-        buildErrors.m2PN = 'M.2 P/N is required';
-        isValid = false;
-      }
-      if (!build.systemInfo.m2SN) {
-        buildErrors.m2SN = 'M.2 S/N is required';
-        isValid = false;
+      const isStandardSave = build.generalInfo?.isCustomConfig === 'No';
+      if (!isStandardSave) {
+        if (!build.systemInfo.m2PN && (!build.systemInfo.m2PNOther || !build.systemInfo.m2PNCustom)) {
+          buildErrors.m2PN = 'M.2 P/N is required';
+          isValid = false;
+        }
+        if (!build.systemInfo.m2SN) {
+          buildErrors.m2SN = 'M.2 S/N is required';
+          isValid = false;
+        }
       }
       if (!build.systemInfo.dimmQty) {
         buildErrors.dimmQty = 'DIMM Quantity is required';

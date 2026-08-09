@@ -10,15 +10,36 @@ import {
   faTimes
 } from '@fortawesome/free-solid-svg-icons';
 
-const BkcDetailsTable = ({ 
-  builds, 
-  extractFirmwareVersions, 
+const BkcDetailsTable = ({
+  builds,
+  extractFirmwareVersions,
   handleBkcFieldChange
 }) => {
-  
-  // Helper function to get build reference (BMC Name or Build #) - CONSISTENT WITH OTHER TABLES
+
   const getBuildReference = (build, buildIndex) => {
     return build.systemInfo?.bmcName || `Build ${buildIndex + 1}`;
+  };
+
+  const pasteToAll = (field, value) => {
+    builds.forEach((_, i) => handleBkcFieldChange(i, field, value));
+  };
+
+  const PasteAllBtn = ({ field, value }) => {
+    if (builds.length <= 1 || !value) return null;
+    return (
+      <button
+        type="button"
+        onClick={() => pasteToAll(field, value)}
+        style={{
+          display: 'block', marginTop: '4px', fontSize: '11px',
+          padding: '2px 8px', background: '#0066cc', color: '#fff',
+          border: 'none', borderRadius: '4px', cursor: 'pointer',
+          whiteSpace: 'nowrap'
+        }}
+      >
+        Paste to All
+      </button>
+    );
   };
 
   return (
@@ -86,6 +107,7 @@ const BkcDetailsTable = ({
                 {build.errors.biosVersion && (
                   <div className="field-error">{build.errors.biosVersion}</div>
                 )}
+                <PasteAllBtn field="biosVersion" value={build.bkcDetails.biosVersion} />
               </td>
               <td>
                 <input
@@ -110,6 +132,7 @@ const BkcDetailsTable = ({
                 {build.errors.hpmFpgaVersion && (
                   <div className="field-error">{build.errors.hpmFpgaVersion}</div>
                 )}
+                <PasteAllBtn field="hpmFpgaVersion" value={build.bkcDetails.hpmFpgaVersion} />
               </td>
               <td>
                 <input
@@ -122,6 +145,7 @@ const BkcDetailsTable = ({
                 {build.errors.bmcVersion && (
                   <div className="field-error">{build.errors.bmcVersion}</div>
                 )}
+                <PasteAllBtn field="bmcVersion" value={build.bkcDetails.bmcVersion} />
               </td>
             </tr>
           ))}
