@@ -1128,7 +1128,7 @@ setTimeout(() => setPageMessage(null), 5000);
     setRejectedEditMode(false);
     setApproverAmendMode(false);
     setWaiverStatus(null);
-    const newId = generateWaiverId();
+    const newId = await api.getNextWaiverId() || generateWaiverId();
     setWaiverId(newId);
 
     try {
