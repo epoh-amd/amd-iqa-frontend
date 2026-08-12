@@ -285,20 +285,19 @@ const StartBuild = () => {
       }
       // If multiple builds, the auto-save hook will update with remaining builds automatically
 
-      // Remove build from UI after 3 seconds
+      // Remove build from UI after 3 seconds using chassisSN to avoid stale index
+      const savedChassisSN = build.systemInfo.chassisSN;
       setTimeout(() => {
-        const updatedBuilds = builds.filter((_, idx) => idx !== buildIndex);
-        if (updatedBuilds.length === 0) {
-          // Reset to single empty build
-          setBuilds([createEmptyBuild()]);
-          setCurrentStep('generalInfo');
-          setSystemInfoSubStep('chassisInfo');
-          // Ensure draft is cleared
-          autoSave.clearDraft();
-        } else {
-          setBuilds(updatedBuilds);
-          // Auto-save hook will save remaining builds automatically
-        }
+        setBuilds(prev => {
+          const updatedBuilds = prev.filter(b => b.systemInfo.chassisSN !== savedChassisSN);
+          if (updatedBuilds.length === 0) {
+            setCurrentStep('generalInfo');
+            setSystemInfoSubStep('chassisInfo');
+            autoSave.clearDraft();
+            return [createEmptyBuild()];
+          }
+          return updatedBuilds;
+        });
         save.setSaveResults([]);
       }, 3000);
 

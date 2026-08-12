@@ -62,7 +62,30 @@ const QualityIndicatorTable = ({
             ))}
             
             <th>Can Rework?</th>
-            <th className="save-actions-header">Actions</th>
+            <th className="save-actions-header">
+              Actions
+              {builds.some(b => b.qualityDetails?.fpyStatus === 'Pass') && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    for (let i = 0; i < builds.length; i++) {
+                      if (builds[i].qualityDetails?.fpyStatus === 'Pass' && builds[i].status !== 'success') {
+                        await (onSaveAsComplete && onSaveAsComplete(i));
+                      }
+                    }
+                  }}
+                  disabled={saving}
+                  style={{
+                    display: 'block', marginTop: '4px', fontSize: '11px',
+                    padding: '2px 8px', background: '#28a745', color: '#fff',
+                    border: 'none', borderRadius: '4px', cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Save All Pass
+                </button>
+              )}
+            </th>
           </tr>
         </thead>
         <tbody>
