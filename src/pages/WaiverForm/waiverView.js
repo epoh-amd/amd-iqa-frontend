@@ -7,6 +7,16 @@ import { generateWaiverPDFBase64 } from '../../utils/waiverPdfGenerator';
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 const toFileUrl = (filePath) => filePath ? `${BASE_URL}${filePath.replace('/drafts/', '/api/drafts/')}` : '';
 
+const normalizeFile = (val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val.filter(Boolean);
+    if (typeof val === 'string') {
+        try { const p = JSON.parse(val); if (Array.isArray(p)) return p.filter(Boolean); } catch {}
+        return [val];
+    }
+    return [];
+};
+
 const WAIVER_TYPE_TO_SECTION = {
     'Material Waiver': 'material',
     'Process Waiver': 'process',
@@ -65,13 +75,28 @@ const WaiverView = () => {
 
                 // Collect all uploaded file paths
                 const uploadedFilePaths = [];
-                (data.materialRows || []).forEach(r => {
-                    if (r.file_path || r.file) uploadedFilePaths.push(r.file_path || r.file);
-                });
+                const pushFile = (f) => {
+                    if (!f) return;
+                    if (Array.isArray(f)) { uploadedFilePaths.push(...f.filter(Boolean)); return; }
+                    if (typeof f === 'string') {
+                        try { const p = JSON.parse(f); if (Array.isArray(p)) { uploadedFilePaths.push(...p.filter(Boolean)); return; } } catch {}
+                        uploadedFilePaths.push(f);
+                    }
+                };
+                (data.materialRows || []).forEach(r => pushFile(r.file_path || r.file));
                 const pd = data.processData || {};
-                if (pd.areaFiles) Object.values(pd.areaFiles).forEach(f => { if (f) uploadedFilePaths.push(f); });
+                pushFile(pd.file);
+                if (pd.areaFiles) Object.values(pd.areaFiles).forEach(pushFile);
                 const td = data.testData || {};
-                if (td.areaFiles) Object.values(td.areaFiles).forEach(f => { if (f) uploadedFilePaths.push(f); });
+                pushFile(td.file);
+                if (td.areaFiles) Object.values(td.areaFiles).forEach(pushFile);
+                const sd = data.specData || {};
+                pushFile(sd.file1);
+                pushFile(sd.file2);
+                const rd = data.reworkData || {};
+                pushFile(rd.file);
+                const ld = data.labelData || {};
+                pushFile(ld.file);
 
                 const requestors = (() => {
                     try {
@@ -323,11 +348,14 @@ const WaiverView = () => {
                                             <td>{row.new_part_description || row.newPartDescription || '-'}</td>
                                             <td>{row.action || '-'}</td>
                                             <td>
-                                                {row.file_path || row.file ? (
-                                                    <a href={toFileUrl(row.file_path || row.file)} target="_blank" rel="noreferrer" className="file-link">
-                                                        {(row.file_path || row.file).split('/').pop()}
-                                                    </a>
-                                                ) : '-'}
+                                                {(() => {
+                                                    const files = normalizeFile(row.file_path || row.file);
+                                                    return files.length ? files.map((fp, i) => (
+                                                        <a key={i} href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link" style={{ display: 'block' }}>
+                                                            {fp.split('/').pop()}
+                                                        </a>
+                                                    )) : '-';
+                                                })()}
                                             </td>
                                         </tr>
                                         <tr>
@@ -361,13 +389,11 @@ const WaiverView = () => {
                             <div key={area} style={{ marginBottom: '12px', padding: '10px 12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
                                 <label style={{ fontWeight: 600, fontSize: '13px', display: 'block', marginBottom: '4px' }}>Instructions ({area}):</label>
                                 <span className="wv-value wv-multiline">{processData.areaInstructions?.[area] || '-'}</span>
-                                {processData.areaFiles?.[area] && (
-                                    <div style={{ marginTop: '6px' }}>
-                                        <a href={toFileUrl(processData.areaFiles[area])} target="_blank" rel="noreferrer" className="file-link">
-                                            {processData.areaFiles[area].split('/').pop()}
-                                        </a>
+                                {normalizeFile(processData.areaFiles?.[area]).map((fp, i) => (
+                                    <div key={i} style={{ marginTop: '4px' }}>
+                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
                                     </div>
-                                )}
+                                ))}
                             </div>
                         ))}
                     </div>
@@ -414,13 +440,11 @@ const WaiverView = () => {
                             <div key={area} style={{ marginBottom: '12px', padding: '10px 12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
                                 <label style={{ fontWeight: 600, fontSize: '13px', display: 'block', marginBottom: '4px' }}>Instructions ({area}):</label>
                                 <span className="wv-value wv-multiline">{testData.areaInstructions?.[area] || '-'}</span>
-                                {testData.areaFiles?.[area] && (
-                                    <div style={{ marginTop: '6px' }}>
-                                        <a href={toFileUrl(testData.areaFiles[area])} target="_blank" rel="noreferrer" className="file-link">
-                                            {testData.areaFiles[area].split('/').pop()}
-                                        </a>
+                                {normalizeFile(testData.areaFiles?.[area]).map((fp, i) => (
+                                    <div key={i} style={{ marginTop: '4px' }}>
+                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
                                     </div>
-                                )}
+                                ))}
                             </div>
                         ))}
                     </div>

@@ -121,31 +121,30 @@ const MaterialWaiverSection = ({
 
                     <td>
                       <div className="file-upload">
-                        {!row.file ? (
-                          <input
-                            type="file"
-                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx"
-                            onChange={(e) => handleMaterialFileChange(index, e.target.files[0])}
-                          />
-                        ) : (
-                          <div className="file-preview">
-                            <a
-                              href={toFileUrl(row.file)}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="file-link"
-                            >
-                              {row.file.split("/").pop()}
-                            </a>
-                            <button
-                              type="button"
-                              className="replace-btn"
-                              onClick={() => handleReplaceClick(index)}
-                            >
-                              Replace
-                            </button>
-                          </div>
-                        )}
+                        <input
+                          type="file"
+                          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx"
+                          multiple
+                          onChange={(e) => { handleMaterialFileChange(index, e.target.files); e.target.value = ''; }}
+                        />
+                        {(() => {
+                          const cur = row.file;
+                          let files = [];
+                          if (Array.isArray(cur)) files = cur;
+                          else if (typeof cur === 'string') {
+                            try { const p = JSON.parse(cur); files = Array.isArray(p) ? p : [cur]; } catch { files = [cur]; }
+                          }
+                          return files.map((fp, fi) => (
+                            <div key={fi} className="file-preview" style={{ marginBottom: '4px' }}>
+                              <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">
+                                {fp.split('/').pop()}
+                              </a>
+                              <button type="button" className="replace-btn" onClick={() => handleReplaceClick(index, fi)}>
+                                Remove
+                              </button>
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </td>
 

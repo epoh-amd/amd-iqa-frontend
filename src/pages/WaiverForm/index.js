@@ -171,6 +171,20 @@ const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Sel
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 const toFileUrl = (filePath) => filePath ? `${BASE_URL}${filePath.replace('/drafts/', '/api/drafts/')}` : '';
 
+// Normalize file field — handles string path, JSON string array, or real array
+const normalizeFile = (val) => {
+  if (!val) return null;
+  if (Array.isArray(val)) return val.length ? val : null;
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed.length ? parsed : null;
+    } catch {}
+    return val; // plain string path
+  }
+  return null;
+};
+
 // Returns today's date in YYYY-MM-DD using local timezone (not UTC)
 const getLocalToday = () => {
   const d = new Date();
@@ -339,7 +353,7 @@ const WaiverForm = () => {
           newPartDescription: r.new_part_description || r.newPartDescription || '',
           action: r.action || '',
           instructions: r.instructions || '',
-          file: r.file_path || r.file || null
+          file: normalizeFile(r.file_path || r.file)
         })));
         setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
         setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
@@ -400,7 +414,7 @@ const WaiverForm = () => {
           newPartDescription: r.new_part_description || r.newPartDescription || '',
           action: r.action || '',
           instructions: r.instructions || '',
-          file: r.file_path || r.file || null
+          file: normalizeFile(r.file_path || r.file)
         })));
         setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
         setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
@@ -524,7 +538,7 @@ const WaiverForm = () => {
           newPartDescription: r.new_part_description || r.newPartDescription || '',
           action: r.action || '',
           instructions: r.instructions || '',
-          file: r.file_path || r.file || null
+          file: normalizeFile(r.file_path || r.file)
         })));
         setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
         setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
@@ -734,17 +748,20 @@ const WaiverForm = () => {
     setMaterialRows(updated);
   };
 
-  const handleMaterialFileChange = async (index, file) => {
-    const updated = [...materialRows];
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await api.uploadDraft(formData);
-
-    updated[index].file = res.filePath;
-
-    setMaterialRows(updated);
+  const handleMaterialFileChange = async (index, files) => {
+    const fileList = files instanceof FileList ? Array.from(files) : [files];
+    for (const file of fileList) {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await api.uploadDraft(formData);
+      setMaterialRows(prev => {
+        const updated = [...prev];
+        const cur = updated[index].file;
+        const existing = Array.isArray(cur) ? cur : cur ? [cur] : [];
+        updated[index] = { ...updated[index], file: [...existing, res.filePath] };
+        return updated;
+      });
+    }
   };
 
   const handleProcessFileChange = async (file) => {
@@ -1170,14 +1187,14 @@ setTimeout(() => setPageMessage(null), 5000);
         newPartDescription: r.new_part_description || r.newPartDescription || '',
         action: r.action || '',
         instructions: r.instructions || '',
-        file: null
+        file: normalizeFile(r.file_path || r.file)
       })));
 
-      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: null });
-      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: null });
-      setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: null, file2: null });
-      setReworkData({ instructions: data.reworkData?.instructions || '', file: null });
-      setLabelData({ instructions: data.labelData?.instructions || '', file: null });
+      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+      setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
+      setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
+      setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
 
     } catch (err) {
       console.error('Duplicate failed:', err);
@@ -1473,25 +1490,25 @@ setTimeout(() => setPageMessage(null), 5000);
     }
   };
 
-  const handleReplaceClick = async (index) => {
+  const handleReplaceClick = async (index, fileIndex) => {
     const updated = [...materialRows];
+    const cur = updated[index].file;
+    const files = Array.isArray(cur) ? cur : cur ? [cur] : [];
 
-    const existingFile = updated[index].file;
+    const targetFile = fileIndex !== undefined ? files[fileIndex] : cur;
 
-    // 1. DELETE OLD FILE IMMEDIATELY
-    if (existingFile) {
-      try {
-        await api.deleteDraftFile({ filePath: existingFile });
-      } catch (err) {
+    if (targetFile) {
+      try { await api.deleteDraftFile({ filePath: targetFile }); } catch (err) {
         console.error("Failed to delete old file:", err);
       }
     }
 
-    // 2. CLEAR UI STATE
-    updated[index] = {
-      ...updated[index],
-      file: null
-    };
+    if (fileIndex !== undefined) {
+      const remaining = files.filter((_, i) => i !== fileIndex);
+      updated[index] = { ...updated[index], file: remaining.length ? remaining : null };
+    } else {
+      updated[index] = { ...updated[index], file: null };
+    }
 
     setMaterialRows(updated);
   };

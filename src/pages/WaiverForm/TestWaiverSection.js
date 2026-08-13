@@ -176,26 +176,39 @@ const TestWaiverSection = ({
               style={{ width: '100%', minHeight: '70px', padding: '6px 10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical', marginBottom: '8px' }}
             />
             <div className="file-upload">
-              {!testData.areaFiles?.[area] ? (
-                <input type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx" onChange={async (e) => {
-                  const file = e.target.files[0]; if (!file) return;
+              <input type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx" multiple onChange={async (e) => {
+                const files = Array.from(e.target.files);
+                e.target.value = '';
+                for (const file of files) {
                   const fd = new FormData(); fd.append('file', file);
                   try {
                     const res = await api.uploadDraft(fd);
-                    setTestData(prev => ({ ...prev, areaFiles: { ...prev.areaFiles, [area]: res.filePath } }));
+                    setTestData(prev => {
+                      const cur = prev.areaFiles?.[area];
+                      const existing = Array.isArray(cur) ? cur : cur ? [cur] : [];
+                      return { ...prev, areaFiles: { ...prev.areaFiles, [area]: [...existing, res.filePath] } };
+                    });
                   } catch (err) { console.error('Upload failed:', err); }
-                }} />
-              ) : (
-                <div className="file-preview">
-                  <a href={toFileUrl(testData.areaFiles[area])} target="_blank" rel="noreferrer" className="file-link">
-                    {testData.areaFiles[area].split('/').pop()}
-                  </a>
-                  <button type="button" className="replace-btn" onClick={async () => {
-                    try { await api.deleteDraftFile({ filePath: testData.areaFiles[area] }); } catch {}
-                    setTestData(prev => ({ ...prev, areaFiles: { ...prev.areaFiles, [area]: null } }));
-                  }}>Replace</button>
-                </div>
-              )}
+                }
+              }} />
+              {(() => {
+                const cur = testData.areaFiles?.[area];
+                const files = Array.isArray(cur) ? cur : cur ? [cur] : [];
+                return files.map((fp, fi) => (
+                  <div key={fi} className="file-preview" style={{ marginBottom: '4px' }}>
+                    <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                    <button type="button" className="replace-btn" onClick={async () => {
+                      try { await api.deleteDraftFile({ filePath: fp }); } catch {}
+                      setTestData(prev => {
+                        const c = prev.areaFiles?.[area];
+                        const arr = Array.isArray(c) ? c : c ? [c] : [];
+                        const updated = arr.filter((_, i) => i !== fi);
+                        return { ...prev, areaFiles: { ...prev.areaFiles, [area]: updated.length ? updated : null } };
+                      });
+                    }}>Remove</button>
+                  </div>
+                ));
+              })()}
             </div>
           </div>
         ))}
