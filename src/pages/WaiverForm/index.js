@@ -174,11 +174,12 @@ const toFileUrl = (filePath) => filePath ? `${BASE_URL}${filePath.replace('/draf
 // Normalize file field — handles string path, JSON string array, or real array
 const normalizeFile = (val) => {
   if (!val) return null;
-  if (Array.isArray(val)) return val.length ? val : null;
+  if (Array.isArray(val)) return val.length ? val.filter(Boolean) : null;
   if (typeof val === 'string') {
     try {
-      const parsed = JSON.parse(val);
-      if (Array.isArray(parsed)) return parsed.length ? parsed : null;
+      let parsed = JSON.parse(val);
+      if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean).length ? parsed.filter(Boolean) : null;
     } catch {}
     return val; // plain string path
   }
@@ -1373,7 +1374,7 @@ setTimeout(() => setPageMessage(null), 5000);
         newPartDescription: r.new_part_description || r.newPartDescription || '',
         action: r.action || '',
         instructions: r.instructions || '',
-        file: r.file_path || r.file || null
+        file: normalizeFile(r.file_path || r.file)
       })));
       setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
       setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
@@ -1427,7 +1428,7 @@ setTimeout(() => setPageMessage(null), 5000);
         newPartDescription: r.new_part_description || r.newPartDescription || '',
         action: r.action || '',
         instructions: r.instructions || '',
-        file: r.file_path || r.file || null
+        file: normalizeFile(r.file_path || r.file)
       })));
       setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
       setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: null });
@@ -1476,7 +1477,7 @@ setTimeout(() => setPageMessage(null), 5000);
         newPartDescription: r.new_part_description || r.newPartDescription || '',
         action: r.action || '',
         instructions: r.instructions || '',
-        file: r.file_path || r.file || null
+        file: normalizeFile(r.file_path || r.file)
       })));
       setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
       setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });

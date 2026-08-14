@@ -7,11 +7,45 @@ import { generateWaiverPDFBase64 } from '../../utils/waiverPdfGenerator';
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 const toFileUrl = (filePath) => filePath ? `${BASE_URL}${filePath.replace('/drafts/', '/api/drafts/')}` : '';
 
+// Render instructions as HTML — handles both plain text (legacy) and rich HTML (contenteditable).
+// Plain text: escape special chars then convert \n → <br>.
+// HTML content: pass through as-is (already has <br>/<div>/<img> tags).
+const renderInstructions = (text) => {
+    if (!text) return '-';
+    // Detect HTML produced by the contenteditable editor
+    if (/(<br\s*\/?>|<div[\s>]|<img[\s>]|<p[\s>])/i.test(text)) {
+        // Normalize block elements → <br> so content renders correctly inside
+        // an inline/block span without invalid nesting collapsing line breaks.
+        return text
+            .replace(/<div[^>]*>\s*<br\s*\/?>\s*<\/div>/gi, '<br>') // empty line
+            .replace(/<div[^>]*>/gi, '<br>')
+            .replace(/<\/div>/gi, '')
+            .replace(/<p[^>]*>/gi, '<br>')
+            .replace(/<\/p>/gi, '')
+            .replace(/\r\n/g, '<br>')
+            .replace(/\r/g, '<br>')
+            .replace(/\n/g, '<br>')
+            .replace(/^(<br\s*\/?>)+/i, ''); // strip any leading <br>
+    }
+    // Plain text (legacy records) — escape entities then convert newlines
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\r\n/g, '<br>')
+        .replace(/\r/g, '<br>')
+        .replace(/\n/g, '<br>');
+};
+
 const normalizeFile = (val) => {
     if (!val) return [];
     if (Array.isArray(val)) return val.filter(Boolean);
     if (typeof val === 'string') {
-        try { const p = JSON.parse(val); if (Array.isArray(p)) return p.filter(Boolean); } catch {}
+        try {
+            let p = JSON.parse(val);
+            if (typeof p === 'string') p = JSON.parse(p);
+            if (Array.isArray(p)) return p.filter(Boolean);
+        } catch {}
         return [val];
     }
     return [];
@@ -360,7 +394,11 @@ const WaiverView = () => {
                                         </tr>
                                         <tr>
                                             <td colSpan="8" style={{ background: '#fafafa', padding: '6px 12px', fontSize: '13px' }}>
-                                                <strong>Instructions:</strong> {row.instructions || '-'}
+                                                <strong>Instructions:</strong>
+                                                <span
+                                                    className="wv-multiline"
+                                                    dangerouslySetInnerHTML={{ __html: renderInstructions(row.instructions) }}
+                                                />
                                             </td>
                                         </tr>
                                         </React.Fragment>
@@ -388,7 +426,7 @@ const WaiverView = () => {
                         {Array.isArray(processData.areas) && processData.areas.map(area => (
                             <div key={area} style={{ marginBottom: '12px', padding: '10px 12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
                                 <label style={{ fontWeight: 600, fontSize: '13px', display: 'block', marginBottom: '4px' }}>Instructions ({area}):</label>
-                                <span className="wv-value wv-multiline">{processData.areaInstructions?.[area] || '-'}</span>
+                                <span className="wv-value wv-multiline" dangerouslySetInnerHTML={{ __html: renderInstructions(processData.areaInstructions?.[area]) }} />
                                 {normalizeFile(processData.areaFiles?.[area]).map((fp, i) => (
                                     <div key={i} style={{ marginTop: '4px' }}>
                                         <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
@@ -439,7 +477,7 @@ const WaiverView = () => {
                         {Array.isArray(testData.areas) && testData.areas.map(area => (
                             <div key={area} style={{ marginBottom: '12px', padding: '10px 12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
                                 <label style={{ fontWeight: 600, fontSize: '13px', display: 'block', marginBottom: '4px' }}>Instructions ({area}):</label>
-                                <span className="wv-value wv-multiline">{testData.areaInstructions?.[area] || '-'}</span>
+                                <span className="wv-value wv-multiline" dangerouslySetInnerHTML={{ __html: renderInstructions(testData.areaInstructions?.[area]) }} />
                                 {normalizeFile(testData.areaFiles?.[area]).map((fp, i) => (
                                     <div key={i} style={{ marginTop: '4px' }}>
                                         <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>

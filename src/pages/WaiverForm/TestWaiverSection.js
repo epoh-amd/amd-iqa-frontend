@@ -1,5 +1,6 @@
 import React from 'react';
 import api from '../../services/api';
+import PasteImageTextarea from './PasteImageTextarea';
 
 const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Select...' }) => {
   const [open, setOpen] = React.useState(false);
@@ -169,11 +170,12 @@ const TestWaiverSection = ({
             <label style={{ display: 'block', fontWeight: 600, marginBottom: '6px', fontSize: '13px' }}>
               Instructions ({area}) <span style={{ color: '#dc3545' }}>*</span>
             </label>
-            <textarea
+            <PasteImageTextarea
               value={testData.areaInstructions?.[area] || ''}
               onChange={(e) => setTestData({ ...testData, areaInstructions: { ...testData.areaInstructions, [area]: e.target.value } })}
-              placeholder={`Instructions for ${area}...`}
-              style={{ width: '100%', minHeight: '70px', padding: '6px 10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical', marginBottom: '8px' }}
+              toFileUrl={toFileUrl}
+              placeholder={`Instructions for ${area}... (Ctrl+V to paste image)`}
+              style={{ width: '100%', minHeight: '70px', padding: '6px 10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px', boxSizing: 'border-box', marginBottom: '8px' }}
             />
             <div className="file-upload">
               <input type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx" multiple onChange={async (e) => {

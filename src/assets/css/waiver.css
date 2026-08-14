@@ -704,6 +704,14 @@
   line-height: 1.5;
 }
 
+.wv-multiline img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 4px 0;
+  border-radius: 3px;
+}
+
 .wv-tag {
   display: inline-block;
   padding: 4px 12px;

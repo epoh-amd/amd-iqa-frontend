@@ -1,5 +1,6 @@
 import React from 'react';
 import { downloadMaterialWaiverTemplate } from './materialWaiverImport';
+import PasteImageTextarea from './PasteImageTextarea';
 
 const MaterialWaiverSection = ({
   openSection, toggleSection,
@@ -165,11 +166,12 @@ const MaterialWaiverSection = ({
                         <label style={{ whiteSpace: 'nowrap', fontWeight: 600, fontSize: '13px', paddingTop: '6px', minWidth: '80px' }}>
                           Instructions <span style={{ color: '#dc3545' }}>*</span>
                         </label>
-                        <textarea
+                        <PasteImageTextarea
                           className="table-textarea"
-                          placeholder="Instructions..."
+                          placeholder="Instructions... (Ctrl+V to paste image)"
                           value={row.instructions || ""}
                           onChange={(e) => handleMaterialChange(index, "instructions", e.target.value)}
+                          toFileUrl={toFileUrl}
                           style={{ flex: 1, minHeight: '60px' }}
                         />
                       </div>
