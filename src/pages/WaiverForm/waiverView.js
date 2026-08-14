@@ -113,7 +113,11 @@ const WaiverView = () => {
                     if (!f) return;
                     if (Array.isArray(f)) { uploadedFilePaths.push(...f.filter(Boolean)); return; }
                     if (typeof f === 'string') {
-                        try { const p = JSON.parse(f); if (Array.isArray(p)) { uploadedFilePaths.push(...p.filter(Boolean)); return; } } catch {}
+                        try {
+                            let p = JSON.parse(f);
+                            if (typeof p === 'string') p = JSON.parse(p); // handle double-encoded
+                            if (Array.isArray(p)) { uploadedFilePaths.push(...p.filter(Boolean)); return; }
+                        } catch {}
                         uploadedFilePaths.push(f);
                     }
                 };
