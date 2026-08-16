@@ -127,10 +127,12 @@ const TestWaiverSection = ({
                     />
                   </td>
                   <td>
-                    <input
+                    <textarea
                       className="table-input"
                       placeholder="Refdes"
                       value={row.refdes || ''}
+                      rows={2}
+                      style={{ resize: 'vertical', minHeight: '36px' }}
                       onChange={(e) => {
                         const rows = [...testData.rows];
                         rows[idx] = { ...rows[idx], refdes: e.target.value };
