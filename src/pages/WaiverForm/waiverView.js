@@ -125,9 +125,15 @@ const WaiverView = () => {
                 const pd = data.processData || {};
                 pushFile(pd.file);
                 if (pd.areaFiles) Object.values(pd.areaFiles).forEach(pushFile);
+                if (pd.otherFiles) pushFile(pd.otherFiles);
                 const td = data.testData || {};
                 pushFile(td.file);
                 if (td.areaFiles) Object.values(td.areaFiles).forEach(pushFile);
+                if (td.otherFiles) pushFile(td.otherFiles);
+                const ma = data.material_attachment || {};
+                console.log('[email] material_attachment:', JSON.stringify(ma));
+                console.log('[email] pd.otherFiles:', pd.otherFiles, 'td.otherFiles:', td.otherFiles, 'ma.otherFiles:', ma.otherFiles);
+                if (ma.otherFiles) pushFile(ma.otherFiles);
                 const sd = data.specData || {};
                 pushFile(sd.file1);
                 pushFile(sd.file2);
@@ -201,6 +207,7 @@ const WaiverView = () => {
         materialRows = [],
         processData = {}, testData = {}, specData = {},
         reworkData = {}, labelData = {},
+        material_attachment: materialAttachment = {},
     } = data;
 
     const openSections = (waiverType || []).map(t => WAIVER_TYPE_TO_SECTION[t]).filter(Boolean);
@@ -410,6 +417,19 @@ const WaiverView = () => {
                                 </tbody>
                             </table>
                         </div>
+                        {(materialAttachment.otherNotes || normalizeFile(materialAttachment.otherFiles).length > 0) && (
+                            <div style={{ marginTop: '12px', padding: '10px 12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
+                                <label style={{ fontWeight: 600, fontSize: '13px', display: 'block', marginBottom: '4px' }}>Other Attachment:</label>
+                                {materialAttachment.otherNotes && (
+                                    <span className="wv-value wv-multiline" dangerouslySetInnerHTML={{ __html: renderInstructions(materialAttachment.otherNotes) }} />
+                                )}
+                                {normalizeFile(materialAttachment.otherFiles).map((fp, i) => (
+                                    <div key={i} style={{ marginTop: '4px' }}>
+                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -438,6 +458,19 @@ const WaiverView = () => {
                                 ))}
                             </div>
                         ))}
+                        {(processData.otherNotes || normalizeFile(processData.otherFiles).length > 0) && (
+                            <div style={{ marginTop: '12px', padding: '10px 12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
+                                <label style={{ fontWeight: 600, fontSize: '13px', display: 'block', marginBottom: '4px' }}>Other Attachment:</label>
+                                {processData.otherNotes && (
+                                    <span className="wv-value wv-multiline" dangerouslySetInnerHTML={{ __html: renderInstructions(processData.otherNotes) }} />
+                                )}
+                                {normalizeFile(processData.otherFiles).map((fp, i) => (
+                                    <div key={i} style={{ marginTop: '4px' }}>
+                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -489,6 +522,19 @@ const WaiverView = () => {
                                 ))}
                             </div>
                         ))}
+                        {(testData.otherNotes || normalizeFile(testData.otherFiles).length > 0) && (
+                            <div style={{ marginTop: '12px', padding: '10px 12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
+                                <label style={{ fontWeight: 600, fontSize: '13px', display: 'block', marginBottom: '4px' }}>Other Attachment:</label>
+                                {testData.otherNotes && (
+                                    <span className="wv-value wv-multiline" dangerouslySetInnerHTML={{ __html: renderInstructions(testData.otherNotes) }} />
+                                )}
+                                {normalizeFile(testData.otherFiles).map((fp, i) => (
+                                    <div key={i} style={{ marginTop: '4px' }}>
+                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

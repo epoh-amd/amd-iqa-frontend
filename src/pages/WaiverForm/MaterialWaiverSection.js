@@ -14,7 +14,21 @@ const MaterialWaiverSection = ({
   removeMaterialRow,
   addMaterialRow,
   toFileUrl,
-}) => (
+  materialOtherNotes,
+  setMaterialOtherNotes,
+  materialOtherFiles,
+  handleMaterialOtherFileChange,
+  handleMaterialOtherFileRemove,
+}) => {
+  const [showOther, setShowOther] = React.useState(false);
+
+  React.useEffect(() => {
+    if (materialOtherNotes || (materialOtherFiles && materialOtherFiles.length > 0)) {
+      setShowOther(true);
+    }
+  }, [materialOtherNotes, materialOtherFiles]);
+
+  return (
   <div className="accordion">
     <div className="accordion-header">
       Material Waiver Details
@@ -168,7 +182,7 @@ const MaterialWaiverSection = ({
                         </label>
                         <PasteImageTextarea
                           className="table-textarea"
-                          placeholder="Instructions... (Ctrl+V to paste image)"
+                          placeholder="Instructions..."
                           value={row.instructions || ""}
                           onChange={(e) => handleMaterialChange(index, "instructions", e.target.value)}
                           toFileUrl={toFileUrl}
@@ -177,6 +191,7 @@ const MaterialWaiverSection = ({
                       </div>
                     </td>
                   </tr>
+
                 </React.Fragment>
               ))}
             </tbody>
@@ -190,7 +205,7 @@ const MaterialWaiverSection = ({
           <button
             type="button"
             className="add-btn"
-            style={{ marginLeft: '8px', background: '#0d6efd', borderColor: '#0d6efd' }}
+            style={{ marginLeft: '8px', background: '#198754', borderColor: '#198754' }}
             onClick={() => materialImportRef.current && materialImportRef.current.click()}
           >
             Import
@@ -210,11 +225,56 @@ const MaterialWaiverSection = ({
           >
             Download Template
           </button>
+          <button
+            type="button"
+            className="add-btn"
+            style={{ marginLeft: '8px', ...(showOther && { background: '#dc3545', borderColor: '#dc3545' }) }}
+            onClick={async () => {
+              if (showOther) {
+                for (let i = (materialOtherFiles || []).length - 1; i >= 0; i--) {
+                  await handleMaterialOtherFileRemove(i);
+                }
+                setMaterialOtherNotes('');
+                setShowOther(false);
+              } else {
+                setShowOther(true);
+              }
+            }}
+          >
+            {showOther ? 'Clear Attachment' : 'Attach'}
+          </button>
         </div>
+
+        {showOther && (
+          <div style={{ marginTop: '16px', padding: '12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
+            <label style={{ display: 'block', fontWeight: 600, marginBottom: '6px', fontSize: '13px' }}>Other Attachment</label>
+            <textarea
+              placeholder="Notes for other attachment... (optional)"
+              value={materialOtherNotes || ''}
+              onChange={(e) => setMaterialOtherNotes(e.target.value)}
+              style={{ width: '100%', minHeight: '60px', padding: '6px 10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical', marginBottom: '8px' }}
+            />
+            <div className="file-upload">
+              <input
+                type="file"
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx"
+                multiple
+                onChange={(e) => { handleMaterialOtherFileChange(e.target.files); e.target.value = ''; }}
+              />
+              {(materialOtherFiles || []).map((fp, fi) => (
+                <div key={fi} className="file-preview" style={{ marginBottom: '4px' }}>
+                  <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                  <button type="button" className="replace-btn" onClick={() => handleMaterialOtherFileRemove(fi)}>Remove</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     )}
   </div>
-);
+  );
+};
 
 export default MaterialWaiverSection;

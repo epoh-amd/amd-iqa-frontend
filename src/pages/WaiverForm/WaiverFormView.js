@@ -168,6 +168,8 @@ const WaiverFormView = ({
   materialRows, materialActions, materialImportRef,
   handleMaterialChange, handleMaterialFileChange, handleMaterialImport,
   handleReplaceClick, removeMaterialRow, addMaterialRow, toFileUrl,
+  materialOtherNotes, setMaterialOtherNotes, materialOtherFiles,
+  handleMaterialOtherFileChange, handleMaterialOtherFileRemove,
   processData, setProcessData, PROCESS_AREAS, handleFileChange, handleReplace,
   testData, setTestData, TEST_AREAS,
   submitMessage, submitting,
@@ -423,6 +425,11 @@ const WaiverFormView = ({
         removeMaterialRow={removeMaterialRow}
         addMaterialRow={addMaterialRow}
         toFileUrl={toFileUrl}
+        materialOtherNotes={materialOtherNotes}
+        setMaterialOtherNotes={setMaterialOtherNotes}
+        materialOtherFiles={materialOtherFiles}
+        handleMaterialOtherFileChange={handleMaterialOtherFileChange}
+        handleMaterialOtherFileRemove={handleMaterialOtherFileRemove}
       />
 
       {/* Process Waiver Section */}

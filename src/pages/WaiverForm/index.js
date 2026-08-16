@@ -291,11 +291,13 @@ const WaiverForm = () => {
 
         setOpenSection(data.openSection ?? []);
 
-        setProcessData(data.processData ?? { areas: [], areaInstructions: {}, areaFiles: {}, instructions: "", file: null });
-        setTestData(data.testData ?? { rows: [{ currentPart: '', toBePart: '', refdes: '' }], areas: [], areaInstructions: {}, areaFiles: {}, instructions: "", file: null });
+        setProcessData(data.processData ?? { areas: [], areaInstructions: {}, areaFiles: {}, otherNotes: '', otherFiles: [], instructions: "", file: null });
+        setTestData(data.testData ?? { rows: [{ currentPart: '', toBePart: '', refdes: '' }], areas: [], areaInstructions: {}, areaFiles: {}, otherNotes: '', otherFiles: [], instructions: "", file: null });
         setSpecData(data.specData ?? { specImpact: "", instructions: "", file1: null, file2: null });
         setReworkData(data.reworkData ?? { instructions: "", file: null });
         setLabelData(data.labelData ?? { instructions: "", file: null });
+        setMaterialOtherNotes(data.materialOtherNotes || '');
+        setMaterialOtherFiles(data.materialOtherFiles || []);
       } catch (err) {
         console.error("Load draft failed:", err);
       }
@@ -356,11 +358,13 @@ const WaiverForm = () => {
           instructions: r.instructions || '',
           file: normalizeFile(r.file_path || r.file)
         })));
-        setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-        setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+        setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, otherNotes: data.processData?.otherNotes || '', otherFiles: data.processData?.otherFiles || [], instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+        setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, otherNotes: data.testData?.otherNotes || '', otherFiles: data.testData?.otherFiles || [], instructions: data.testData?.instructions || '', file: data.testData?.file || null });
         setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
         setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
         setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+        setMaterialOtherNotes(data.material_attachment?.otherNotes || data.materialOtherNotes || '');
+        setMaterialOtherFiles(data.material_attachment?.otherFiles || data.materialOtherFiles || []);
         setWaiverStatus(data.status || null);
         setShowForm(true);
       } catch (err) {
@@ -417,11 +421,13 @@ const WaiverForm = () => {
           instructions: r.instructions || '',
           file: normalizeFile(r.file_path || r.file)
         })));
-        setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-        setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+        setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, otherNotes: data.processData?.otherNotes || '', otherFiles: data.processData?.otherFiles || [], instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+        setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, otherNotes: data.testData?.otherNotes || '', otherFiles: data.testData?.otherFiles || [], instructions: data.testData?.instructions || '', file: data.testData?.file || null });
         setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
         setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
         setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+        setMaterialOtherNotes(data.material_attachment?.otherNotes || data.materialOtherNotes || '');
+        setMaterialOtherFiles(data.material_attachment?.otherFiles || data.materialOtherFiles || []);
         setWaiverStatus(data.status || null);
         setShowForm(true);
       } catch (err) {
@@ -486,6 +492,8 @@ const WaiverForm = () => {
         setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: null, file2: null });
         setReworkData({ instructions: data.reworkData?.instructions || '', file: null });
         setLabelData({ instructions: data.labelData?.instructions || '', file: null });
+        setMaterialOtherNotes('');
+        setMaterialOtherFiles([]);
         setWaiverStatus('New');
         setShowForm(true);
       } catch (err) {
@@ -541,11 +549,13 @@ const WaiverForm = () => {
           instructions: r.instructions || '',
           file: normalizeFile(r.file_path || r.file)
         })));
-        setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-        setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+        setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, otherNotes: data.processData?.otherNotes || '', otherFiles: data.processData?.otherFiles || [], instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+        setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, otherNotes: data.testData?.otherNotes || '', otherFiles: data.testData?.otherFiles || [], instructions: data.testData?.instructions || '', file: data.testData?.file || null });
         setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
         setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
         setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+        setMaterialOtherNotes(data.material_attachment?.otherNotes || data.materialOtherNotes || '');
+        setMaterialOtherFiles(data.material_attachment?.otherFiles || data.materialOtherFiles || []);
         setWaiverStatus(data.status || null);
         setShowForm(true);
       } catch (err) {
@@ -610,7 +620,9 @@ const WaiverForm = () => {
       newPartDescription: "",
       action: "",
       instructions: "",
-      file: ""
+      file: "",
+      otherNotes: "",
+      otherFile: null
     }
   ]);
 
@@ -620,6 +632,8 @@ const WaiverForm = () => {
     areas: [],
     areaInstructions: {},
     areaFiles: {},
+    otherNotes: "",
+    otherFiles: [],
     instructions: "",
     file: null
   });
@@ -631,6 +645,8 @@ const WaiverForm = () => {
     areas: [],
     areaInstructions: {},
     areaFiles: {},
+    otherNotes: "",
+    otherFiles: [],
     instructions: "",
     file: null
   });
@@ -652,6 +668,9 @@ const WaiverForm = () => {
     file: null
   });
 
+  const [materialOtherNotes, setMaterialOtherNotes] = useState("");
+  const [materialOtherFiles, setMaterialOtherFiles] = useState([]);
+
   useEffect(() => {
     if (!userId) return;
     // Don't save to drafts when editing an existing waiver from All Forms
@@ -672,6 +691,8 @@ const WaiverForm = () => {
           userId,
           formData,
           materialRows,
+          materialOtherNotes,
+          materialOtherFiles,
           processData,
           testData,
           specData,
@@ -690,7 +711,7 @@ const WaiverForm = () => {
     return () => clearTimeout(timeout);
   }, [userId,
     formData,
-    materialRows,
+    materialRows, materialOtherNotes, materialOtherFiles,
     processData,
     testData,
     specData,
@@ -722,6 +743,8 @@ const WaiverForm = () => {
           submittedBy: user?.full_name || user?.email || '',
           status: waiverStatus || 'New',
           materialRows: activeTypes.includes('Material Waiver') ? materialRows : [],
+          materialOtherNotes: activeTypes.includes('Material Waiver') ? materialOtherNotes : '',
+          materialOtherFiles: activeTypes.includes('Material Waiver') ? materialOtherFiles : [],
           processData: activeTypes.includes('Process Waiver') ? processData : { areas: [], areaInstructions: {}, areaFiles: {}, instructions: '', file: null },
           testData: activeTypes.includes('Test Waiver') ? testData : { rows: [{ currentPart: '', toBePart: '', refdes: '' }], areas: [], areaInstructions: {}, areaFiles: {}, instructions: '', file: null },
           specData: activeTypes.includes('Spec Deviation') ? specData : { specImpact: '', instructions: '', file1: null, file2: null },
@@ -739,7 +762,7 @@ const WaiverForm = () => {
 
     return () => clearTimeout(timeout);
   }, [requestorEditMode, waiverId,
-    formData, materialRows, processData,
+    formData, materialRows, materialOtherNotes, materialOtherFiles, processData,
     testData, specData, reworkData, labelData, openSection]);
 
 
@@ -763,6 +786,22 @@ const WaiverForm = () => {
         return updated;
       });
     }
+  };
+
+  const handleMaterialOtherFileChange = async (files) => {
+    const fileList = files instanceof FileList ? Array.from(files) : [files];
+    for (const file of fileList) {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await api.uploadDraft(formData);
+      setMaterialOtherFiles(prev => [...prev, res.filePath]);
+    }
+  };
+
+  const handleMaterialOtherFileRemove = async (fileIndex) => {
+    const target = materialOtherFiles[fileIndex];
+    if (target) { try { await api.deleteDraftFile({ filePath: target }); } catch {} }
+    setMaterialOtherFiles(prev => prev.filter((_, i) => i !== fileIndex));
   };
 
   const handleProcessFileChange = async (file) => {
@@ -875,7 +914,7 @@ const WaiverForm = () => {
   const addMaterialRow = () => {
     setMaterialRows([
       ...materialRows,
-      { currentPart: "", newPart: "", actions: [], instructions: "" }
+      { currentPart: "", newPart: "", actions: [], instructions: "", otherNotes: "", otherFile: null }
     ]);
   };
 
@@ -978,6 +1017,8 @@ const WaiverForm = () => {
         workorderQty: formData.workorderQty,
         submittedBy: user?.full_name || user?.email || '',
         materialRows: activeTypes.includes('Material Waiver') ? materialRows : [],
+        materialOtherNotes: activeTypes.includes('Material Waiver') ? materialOtherNotes : '',
+        materialOtherFiles: activeTypes.includes('Material Waiver') ? materialOtherFiles : [],
         processData: activeTypes.includes('Process Waiver') ? processData : { areas: [], areaInstructions: {}, areaFiles: {}, instructions: '', file: null },
         testData: activeTypes.includes('Test Waiver') ? testData : { rows: [{ currentPart: '', toBePart: '', refdes: '' }], areas: [], areaInstructions: {}, areaFiles: {}, instructions: '', file: null },
         specData: activeTypes.includes('Spec Deviation') ? specData : { specImpact: '', instructions: '', file1: null, file2: null },
@@ -1191,11 +1232,13 @@ setTimeout(() => setPageMessage(null), 5000);
         file: normalizeFile(r.file_path || r.file)
       })));
 
-      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, otherNotes: data.processData?.otherNotes || '', otherFiles: data.processData?.otherFiles || [], instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, otherNotes: data.testData?.otherNotes || '', otherFiles: data.testData?.otherFiles || [], instructions: data.testData?.instructions || '', file: data.testData?.file || null });
       setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
       setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
       setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+      setMaterialOtherNotes(data.material_attachment?.otherNotes || data.materialOtherNotes || '');
+      setMaterialOtherFiles(data.material_attachment?.otherFiles || data.materialOtherFiles || []);
 
     } catch (err) {
       console.error('Duplicate failed:', err);
@@ -1276,6 +1319,8 @@ setTimeout(() => setPageMessage(null), 5000);
     setSpecData({ specImpact: '', instructions: '', file1: null, file2: null });
     setReworkData({ instructions: '', file: null });
     setLabelData({ instructions: '', file: null });
+    setMaterialOtherNotes('');
+    setMaterialOtherFiles([]);
 
     setShowForm(true);
   };
@@ -1376,11 +1421,13 @@ setTimeout(() => setPageMessage(null), 5000);
         instructions: r.instructions || '',
         file: normalizeFile(r.file_path || r.file)
       })));
-      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, otherNotes: data.processData?.otherNotes || '', otherFiles: data.processData?.otherFiles || [], instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, otherNotes: data.testData?.otherNotes || '', otherFiles: data.testData?.otherFiles || [], instructions: data.testData?.instructions || '', file: data.testData?.file || null });
       setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
       setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
       setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+      setMaterialOtherNotes(data.material_attachment?.otherNotes || data.materialOtherNotes || '');
+      setMaterialOtherFiles(data.material_attachment?.otherFiles || data.materialOtherFiles || []);
       setWaiverStatus(data.status || null);
       setShowForm(true);
     } catch (err) {
@@ -1430,8 +1477,10 @@ setTimeout(() => setPageMessage(null), 5000);
         instructions: r.instructions || '',
         file: normalizeFile(r.file_path || r.file)
       })));
-      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: null });
+      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, otherNotes: data.processData?.otherNotes || '', otherFiles: data.processData?.otherFiles || [], instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, otherNotes: data.testData?.otherNotes || '', otherFiles: data.testData?.otherFiles || [], instructions: data.testData?.instructions || '', file: null });
+      setMaterialOtherNotes(data.material_attachment?.otherNotes || '');
+      setMaterialOtherFiles(data.material_attachment?.otherFiles || []);
       setWaiverStatus('Approved');
       setShowForm(true);
     } catch (err) {
@@ -1479,11 +1528,13 @@ setTimeout(() => setPageMessage(null), 5000);
         instructions: r.instructions || '',
         file: normalizeFile(r.file_path || r.file)
       })));
-      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, instructions: data.testData?.instructions || '', file: data.testData?.file || null });
+      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, otherNotes: data.processData?.otherNotes || '', otherFiles: data.processData?.otherFiles || [], instructions: data.processData?.instructions || '', file: data.processData?.file || null });
+      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, otherNotes: data.testData?.otherNotes || '', otherFiles: data.testData?.otherFiles || [], instructions: data.testData?.instructions || '', file: data.testData?.file || null });
       setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
       setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
       setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+      setMaterialOtherNotes(data.material_attachment?.otherNotes || '');
+      setMaterialOtherFiles(data.material_attachment?.otherFiles || []);
       setWaiverStatus(data.status || null);
       setShowForm(true);
     } catch (err) {
@@ -1647,6 +1698,11 @@ setTimeout(() => setPageMessage(null), 5000);
           removeMaterialRow={removeMaterialRow}
           addMaterialRow={addMaterialRow}
           toFileUrl={toFileUrl}
+          materialOtherNotes={materialOtherNotes}
+          setMaterialOtherNotes={setMaterialOtherNotes}
+          materialOtherFiles={materialOtherFiles}
+          handleMaterialOtherFileChange={handleMaterialOtherFileChange}
+          handleMaterialOtherFileRemove={handleMaterialOtherFileRemove}
           processData={processData}
           setProcessData={setProcessData}
           PROCESS_AREAS={PROCESS_AREAS}

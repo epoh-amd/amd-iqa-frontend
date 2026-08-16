@@ -70,7 +70,16 @@ const TestWaiverSection = ({
   setTestData,
   TEST_AREAS,
   toFileUrl,
-}) => (
+}) => {
+  const [showOther, setShowOther] = React.useState(false);
+
+  React.useEffect(() => {
+    if (testData.otherNotes || (testData.otherFiles && testData.otherFiles.length > 0)) {
+      setShowOther(true);
+    }
+  }, [testData.otherNotes, testData.otherFiles]);
+
+  return (
   <div className="accordion">
     <div className="accordion-header">
       Test Waiver Details
@@ -156,8 +165,7 @@ const TestWaiverSection = ({
             onChange={(selected) => {
               const newAreaInstructions = { ...testData.areaInstructions };
               const newAreaFiles = { ...testData.areaFiles };
-              Object.keys(newAreaInstructions).forEach(k => { if (!selected.includes(k)) delete newAreaInstructions[k]; });
-              Object.keys(newAreaFiles).forEach(k => { if (!selected.includes(k)) delete newAreaFiles[k]; });
+              Object.keys(newAreaInstructions).forEach(k => { if (!selected.includes(k)) { delete newAreaInstructions[k]; delete newAreaFiles[k]; } });
               setTestData({ ...testData, areas: selected, areaInstructions: newAreaInstructions, areaFiles: newAreaFiles });
             }}
             placeholder="Select area(s)..."
@@ -174,7 +182,7 @@ const TestWaiverSection = ({
               value={testData.areaInstructions?.[area] || ''}
               onChange={(e) => setTestData({ ...testData, areaInstructions: { ...testData.areaInstructions, [area]: e.target.value } })}
               toFileUrl={toFileUrl}
-              placeholder={`Instructions for ${area}... (Ctrl+V to paste image)`}
+              placeholder={`Instructions for ${area}...`}
               style={{ width: '100%', minHeight: '70px', padding: '6px 10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px', boxSizing: 'border-box', marginBottom: '8px' }}
             />
             <div className="file-upload">
@@ -212,12 +220,69 @@ const TestWaiverSection = ({
                 ));
               })()}
             </div>
+
           </div>
         ))}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+          <button
+            type="button"
+            className="add-btn"
+            style={{ ...(showOther && { background: '#dc3545', borderColor: '#dc3545' }) }}
+            onClick={async () => {
+              if (showOther) {
+                for (const fp of (testData.otherFiles || [])) {
+                  try { await api.deleteDraftFile({ filePath: fp }); } catch {}
+                }
+                setTestData(prev => ({ ...prev, otherNotes: '', otherFiles: [] }));
+                setShowOther(false);
+              } else {
+                setShowOther(true);
+              }
+            }}
+          >
+            {showOther ? 'Clear Attachment' : 'Attach'}
+          </button>
+        </div>
+
+        {showOther && (
+          <div style={{ marginTop: '12px', padding: '12px', border: '1px solid #e9ecef', borderRadius: '6px', background: '#fafafa' }}>
+            <label style={{ display: 'block', fontWeight: 600, marginBottom: '6px', fontSize: '13px' }}>Other Attachment</label>
+            <textarea
+              value={testData.otherNotes || ''}
+              onChange={(e) => setTestData(prev => ({ ...prev, otherNotes: e.target.value }))}
+              placeholder="Notes for other attachment... (optional)"
+              style={{ width: '100%', minHeight: '60px', padding: '6px 10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical', marginBottom: '8px' }}
+            />
+            <div className="file-upload">
+              <input type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx" multiple onChange={async (e) => {
+                const files = Array.from(e.target.files);
+                e.target.value = '';
+                for (const file of files) {
+                  const fd = new FormData(); fd.append('file', file);
+                  try {
+                    const res = await api.uploadDraft(fd);
+                    setTestData(prev => ({ ...prev, otherFiles: [...(prev.otherFiles || []), res.filePath] }));
+                  } catch (err) { console.error('Upload failed:', err); }
+                }
+              }} />
+              {(testData.otherFiles || []).map((fp, fi) => (
+                <div key={fi} className="file-preview" style={{ marginBottom: '4px' }}>
+                  <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                  <button type="button" className="replace-btn" onClick={async () => {
+                    try { await api.deleteDraftFile({ filePath: fp }); } catch {}
+                    setTestData(prev => ({ ...prev, otherFiles: (prev.otherFiles || []).filter((_, i) => i !== fi) }));
+                  }}>Remove</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     )}
   </div>
-);
+  );
+};
 
 export default TestWaiverSection;
