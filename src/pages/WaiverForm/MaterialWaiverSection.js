@@ -2,6 +2,8 @@ import React from 'react';
 import { downloadMaterialWaiverTemplate } from './materialWaiverImport';
 import PasteImageTextarea from './PasteImageTextarea';
 
+const displayName = (fp) => fp.split('/').pop().replace(/^[a-z0-9]{6}_/i, '');
+
 const MaterialWaiverSection = ({
   openSection, toggleSection,
   materialRows,
@@ -152,7 +154,7 @@ const MaterialWaiverSection = ({
                           return files.map((fp, fi) => (
                             <div key={fi} className="file-preview" style={{ marginBottom: '4px' }}>
                               <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">
-                                {fp.split('/').pop()}
+                                {displayName(fp)}
                               </a>
                               <button type="button" className="replace-btn" onClick={() => handleReplaceClick(index, fi)}>
                                 Remove
@@ -263,7 +265,7 @@ const MaterialWaiverSection = ({
               />
               {(materialOtherFiles || []).map((fp, fi) => (
                 <div key={fi} className="file-preview" style={{ marginBottom: '4px' }}>
-                  <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                  <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{displayName(fp)}</a>
                   <button type="button" className="replace-btn" onClick={() => handleMaterialOtherFileRemove(fi)}>Remove</button>
                 </div>
               ))}

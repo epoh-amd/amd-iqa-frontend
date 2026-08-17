@@ -17,6 +17,7 @@ const MyFormsTab = ({
   setHistoryModal,
   handleEditMyForm,
   handleEditApprovedMyForm,
+  handleWorkorderEdit,
   handleDuplicate,
   navigate,
 }) => {
@@ -294,7 +295,13 @@ const MyFormsTab = ({
                                   handleEditMyForm(w.waiver_id);
                                 }
                               }}
-                            >Edit</button>
+                            >{status === 'Approved' ? 'Edit (Rev Change)' : 'Edit'}</button>
+                            {status === 'Approved' && (
+                              <button
+                                style={activeStyle}
+                                onClick={() => handleWorkorderEdit(w.waiver_id)}
+                              >Edit</button>
+                            )}
                             <button
                               style={activeStyle}
                               onClick={() => handleDuplicate(w.waiver_id)}

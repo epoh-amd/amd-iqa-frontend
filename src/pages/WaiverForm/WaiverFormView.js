@@ -159,7 +159,7 @@ const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Sel
 const WaiverFormView = ({
   autoSaveBanner,
   emailSentBanner, setEmailSentBanner,
-  approverEditMode, approverAmendMode, amendFromAllForms, requestorEditMode, rejectedEditMode, workorderEditMode,
+  approverEditMode, approverAmendMode, amendFromAllForms, requestorEditMode, rejectedEditMode, workorderEditMode, workorderFromAllForms,
   navigate, setShowForm, setActiveTab, fetchMyForms, setRejectedEditMode, handleBackToList,
   waiverStatus, formData, setFormData, handleChange, handleSubmit,
   subcontractors, assemblyLevels,
@@ -212,7 +212,7 @@ const WaiverFormView = ({
       <button
         type="button"
         onClick={
-          workorderEditMode ? () => navigate('/waiver-management') :
+          workorderEditMode ? (workorderFromAllForms ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); } : () => navigate('/waiver-management')) :
           (approverEditMode || (approverAmendMode && !amendFromAllForms)) ? () => navigate(-1) :
             (requestorEditMode || rejectedEditMode || amendFromAllForms) ? () => { setShowForm(false); setActiveTab('myforms'); fetchMyForms(); setRejectedEditMode(false); } :
               handleBackToList
@@ -223,7 +223,7 @@ const WaiverFormView = ({
           fontSize: '13px', fontWeight: 500
         }}
       >
-        {workorderEditMode ? '← Back to Management' : (approverEditMode || (approverAmendMode && !amendFromAllForms)) ? '← Back to Management' : (requestorEditMode || rejectedEditMode || amendFromAllForms) ? '← Back to All Forms' : '← Back to Drafts'}
+        {workorderEditMode ? (workorderFromAllForms ? '← Back to All Forms' : '← Back to Management') : (approverEditMode || (approverAmendMode && !amendFromAllForms)) ? '← Back to Management' : (requestorEditMode || rejectedEditMode || amendFromAllForms) ? '← Back to All Forms' : '← Back to Drafts'}
       </button>
       {waiverStatus && (
         <span style={{
@@ -367,7 +367,7 @@ const WaiverFormView = ({
       <div className="form-section">
         <div className="field-inline">
           <label>Waiver Start Date <span style={{ color: '#dc3545' }}>*</span></label>
-          <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} {...(!requestorEditMode && !approverEditMode && !rejectedEditMode && !approverAmendMode && !workorderEditMode ? { min: new Date().toISOString().split('T')[0] } : {})} />
+          <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} {...(!requestorEditMode && !approverEditMode && !rejectedEditMode && !approverAmendMode && !workorderEditMode ? { min: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })() } : {})} />
         </div>
       </div>
 

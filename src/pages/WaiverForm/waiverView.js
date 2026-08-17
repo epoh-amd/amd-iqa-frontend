@@ -41,6 +41,8 @@ const renderInstructions = (text) => {
         .replace(/\n/g, '<br>');
 };
 
+const displayName = (fp) => fp.split('/').pop().replace(/^[a-z0-9]{6}_/i, '');
+
 const normalizeFile = (val) => {
     if (!val) return [];
     if (Array.isArray(val)) return val.filter(Boolean);
@@ -182,7 +184,6 @@ const WaiverView = () => {
     }, [data]);
 
     const handleDownloadPDF = async () => {
-
         const element = document.querySelector('.waiver-container');
         if (!element) return;
         setDownloading(true);
@@ -400,8 +401,8 @@ const WaiverView = () => {
                                                 {(() => {
                                                     const files = normalizeFile(row.file_path || row.file);
                                                     return files.length ? files.map((fp, i) => (
-                                                        <a key={i} href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link" style={{ display: 'block' }}>
-                                                            {fp.split('/').pop()}
+                                                        <a key={i} href={toFileUrl(fp)} target="_blank" rel="noreferrer" style={{ color: '#222', textDecoration: 'none' }} style={{ display: 'block' }}>
+                                                            {displayName(fp)}
                                                         </a>
                                                     )) : '-';
                                                 })()}
@@ -429,7 +430,7 @@ const WaiverView = () => {
                                 )}
                                 {normalizeFile(materialAttachment.otherFiles).map((fp, i) => (
                                     <div key={i} style={{ marginTop: '4px' }}>
-                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" style={{ color: '#222', textDecoration: 'none' }}>{displayName(fp)}</a>
                                     </div>
                                 ))}
                             </div>
@@ -457,7 +458,7 @@ const WaiverView = () => {
                                 <span className="wv-value wv-multiline" dangerouslySetInnerHTML={{ __html: renderInstructions(processData.areaInstructions?.[area]) }} />
                                 {normalizeFile(processData.areaFiles?.[area]).map((fp, i) => (
                                     <div key={i} style={{ marginTop: '4px' }}>
-                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" style={{ color: '#222', textDecoration: 'none' }}>{displayName(fp)}</a>
                                     </div>
                                 ))}
                             </div>
@@ -470,7 +471,7 @@ const WaiverView = () => {
                                 )}
                                 {normalizeFile(processData.otherFiles).map((fp, i) => (
                                     <div key={i} style={{ marginTop: '4px' }}>
-                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" style={{ color: '#222', textDecoration: 'none' }}>{displayName(fp)}</a>
                                     </div>
                                 ))}
                             </div>
@@ -521,7 +522,7 @@ const WaiverView = () => {
                                 <span className="wv-value wv-multiline" dangerouslySetInnerHTML={{ __html: renderInstructions(testData.areaInstructions?.[area]) }} />
                                 {normalizeFile(testData.areaFiles?.[area]).map((fp, i) => (
                                     <div key={i} style={{ marginTop: '4px' }}>
-                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" style={{ color: '#222', textDecoration: 'none' }}>{displayName(fp)}</a>
                                     </div>
                                 ))}
                             </div>
@@ -534,7 +535,7 @@ const WaiverView = () => {
                                 )}
                                 {normalizeFile(testData.otherFiles).map((fp, i) => (
                                     <div key={i} style={{ marginTop: '4px' }}>
-                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                                        <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" style={{ color: '#222', textDecoration: 'none' }}>{displayName(fp)}</a>
                                     </div>
                                 ))}
                             </div>

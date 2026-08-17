@@ -2,6 +2,8 @@ import React from 'react';
 import api from '../../services/api';
 import PasteImageTextarea from './PasteImageTextarea';
 
+const displayName = (fp) => fp.split('/').pop().replace(/^[a-z0-9]{6}_/i, '');
+
 const MultiSelectDropdown = ({ options, value = [], onChange, placeholder = 'Select...' }) => {
   const [open, setOpen] = React.useState(false);
   const [dropPos, setDropPos] = React.useState({ top: 0, left: 0, width: 0 });
@@ -150,7 +152,7 @@ const ProcessWaiverSection = ({
                 return files.map((fp, fi) => (
                   <div key={fi} className="file-preview" style={{ marginBottom: '4px' }}>
                     <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">
-                      {fp.split('/').pop()}
+                      {displayName(fp)}
                     </a>
                     <button type="button" className="replace-btn" onClick={async () => {
                       try { await api.deleteDraftFile({ filePath: fp }); } catch {}
@@ -219,7 +221,7 @@ const ProcessWaiverSection = ({
               />
               {(processData.otherFiles || []).map((fp, fi) => (
                 <div key={fi} className="file-preview" style={{ marginBottom: '4px' }}>
-                  <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{fp.split('/').pop()}</a>
+                  <a href={toFileUrl(fp)} target="_blank" rel="noreferrer" className="file-link">{displayName(fp)}</a>
                   <button type="button" className="replace-btn" onClick={async () => {
                     try { await api.deleteDraftFile({ filePath: fp }); } catch {}
                     setProcessData(prev => ({ ...prev, otherFiles: (prev.otherFiles || []).filter((_, i) => i !== fi) }));

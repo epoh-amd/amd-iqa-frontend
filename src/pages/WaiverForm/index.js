@@ -234,6 +234,7 @@ const WaiverForm = () => {
   const [rejectedEditMode, setRejectedEditMode] = useState(false);
   const [approverAmendMode, setApproverAmendMode] = useState(false);
   const [workorderEditMode, setWorkorderEditMode] = useState(false);
+  const [workorderFromAllForms, setWorkorderFromAllForms] = useState(false);
   const [amendFromAllForms, setAmendFromAllForms] = useState(false);
   const [parentWaiverId, setParentWaiverId] = useState(null);
 
@@ -943,7 +944,14 @@ const WaiverForm = () => {
       try {
         await api.updateWaiverWorkorder(formData.waiverId, formData.workorder, formData.workorderQty);
         setWorkorderEditMode(false);
-        navigate('/waiver-management');
+        setWorkorderFromAllForms(false);
+        if (workorderFromAllForms) {
+          setShowForm(false);
+          setActiveTab('myforms');
+          fetchMyForms();
+        } else {
+          navigate('/waiver-management');
+        }
       } catch (err) {
         console.error('Workorder update failed:', err);
         setSubmitMessage({ type: 'error', text: 'Failed to update workorder. Please try again.' });
@@ -1220,6 +1228,8 @@ setTimeout(() => setPageMessage(null), 5000);
       };
       setOpenSection((data.waiverType || []).map(t => sectionMap[t]).filter(Boolean));
 
+      // Duplicate copies text/instructions only — file paths are NOT copied to avoid
+      // shared references where deleting from the duplicate would remove the original's files
       setMaterialRows((data.materialRows || []).map(r => ({
         currentPart: r.current_part || r.currentPart || '',
         currentPartDescription: r.current_part_description || r.currentPartDescription || '',
@@ -1229,16 +1239,16 @@ setTimeout(() => setPageMessage(null), 5000);
         newPartDescription: r.new_part_description || r.newPartDescription || '',
         action: r.action || '',
         instructions: r.instructions || '',
-        file: normalizeFile(r.file_path || r.file)
+        file: null
       })));
 
-      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: data.processData?.areaFiles || {}, otherNotes: data.processData?.otherNotes || '', otherFiles: data.processData?.otherFiles || [], instructions: data.processData?.instructions || '', file: data.processData?.file || null });
-      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: data.testData?.areaFiles || {}, otherNotes: data.testData?.otherNotes || '', otherFiles: data.testData?.otherFiles || [], instructions: data.testData?.instructions || '', file: data.testData?.file || null });
-      setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: data.specData?.file1 || null, file2: data.specData?.file2 || null });
-      setReworkData({ instructions: data.reworkData?.instructions || '', file: data.reworkData?.file || null });
-      setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
+      setProcessData({ areas: data.processData?.areas || [], areaInstructions: data.processData?.areaInstructions || {}, areaFiles: {}, otherNotes: data.processData?.otherNotes || '', otherFiles: [], instructions: data.processData?.instructions || '', file: null });
+      setTestData({ rows: data.testData?.rows || [{ currentPart: '', toBePart: '', refdes: '' }], areas: data.testData?.areas || [], areaInstructions: data.testData?.areaInstructions || {}, areaFiles: {}, otherNotes: data.testData?.otherNotes || '', otherFiles: [], instructions: data.testData?.instructions || '', file: null });
+      setSpecData({ specImpact: data.specData?.specImpact || '', instructions: data.specData?.instructions || '', file1: null, file2: null });
+      setReworkData({ instructions: data.reworkData?.instructions || '', file: null });
+      setLabelData({ instructions: data.labelData?.instructions || '', file: null });
       setMaterialOtherNotes(data.material_attachment?.otherNotes || data.materialOtherNotes || '');
-      setMaterialOtherFiles(data.material_attachment?.otherFiles || data.materialOtherFiles || []);
+      setMaterialOtherFiles([]);
 
     } catch (err) {
       console.error('Duplicate failed:', err);
@@ -1380,6 +1390,40 @@ setTimeout(() => setPageMessage(null), 5000);
   const handleBackToList = () => {
     setShowForm(false);
     fetchDrafts();
+  };
+
+  const handleWorkorderEdit = async (waiverId) => {
+    setWorkorderEditMode(true);
+    setWorkorderFromAllForms(true);
+    setRequestorEditMode(false);
+    setApproverEditMode(false);
+    setRejectedEditMode(false);
+    setApproverAmendMode(false);
+    isEditingRef.current = false;
+    try {
+      const data = await api.getWaiverDetails(waiverId);
+      setWaiverId(waiverId);
+      setFormData({
+        waiverId,
+        partNumber: data.partNumber || '',
+        revision: data.revision || '',
+        description: data.description || '',
+        subcontractor: Array.isArray(data.subcontractor) ? data.subcontractor : data.subcontractor ? [data.subcontractor] : [],
+        assemblyLevel: Array.isArray(data.assemblyLevel) ? data.assemblyLevel : data.assemblyLevel ? [data.assemblyLevel] : [],
+        requestor: (() => { try { const p = JSON.parse(data.requestor); return Array.isArray(p) ? p : [String(p)]; } catch { return data.requestor ? [data.requestor] : ['']; } })(),
+        startDate: data.startDate ? data.startDate.toString().slice(0, 10) : getLocalToday(),
+        endDate: data.endDate ? data.endDate.toString().slice(0, 10) : '',
+        waiverType: data.waiverType || [],
+        reason: data.reason || '',
+        workorder: data.workorder || '',
+        workorderQty: data.workorderQty || '',
+        currentPart: '', newPart: '', action: '', instructions: ''
+      });
+      setWaiverStatus(data.status || null);
+      setShowForm(true);
+    } catch (err) {
+      console.error('Failed to load waiver for workorder edit:', err);
+    }
   };
 
   const handleEditMyForm = async (waiverId) => {
@@ -1649,6 +1693,7 @@ setTimeout(() => setPageMessage(null), 5000);
               setHistoryModal={setHistoryModal}
               handleEditMyForm={handleEditMyForm}
               handleEditApprovedMyForm={handleEditApprovedMyForm}
+              handleWorkorderEdit={handleWorkorderEdit}
               handleDuplicate={handleDuplicate}
               navigate={navigate}
             />
@@ -1669,6 +1714,7 @@ setTimeout(() => setPageMessage(null), 5000);
           requestorEditMode={requestorEditMode}
           rejectedEditMode={rejectedEditMode}
           workorderEditMode={workorderEditMode}
+          workorderFromAllForms={workorderFromAllForms}
           navigate={navigate}
           setShowForm={setShowForm}
           setActiveTab={setActiveTab}
