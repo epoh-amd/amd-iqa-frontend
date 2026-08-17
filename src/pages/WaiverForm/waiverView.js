@@ -12,6 +12,10 @@ const toFileUrl = (filePath) => filePath ? `${BASE_URL}${filePath.replace('/draf
 // HTML content: pass through as-is (already has <br>/<div>/<img> tags).
 const renderInstructions = (text) => {
     if (!text) return '-';
+    // If content contains a table, pass through as-is — div→br conversion breaks table layout
+    if (/<table[\s>]/i.test(text)) {
+        return text.replace(/^(<br\s*\/?>|\s)+/i, ''); // strip leading whitespace/br only
+    }
     // Detect HTML produced by the contenteditable editor
     if (/(<br\s*\/?>|<div[\s>]|<img[\s>]|<p[\s>])/i.test(text)) {
         // Normalize block elements → <br> so content renders correctly inside
