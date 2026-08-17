@@ -1428,6 +1428,8 @@ setTimeout(() => setPageMessage(null), 5000);
 
   const handleEditMyForm = async (waiverId) => {
     setRequestorEditMode(true);
+    setWorkorderEditMode(false);
+    setWorkorderFromAllForms(false);
     isEditingRef.current = false;
     try {
       const data = await api.getWaiverDetails(waiverId);
@@ -1486,6 +1488,8 @@ setTimeout(() => setPageMessage(null), 5000);
     setRequestorEditMode(false);
     setApproverEditMode(false);
     setRejectedEditMode(false);
+    setWorkorderEditMode(false);
+    setWorkorderFromAllForms(false);
     setParentWaiverId(waiverId);
     isEditingRef.current = false;
     try {
