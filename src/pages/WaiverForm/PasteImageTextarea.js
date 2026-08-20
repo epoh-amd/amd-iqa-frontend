@@ -123,7 +123,18 @@ const PasteImageTextarea = ({ value, onChange, toFileUrl, placeholder, style = {
   };
 
   // ── Paste ────────────────────────────────────────────────────────────────────
+  // Strip all inline styles from pasted HTML — browser adds font-family, color, background etc from source element
+  const stripInlineStyles = (node) => {
+    if (node.nodeType === 1) {
+      node.removeAttribute('style');
+      node.removeAttribute('class');
+      node.removeAttribute('id');
+      Array.from(node.childNodes).forEach(stripInlineStyles);
+    }
+  };
+
   const handlePaste = (e) => {
+    // Check for image in clipboard first — if found, handle image only and skip HTML paste
     if (e.clipboardData && e.clipboardData.items) {
       const items = e.clipboardData.items;
       for (let i = 0; i < items.length; i++) {
@@ -171,13 +182,33 @@ const PasteImageTextarea = ({ value, onChange, toFileUrl, placeholder, style = {
           };
 
           image.src = blobUrl;
+          return; // image handled — skip HTML paste below
         }
       }
-    } else {
-      // Firefox / Safari fallback
-      setTimeout(() => {
-        if (editorRef.current?.getElementsByTagName('img').length) notify();
-      });
+    }
+
+    // For HTML text paste — strip background-color silently added by browser from source element styling
+    const html = e.clipboardData?.getData('text/html');
+    if (html) {
+      e.preventDefault();
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      stripInlineStyles(tmp);
+      const sel = window.getSelection();
+      if (sel?.rangeCount) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        const frag = document.createDocumentFragment();
+        Array.from(tmp.childNodes).forEach(n => frag.appendChild(n));
+        range.insertNode(frag);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else {
+        editorRef.current?.appendChild(tmp);
+      }
+      notify();
+      return;
     }
   };
 
