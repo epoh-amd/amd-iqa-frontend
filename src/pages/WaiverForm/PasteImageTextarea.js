@@ -194,18 +194,25 @@ const PasteImageTextarea = ({ value, onChange, toFileUrl, placeholder, style = {
       const tmp = document.createElement('div');
       tmp.innerHTML = html;
       stripInlineStyles(tmp);
+
+      // Remove comment nodes and empty block elements browsers add around clipboard content
+      const isEmptyBlock = (n) =>
+        n.nodeType === 8 || // comment node (<!--StartFragment--> etc)
+        (n.nodeType === 1 && ['P','DIV','SPAN'].includes(n.tagName) && !n.textContent.trim() && !n.querySelector('img,table,br'));
+      const nodes = Array.from(tmp.childNodes).filter(n => !isEmptyBlock(n));
+
       const sel = window.getSelection();
       if (sel?.rangeCount) {
         const range = sel.getRangeAt(0);
         range.deleteContents();
         const frag = document.createDocumentFragment();
-        Array.from(tmp.childNodes).forEach(n => frag.appendChild(n));
+        nodes.forEach(n => frag.appendChild(n));
         range.insertNode(frag);
         range.collapse(false);
         sel.removeAllRanges();
         sel.addRange(range);
-      } else {
-        editorRef.current?.appendChild(tmp);
+      } else if (editorRef.current) {
+        nodes.forEach(n => editorRef.current.appendChild(n));
       }
       notify();
       return;
