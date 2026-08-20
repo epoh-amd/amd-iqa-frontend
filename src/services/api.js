@@ -600,6 +600,15 @@ updateWaiverWorkorder: async (waiverId, workorder, workorderQty) => {
   }
 },
 
+sendWaiverWorkorderNotification: async (payload) => {
+  try {
+    const response = await axios.post(`${API_URL}/email/waiver/workorder-notify`, payload);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to send workorder notification:', error);
+  }
+},
+
 getNextWaiverId: async () => {
   try {
     const response = await axios.get(`${API_URL}/waivers/next-id`);

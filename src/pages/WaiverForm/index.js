@@ -235,6 +235,8 @@ const WaiverForm = () => {
   const [approverAmendMode, setApproverAmendMode] = useState(false);
   const [workorderEditMode, setWorkorderEditMode] = useState(false);
   const [workorderFromAllForms, setWorkorderFromAllForms] = useState(false);
+  const [prevWorkorder, setPrevWorkorder] = useState('');
+  const [prevWorkorderQty, setPrevWorkorderQty] = useState('');
   const [amendFromAllForms, setAmendFromAllForms] = useState(false);
   const [parentWaiverId, setParentWaiverId] = useState(null);
 
@@ -557,6 +559,8 @@ const WaiverForm = () => {
         setLabelData({ instructions: data.labelData?.instructions || '', file: data.labelData?.file || null });
         setMaterialOtherNotes(data.material_attachment?.otherNotes || data.materialOtherNotes || '');
         setMaterialOtherFiles(data.material_attachment?.otherFiles || data.materialOtherFiles || []);
+        setPrevWorkorder(data.workorder || '');
+        setPrevWorkorderQty(data.workorderQty || '');
         setWaiverStatus(data.status || null);
         setShowForm(true);
       } catch (err) {
@@ -942,9 +946,26 @@ const WaiverForm = () => {
     if (workorderEditMode) {
       setSubmitting(true);
       try {
-        await api.updateWaiverWorkorder(formData.waiverId, formData.workorder, formData.workorderQty);
+        const woResult = await api.updateWaiverWorkorder(formData.waiverId, formData.workorder, formData.workorderQty);
+
+        // Send workorder update email — use prev values returned by backend (fetched before update)
+        try {
+          await api.sendWaiverWorkorderNotification({
+            waiverId: formData.waiverId,
+            prevWorkorder: woResult?.prevWorkorder ?? '',
+            prevWorkorderQty: woResult?.prevWorkorderQty ?? '',
+            newWorkorder: formData.workorder,
+            newWorkorderQty: formData.workorderQty,
+            updatedBy: user?.full_name || user?.email || '',
+          });
+        } catch (emailErr) {
+          console.error('Failed to send workorder notification:', emailErr);
+        }
+
         setWorkorderEditMode(false);
         setWorkorderFromAllForms(false);
+        setPrevWorkorder('');
+        setPrevWorkorderQty('');
         if (workorderFromAllForms) {
           setShowForm(false);
           setActiveTab('myforms');
@@ -1419,6 +1440,8 @@ setTimeout(() => setPageMessage(null), 5000);
         workorderQty: data.workorderQty || '',
         currentPart: '', newPart: '', action: '', instructions: ''
       });
+      setPrevWorkorder(data.workorder || '');
+      setPrevWorkorderQty(data.workorderQty || '');
       setWaiverStatus(data.status || null);
       setShowForm(true);
     } catch (err) {
