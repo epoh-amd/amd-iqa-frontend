@@ -957,6 +957,7 @@ const WaiverForm = () => {
             newWorkorder: formData.workorder,
             newWorkorderQty: formData.workorderQty,
             updatedBy: user?.full_name || user?.email || '',
+            approvers,
           });
         } catch (emailErr) {
           console.error('Failed to send workorder notification:', emailErr);
