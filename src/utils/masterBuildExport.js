@@ -127,6 +127,7 @@ const buildsWithDetails = selectedBuilds.map(build => {
         columns: [
           { header: 'Problem Description', key: 'problem_description' },
           { header: 'FPY Status', key: 'fpy_status' },
+          { header: 'Final Status', key: 'final_status' },
           { header: 'Failure Mode', key: 'failure_modes_combined' },
           { header: 'Failure Category', key: 'failure_categories_combined' },
           { header: 'Rework', key: 'has_rework' }
@@ -139,7 +140,6 @@ const buildsWithDetails = selectedBuilds.map(build => {
           { header: 'SMS Order', key: 'sms_order' },
           { header: 'Cost Center', key: 'cost_center' },
           { header: 'Capitalization', key: 'capitalization' },
-          { header: 'Build Date', key: 'build_date' },
           { header: 'Delivery Date', key: 'delivery_date' },
           { header: 'Status', key: 'master_status' }
         ]
@@ -207,11 +207,10 @@ const buildsWithDetails = selectedBuilds.map(build => {
               break;
               
             case 'delivery_date':
-              // Format delivery date
               if (build.delivery_date) {
                 const date = new Date(build.delivery_date);
                 if (!isNaN(date.getTime())) {
-                  value = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+                  value = date.toLocaleDateString();
                 }
               }
               break;

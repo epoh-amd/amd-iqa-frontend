@@ -246,6 +246,11 @@ const TableRow = ({
             </span>
           </td>
           <td className="read-only-cell col-standard">
+            <span className={`status-badge ${build.final_status === 'Pass' ? 'complete' : build.final_status === 'Fail' ? 'fail' : ''}`}>
+              {build.final_status || '-'}
+            </span>
+          </td>
+          <td className="read-only-cell col-standard">
             <span className={`status-badge ${getStatusBadgeClass(build.status)}`}>
               {build.status || '-'}
             </span>

@@ -812,7 +812,7 @@ const TableRow = ({
               value={masterData.builds?.[build.chassis_sn]?.deliveryDate || build.delivery_date || ''}
               onChange={(e) => handleFieldChange(build.chassis_sn, 'deliveryDate', e.target.value)}
               onClick={(e) => e.stopPropagation()}
-              
+              min={build.created_at ? (() => { const d = new Date(build.created_at); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })() : undefined}
             />
           
           </td>
