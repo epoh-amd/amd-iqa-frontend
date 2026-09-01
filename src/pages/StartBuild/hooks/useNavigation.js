@@ -244,13 +244,10 @@ export const useNavigation = (
         errors.push(`Build ${i + 1}: LOM Working is required`);
       }
 
-      // MANDATORY: Validate failure notes and photos
+      // Validate failure notes (photos are optional)
       if (build.systemInfo.visualInspection === 'Fail') {
         if (!build.systemInfo.visualInspectionNotes) {
           errors.push(`Build ${i + 1}: Notes required for failed visual inspection`);
-        }
-        if (!build.systemInfo.visualInspectionPhotos || build.systemInfo.visualInspectionPhotos.length === 0) {
-          errors.push(`Build ${i + 1}: Photos required for failed visual inspection`);
         }
       }
 
@@ -258,26 +255,17 @@ export const useNavigation = (
         if (!build.systemInfo.bootNotes) {
           errors.push(`Build ${i + 1}: Notes required when boot fails`);
         }
-        if (!build.systemInfo.bootPhotos || build.systemInfo.bootPhotos.length === 0) {
-          errors.push(`Build ${i + 1}: Photos required when boot fails`);
-        }
       }
 
       if (build.systemInfo.dimmsDetectedStatus === 'No') {
         if (!build.systemInfo.dimmsDetectedNotes) {
           errors.push(`Build ${i + 1}: Notes required when DIMMs not detected`);
         }
-        if (!build.systemInfo.dimmsDetectedPhotos || build.systemInfo.dimmsDetectedPhotos.length === 0) {
-          errors.push(`Build ${i + 1}: Photos required when DIMMs not detected`);
-        }
       }
 
       if (build.systemInfo.lomWorkingStatus === 'No') {
         if (!build.systemInfo.lomWorkingNotes) {
           errors.push(`Build ${i + 1}: Notes required when LOM not working`);
-        }
-        if (!build.systemInfo.lomWorkingPhotos || build.systemInfo.lomWorkingPhotos.length === 0) {
-          errors.push(`Build ${i + 1}: Photos required when LOM not working`);
         }
       }
     }
@@ -354,7 +342,6 @@ export const useNavigation = (
       } else if (systemInfoSubStep === 'componentInfo') {
         validationErrors = await validateComponentInfo();
       } else if (systemInfoSubStep === 'testing') {
-        // IMPORTANT: Now validate testing step as mandatory (CHANGED FROM ORIGINAL)
         validationErrors = await validateTesting();
       }
     } else if (currentStep === 'bkcDetails') {
@@ -424,6 +411,9 @@ export const useNavigation = (
       });
       setBuilds(updatedBuilds);
 
+      // GPU mode: handle GPU sub-steps
+     
+
       // Move to next sub-step
       if (systemInfoSubStep === 'chassisInfo') {
         setSystemInfoSubStep('cpuInfo');
@@ -466,6 +456,8 @@ export const useNavigation = (
   // Navigate to previous step/sub-step
   const navigatePrevious = () => {
     if (currentStep === 'systemInfo') {
+     
+
       if (systemInfoSubStep === 'chassisInfo') {
         // Restore full builds list if we previously filtered by selection
         if (allBuildsRef && allBuildsRef.current) {
