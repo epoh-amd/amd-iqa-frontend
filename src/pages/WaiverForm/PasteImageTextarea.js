@@ -123,12 +123,30 @@ const PasteImageTextarea = ({ value, onChange, toFileUrl, placeholder, style = {
   };
 
   // ── Paste ────────────────────────────────────────────────────────────────────
-  // Strip all inline styles from pasted HTML — browser adds font-family, color, background etc from source element
+  // Remove entire tags that should never appear in pasted content (Word metadata, styles, links)
+  const STRIP_TAGS = new Set(['STYLE', 'LINK', 'META', 'SCRIPT', 'HEAD', 'XML', 'O:P']);
+
   const stripInlineStyles = (node) => {
+    if (node.nodeType === 8) { // comment node — remove
+      node.parentNode?.removeChild(node);
+      return;
+    }
     if (node.nodeType === 1) {
+      // Remove Word/metadata tags entirely
+      if (STRIP_TAGS.has(node.tagName?.toUpperCase())) {
+        node.parentNode?.removeChild(node);
+        return;
+      }
       node.removeAttribute('style');
       node.removeAttribute('class');
       node.removeAttribute('id');
+      node.removeAttribute('lang');
+      // Remove mso-* and Word-specific attributes
+      Array.from(node.attributes || []).forEach(attr => {
+        if (attr.name.startsWith('mso-') || attr.name.startsWith('xmlns') || attr.name === 'v:shapes') {
+          node.removeAttribute(attr.name);
+        }
+      });
       Array.from(node.childNodes).forEach(stripInlineStyles);
     }
   };
