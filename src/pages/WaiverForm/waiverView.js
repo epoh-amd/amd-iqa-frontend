@@ -16,8 +16,8 @@ const renderInstructions = (text) => {
     if (/<table[\s>]/i.test(text)) {
         return text.replace(/^(<br\s*\/?>|\s)+/i, ''); // strip leading whitespace/br only
     }
-    // Detect HTML produced by the contenteditable editor
-    if (/(<br\s*\/?>|<div[\s>]|<img[\s>]|<p[\s>])/i.test(text)) {
+    // Detect any HTML tag — covers <br>, <div>, <img>, <p>, <b>, <span>, <strong>, <em>, <u>, <ul>, <li> etc.
+    if (/<[a-zA-Z\/][^>]*>/i.test(text)) {
         // Normalize block elements → <br> so content renders correctly inside
         // an inline/block span without invalid nesting collapsing line breaks.
         return text
@@ -382,6 +382,8 @@ const WaiverView = () => {
                                         <th>Refdes</th>
                                         <th>To Be Part Number</th>
                                         <th>Description</th>
+                                        <th>New Qty</th>
+                                        <th>New Refdes</th>
                                         <th>Action</th>
                                         <th>Attachment</th>
                                     </tr>
@@ -396,6 +398,8 @@ const WaiverView = () => {
                                             <td>{row.refdes || '-'}</td>
                                             <td>{row.new_part || row.newPart || '-'}</td>
                                             <td>{row.new_part_description || row.newPartDescription || '-'}</td>
+                                            <td>{row.new_qty || row.newQty || '-'}</td>
+                                            <td>{row.new_refdes || row.newRefdes || '-'}</td>
                                             <td>{row.action || '-'}</td>
                                             <td>
                                                 {(() => {

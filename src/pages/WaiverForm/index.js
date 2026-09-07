@@ -357,6 +357,8 @@ const WaiverForm = () => {
           refdes: r.refdes || '',
           newPart: r.new_part || r.newPart || '',
           newPartDescription: r.new_part_description || r.newPartDescription || '',
+          newQty: r.new_qty || r.newQty || '',
+          newRefdes: r.new_refdes || r.newRefdes || '',
           action: r.action || '',
           instructions: r.instructions || '',
           file: normalizeFile(r.file_path || r.file)
@@ -420,6 +422,8 @@ const WaiverForm = () => {
           refdes: r.refdes || '',
           newPart: r.new_part || r.newPart || '',
           newPartDescription: r.new_part_description || r.newPartDescription || '',
+          newQty: r.new_qty || r.newQty || '',
+          newRefdes: r.new_refdes || r.newRefdes || '',
           action: r.action || '',
           instructions: r.instructions || '',
           file: normalizeFile(r.file_path || r.file)
@@ -486,6 +490,8 @@ const WaiverForm = () => {
           refdes: r.refdes || '',
           newPart: r.new_part || r.newPart || '',
           newPartDescription: r.new_part_description || r.newPartDescription || '',
+          newQty: r.new_qty || r.newQty || '',
+          newRefdes: r.new_refdes || r.newRefdes || '',
           action: r.action || '',
           instructions: r.instructions || '',
           file: null
@@ -548,6 +554,8 @@ const WaiverForm = () => {
           refdes: r.refdes || '',
           newPart: r.new_part || r.newPart || '',
           newPartDescription: r.new_part_description || r.newPartDescription || '',
+          newQty: r.new_qty || r.newQty || '',
+          newRefdes: r.new_refdes || r.newRefdes || '',
           action: r.action || '',
           instructions: r.instructions || '',
           file: normalizeFile(r.file_path || r.file)
@@ -623,6 +631,8 @@ const WaiverForm = () => {
       refdes: "",
       newPart: "",
       newPartDescription: "",
+      newQty: "",
+      newRefdes: "",
       action: "",
       instructions: "",
       file: "",
@@ -919,7 +929,7 @@ const WaiverForm = () => {
   const addMaterialRow = () => {
     setMaterialRows([
       ...materialRows,
-      { currentPart: "", newPart: "", actions: [], instructions: "", otherNotes: "", otherFile: null }
+      { currentPart: "", currentPartDescription: "", noOfPer: "", refdes: "", newPart: "", newPartDescription: "", newQty: "", newRefdes: "", action: "", instructions: "", file: null }
     ]);
   };
 
@@ -1259,6 +1269,8 @@ setTimeout(() => setPageMessage(null), 5000);
         refdes: r.refdes || '',
         newPart: r.new_part || r.newPart || '',
         newPartDescription: r.new_part_description || r.newPartDescription || '',
+        newQty: r.new_qty || r.newQty || '',
+        newRefdes: r.new_refdes || r.newRefdes || '',
         action: r.action || '',
         instructions: r.instructions || '',
         file: null
@@ -1342,6 +1354,7 @@ setTimeout(() => setPageMessage(null), 5000);
       currentPart: '', currentPartDescription: '',
       noOfPer: '', refdes: '',
       newPart: '', newPartDescription: '',
+      newQty: '', newRefdes: '',
       action: '', instructions: '', file: null
     }]);
 
@@ -1487,6 +1500,8 @@ setTimeout(() => setPageMessage(null), 5000);
         refdes: r.refdes || '',
         newPart: r.new_part || r.newPart || '',
         newPartDescription: r.new_part_description || r.newPartDescription || '',
+        newQty: r.new_qty || r.newQty || '',
+        newRefdes: r.new_refdes || r.newRefdes || '',
         action: r.action || '',
         instructions: r.instructions || '',
         file: normalizeFile(r.file_path || r.file)
@@ -1545,6 +1560,8 @@ setTimeout(() => setPageMessage(null), 5000);
         refdes: r.refdes || '',
         newPart: r.new_part || r.newPart || '',
         newPartDescription: r.new_part_description || r.newPartDescription || '',
+        newQty: r.new_qty || r.newQty || '',
+        newRefdes: r.new_refdes || r.newRefdes || '',
         action: r.action || '',
         instructions: r.instructions || '',
         file: normalizeFile(r.file_path || r.file)
@@ -1596,6 +1613,8 @@ setTimeout(() => setPageMessage(null), 5000);
         refdes: r.refdes || '',
         newPart: r.new_part || r.newPart || '',
         newPartDescription: r.new_part_description || r.newPartDescription || '',
+        newQty: r.new_qty || r.newQty || '',
+        newRefdes: r.new_refdes || r.newRefdes || '',
         action: r.action || '',
         instructions: r.instructions || '',
         file: normalizeFile(r.file_path || r.file)

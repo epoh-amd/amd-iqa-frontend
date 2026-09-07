@@ -41,24 +41,28 @@ const MaterialWaiverSection = ({
         <div className="table-wrapper">
           <table className="material-table">
             <colgroup>
+              <col style={{ width: '11%' }} />
               <col style={{ width: '12%' }} />
-              <col style={{ width: '18%' }} />
-              <col style={{ width: '6%' }} />
-              <col style={{ width: '8%' }} />
+              <col style={{ width: '5%' }} />
+              <col style={{ width: '7%' }} />
+              <col style={{ width: '11%' }} />
               <col style={{ width: '12%' }} />
-              <col style={{ width: '18%' }} />
-              <col style={{ width: '10%' }} />
+              <col style={{ width: '5%' }} />
+              <col style={{ width: '7%' }} />
+              <col style={{ width: '14%' }} />
               <col style={{ width: '12%' }} />
               <col style={{ width: '4%' }} />
             </colgroup>
             <thead>
               <tr>
                 <th>Current Part Number <span style={{ color: '#dc3545' }}>*</span></th>
-                <th>Description</th>
-                <th>No. of Per</th>
-                <th>Refdes</th>
+                <th>Current Description</th>
+                <th>Current Qty</th>
+                <th>Current Refdes</th>
                 <th>To Be Part Number <span style={{ color: '#dc3545' }}>*</span></th>
                 <th>Description</th>
+                <th>New Qty</th>
+                <th>New Refdes</th>
                 <th>Action</th>
                 <th>Attachment</th>
                 <th></th>
@@ -120,6 +124,24 @@ const MaterialWaiverSection = ({
                         placeholder="Description"
                         value={row.newPartDescription || ""}
                         onChange={(e) => handleMaterialChange(index, "newPartDescription", e.target.value)}
+                      />
+                    </td>
+
+                    <td>
+                      <input
+                        className="table-input"
+                        placeholder="New Qty"
+                        value={row.newQty || ""}
+                        onChange={(e) => handleMaterialChange(index, "newQty", e.target.value)}
+                      />
+                    </td>
+
+                    <td>
+                      <textarea
+                        className="table-textarea small"
+                        placeholder="New Refdes"
+                        value={row.newRefdes || ""}
+                        onChange={(e) => handleMaterialChange(index, "newRefdes", e.target.value)}
                       />
                     </td>
 

@@ -590,6 +590,69 @@ deleteWaiver: async (waiverId) => {
   }
 },
 
+getAllGpuBuilds: async () => {
+  try {
+    const response = await axios.get(`${API_URL}/gpu-builds`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all GPU builds:', error);
+    throw error;
+  }
+},
+
+getInProgressGpuBuilds: async () => {
+  try {
+    const response = await axios.get(`${API_URL}/gpu-builds/in-progress`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching in-progress GPU builds:', error);
+    throw error;
+  }
+},
+
+getGpuBuilds: async ({ gpuSNs = [], cpuSNs = [] } = {}) => {
+  try {
+    const params = new URLSearchParams();
+    gpuSNs.forEach(s => params.append('gpuSN', s));
+    cpuSNs.forEach(s => params.append('cpuSN', s));
+    const response = await axios.get(`${API_URL}/gpu-builds/search?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching GPU builds:', error);
+    throw error;
+  }
+},
+
+updateGpuBuild: async (originalGpuSN, gpuData) => {
+  try {
+    const response = await axios.patch(`${API_URL}/gpu-builds/${encodeURIComponent(originalGpuSN)}`, gpuData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating GPU build:', error);
+    throw error;
+  }
+},
+
+saveGpuPhotos: async (gpuSN, photos) => {
+  try {
+    const response = await axios.post(`${API_URL}/gpu-builds/${encodeURIComponent(gpuSN)}/photos`, { photos });
+    return response.data;
+  } catch (error) {
+    console.error('Error saving GPU photos:', error);
+    throw error;
+  }
+},
+
+saveGpuBuild: async (gpuData) => {
+  try {
+    const response = await axios.post(`${API_URL}/gpu-builds`, gpuData);
+    return response.data;
+  } catch (error) {
+    console.error('Error saving GPU build:', error);
+    throw error;
+  }
+},
+
 updateWaiverWorkorder: async (waiverId, workorder, workorderQty) => {
   try {
     const response = await axios.patch(`${API_URL}/waivers/${waiverId}/workorder`, { workorder, workorderQty });
@@ -758,7 +821,53 @@ addPartNumber: async (partNumber, type) => {
    * @returns {Promise<object>} - Failure modes grouped by category
    * @throws {Error} - Database connection errors
    */
-  getFailureModes: async () => {  
+  getFailureModesList: async () => {
+    const response = await axios.get(`${API_URL}/failure-modes/list`);
+    return response.data;
+  },
+  getFailureCategories: async () => {
+    const response = await axios.get(`${API_URL}/failure-categories`);
+    return response.data;
+  },
+  addFailureMode: async (failureMode, failureCategory) => {
+    const response = await axios.post(`${API_URL}/failure-modes`, { failureMode, failureCategory });
+    return response.data;
+  },
+  addFailureCategory: async (failureCategory) => {
+    const response = await axios.post(`${API_URL}/failure-categories`, { failureCategory });
+    return response.data;
+  },
+  assignFailureMode: async (id, failureCategory) => {
+    const response = await axios.patch(`${API_URL}/failure-modes/${id}/assign`, { failureCategory });
+    return response.data;
+  },
+  getManufacturers: async () => {
+    const response = await axios.get(`${API_URL}/manufacturers`);
+    return response.data;
+  },
+  addManufacturer: async (platformPrefix, manufacturerName) => {
+    const response = await axios.post(`${API_URL}/manufacturers`, { platformPrefix, manufacturerName });
+    return response.data;
+  },
+  updateManufacturer: async (originalPrefix, platformPrefix, manufacturerName) => {
+    const response = await axios.patch(`${API_URL}/manufacturers/${encodeURIComponent(originalPrefix)}`, { platformPrefix, manufacturerName });
+    return response.data;
+  },
+  deleteManufacturer: async (prefix) => {
+    const response = await axios.delete(`${API_URL}/manufacturers/${encodeURIComponent(prefix)}`);
+    return response.data;
+  },
+
+  deleteFailureCategory: async (category) => {
+    const response = await axios.delete(`${API_URL}/failure-categories/${encodeURIComponent(category)}`);
+    return response.data;
+  },
+  deleteFailureMode: async (id) => {
+    const response = await axios.delete(`${API_URL}/failure-modes/${id}`);
+    return response.data;
+  },
+
+  getFailureModes: async () => {
     try {  
       const response = await axios.get(`${API_URL}/failure-modes`);  
       return response.data;  
