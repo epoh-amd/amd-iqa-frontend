@@ -11,6 +11,10 @@ import {
 
 import ProgressTracker from './ProgressTracker';
 import GeneralInfoTable from './GeneralInfoTable';
+import GPUInfoTable from './GPUInfoTable';
+import GPUComponentTable from './GPUComponentTable';
+import GPUTestingTable from './GPUTestingTable';
+import GPUFirmwareTable from './GPUFirmwareTable';
 import SystemInfoTable from './SystemInfoTable';
 import BkcDetailsTable from './BkcDetailsTable';
 import QualityIndicatorTable from './QualityIndicatorTable';
@@ -40,6 +44,10 @@ const StartBuild = () => {
   const [currentStep, setCurrentStep] = useState('generalInfo');
   const [systemInfoSubStep, setSystemInfoSubStep] = useState('chassisInfo');
   const [showReview, setShowReview] = useState(false);
+  const [showGPUInfo, setShowGPUInfo] = useState(false);
+  const [gpuSubStep, setGpuSubStep] = useState('gpuInfo');
+  const [gpuSaving, setGpuSaving] = useState(false);
+  const [gpuSaveMessage, setGpuSaveMessage] = useState(null); // { type: 'success'|'error', text: '' }
   const [reworkMode, setReworkMode] = useState(false);
   const [reworkBuildIndex, setReworkBuildIndex] = useState(null);
   const [savingIndex, setSavingIndex] = useState(null);
@@ -119,7 +127,10 @@ const StartBuild = () => {
     },
     selectedBuildIndices,
     setSelectedBuildIndices,
-    allBuildsRef
+    allBuildsRef,
+    showGPUInfo,
+    gpuSubStep,
+    setGpuSubStep
   );
 
   // ============ AUTO-SAVE & DRAFT MANAGEMENT ============
@@ -383,6 +394,151 @@ const StartBuild = () => {
       console.error('Failed to store rework locally:', error);
     } finally {
       setSavingIndex(null);
+    }
+  };
+
+  // Save GPU build with In Progress status (Continue Later)
+  const handleContinueLaterGPU = async () => {
+    setGpuSaving(true);
+    const results = [];
+    for (const build of builds) {
+      const g = build.gpuInfo || {};
+      if (!g.gpuSN) { results.push({ error: 'GPU S/N required' }); continue; }
+      try {
+        await api.saveGpuBuild({ ...Object.fromEntries(
+          ['gpuSN','cpuSN','projectName','po','gpuPN','boardSN','boardManufacturer','asicPN','siliconRev','boardRev','gpuRev','modelName',
+           'cpuPowerRating','heatsinkManufacturer','heatsinkPN','heatsinkSN','visualInspection','bootToOS',
+           'gpuDetected','fAuditEnablement','fAuditValue','agfhcLvl3','roccRushTest','hbmTest','transferBench',
+           'ifwiVersion','rmVersion'].map(k => [k, g[k] || null])
+        ), status: 'In Progress', buildEngineer: build.generalInfo?.buildEngineer || null });
+        results.push({ success: true, gpuSN: g.gpuSN });
+      } catch (err) {
+        results.push({ error: err.response?.data?.error || err.message, gpuSN: g.gpuSN });
+      }
+    }
+    setGpuSaving(false);
+    const failed = results.filter(r => r.error);
+    if (failed.length === 0) {
+      setGpuSaveMessage({ type: 'success', text: 'GPU build saved — you can continue later.' });
+      setCurrentStep('generalInfo');
+      setShowGPUInfo(false);
+      setGpuSubStep('gpuInfo');
+      setBuilds(prev => prev.map(b => ({ ...b, gpuInfo: { projectName:'',po:'',gpuPN:'',gpuSN:'',asicPN:'',cpuSN:'',siliconRev:'',boardRev:'',gpuRev:'',modelName:'',cpuPowerRating:'',heatsinkManufacturer:'',heatsinkPN:'',heatsinkSN:'',visualInspection:'',bootToOS:'',gpuDetected:'',fAuditEnablement:'',fAuditValue:'',agfhcLvl3:'',roccRushTest:'',hbmTest:'',transferBench:'',ifwiVersion:'',rmVersion:'' } })));
+      setTimeout(() => setGpuSaveMessage(null), 5000);
+    } else {
+      setGpuSaveMessage({ type: 'error', text: `Errors: ${failed.map(f => `${f.gpuSN || 'Unknown'}: ${f.error}`).join(', ')}` });
+      setTimeout(() => setGpuSaveMessage(null), 7000);
+    }
+  };
+
+  // Save all GPU builds to the gpu_builds table
+  const handleSaveGPU = async () => {
+    setGpuSaving(true);
+    const results = [];
+    for (const build of builds) {
+      const g = build.gpuInfo || {};
+      if (!g.gpuSN) {
+        results.push({ error: 'GPU S/N is required', build });
+        continue;
+      }
+      try {
+        await api.saveGpuBuild({
+          gpuSN: g.gpuSN,
+          cpuSN: g.cpuSN || null,
+          projectName: g.projectName || null,
+          po: g.po || null,
+          gpuPN: g.gpuPN || null,
+          boardSN: g.boardSN || null,
+          boardManufacturer: g.boardManufacturer || null,
+          asicPN: g.asicPN || null,
+          siliconRev: g.siliconRev || null,
+          boardRev: g.boardRev || null,
+          gpuRev: g.gpuRev || null,
+          modelName: g.modelName || null,
+          cpuPowerRating: g.cpuPowerRating || null,
+          heatsinkManufacturer: g.heatsinkManufacturer || null,
+          heatsinkPN: g.heatsinkPN || null,
+          heatsinkSN: g.heatsinkSN || null,
+          visualInspection: g.visualInspection || null,
+          visualInspectionNotes: g.visualInspectionNotes || null,
+          bootToOS: g.bootToOS || null,
+          bootToOSNotes: g.bootToOSNotes || null,
+          gpuDetected: g.gpuDetected || null,
+          gpuDetectedNotes: g.gpuDetectedNotes || null,
+          fAuditEnablement: g.fAuditEnablement || null,
+          fAuditEnablementNotes: g.fAuditEnablementNotes || null,
+          fAuditValue: g.fAuditValue || null,
+          agfhcLvl3: g.agfhcLvl3 || null,
+          agfhcLvl3Notes: g.agfhcLvl3Notes || null,
+          roccRushTest: g.roccRushTest || null,
+          roccRushTestNotes: g.roccRushTestNotes || null,
+          hbmTest: g.hbmTest || null,
+          hbmTestNotes: g.hbmTestNotes || null,
+          transferBench: g.transferBench || null,
+          transferBenchNotes: g.transferBenchNotes || null,
+          ifwiVersion: g.ifwiVersion || null,
+          rmVersion: g.rmVersion || null,
+          status: 'Completed',
+          buildEngineer: build.generalInfo?.buildEngineer || null,
+        });
+        results.push({ success: true, gpuSN: g.gpuSN });
+      } catch (err) {
+        results.push({ error: err.response?.data?.error || err.message, gpuSN: g.gpuSN });
+      }
+    }
+    // Upload photos for each build
+    for (const build of builds) {
+      const g = build.gpuInfo || {};
+      const gpuSN = g.gpuSN;
+      if (!gpuSN) continue;
+
+      const photoPayload = [];
+      const photoFields = ['visualInspection','bootToOS','gpuDetected','fAuditEnablement','agfhcLvl3','roccRushTest','hbmTest','transferBench'];
+      for (const field of photoFields) {
+        const photos = g[`${field}Photos`] || [];
+        for (const photo of photos) {
+          if (!photo.file) continue; // already uploaded (has path not file)
+          try {
+            const result = await api.uploadPhoto(photo.file, `gpu_${field}`);
+            photoPayload.push({ fieldName: field, filePath: result.filePath });
+          } catch (err) {
+            console.error(`Failed to upload GPU photo for ${field}:`, err);
+          }
+        }
+      }
+      if (photoPayload.length > 0) {
+        try { await api.saveGpuPhotos(gpuSN, photoPayload); } catch (err) {
+          console.error('Failed to save GPU photo paths:', err);
+        }
+      }
+    }
+
+    setGpuSaving(false);
+
+    const failed = results.filter(r => r.error);
+    if (failed.length === 0) {
+      setGpuSaveMessage({ type: 'success', text: `GPU build${builds.length > 1 ? 's' : ''} saved successfully.` });
+
+      // Clear all gpuInfo fields
+      const emptyGpuInfo = {
+        projectName: '', po: '', gpuPN: '', gpuSN: '', asicPN: '', cpuSN: '',
+        siliconRev: '', boardRev: '', gpuRev: '', modelName: '',
+        cpuPowerRating: '', heatsinkManufacturer: '',
+        heatsinkPN: '', heatsinkSN: '',
+        visualInspection: '', bootToOS: '', gpuDetected: '',
+        fAuditEnablement: '', fAuditValue: '',
+        agfhcLvl3: '', roccRushTest: '', hbmTest: '', transferBench: '',
+        ifwiVersion: '', rmVersion: '',
+      };
+      setBuilds(prev => prev.map(b => ({ ...b, gpuInfo: { ...emptyGpuInfo } })));
+
+      setCurrentStep('generalInfo');
+      setShowGPUInfo(false);
+      setGpuSubStep('gpuInfo');
+      setTimeout(() => setGpuSaveMessage(null), 5000);
+    } else {
+      setGpuSaveMessage({ type: 'error', text: `Saved with errors: ${failed.map(f => `${f.gpuSN || 'Unknown'}: ${f.error}`).join(', ')}` });
+      setTimeout(() => setGpuSaveMessage(null), 7000);
     }
   };
 
@@ -837,6 +993,13 @@ const StartBuild = () => {
           </button>
           <button
             className="btn-secondary"
+            onClick={() => { setShowGPUInfo(v => !v); setGpuSubStep('gpuInfo'); }}
+            style={{ background: showGPUInfo ? '#1a73e8' : undefined, color: showGPUInfo ? '#fff' : undefined }}
+          >
+            {showGPUInfo ? 'Server Information' : 'GPU Information'}
+          </button>
+          <button
+            className="btn-secondary"
             onClick={() => bulkImportRef.current?.click()}
           >
             Import Bulk
@@ -870,11 +1033,30 @@ const StartBuild = () => {
         currentStep={currentStep}
         showRework={currentStep === 'qualityIndicator'}
         onReworkClick={() => setCurrentStep('rework')}
-
-
+        showGPUInfo={showGPUInfo}
+        gpuSubStep={gpuSubStep}
       />
 
       <SaveResults saveResults={navigation.saveResults.concat(save.saveResults)} />
+
+      {gpuSaveMessage && (
+        <div style={{
+          margin: '12px 0',
+          padding: '14px 18px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontWeight: 500,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: gpuSaveMessage.type === 'success' ? '#d4edda' : '#f8d7da',
+          border: `1px solid ${gpuSaveMessage.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
+          color: gpuSaveMessage.type === 'success' ? '#155724' : '#721c24',
+        }}>
+          <span>{gpuSaveMessage.text}</span>
+          <span style={{ cursor: 'pointer', marginLeft: 12, fontWeight: 700 }} onClick={() => setGpuSaveMessage(null)}>✕</span>
+        </div>
+      )}
 
       {/* Sub-step title */}
       {(currentStep === 'systemInfo' || currentStep === 'bkcDetails' || currentStep === 'qualityIndicator') && (
@@ -882,6 +1064,10 @@ const StartBuild = () => {
           <h2>
             {currentStep === 'bkcDetails' ? 'BKC Details' :
               currentStep === 'qualityIndicator' ? 'Quality Indicator' :
+              (currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuInfo') ? 'GPU Information' :
+              (currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuComponent') ? 'Component/Rework Information' :
+              (currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuTesting') ? 'Testing' :
+              (currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuFirmware') ? 'Firmware Details' :
                 getSubStepTitle()}
           </h2>
         </div>
@@ -900,8 +1086,38 @@ const StartBuild = () => {
         />
       )}
 
-      {/* System Information Table */}
-      {currentStep === 'systemInfo' && (
+      {/* System Information Table — replaced by GPU Info when toggled */}
+      {currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuInfo' && (
+        <GPUInfoTable
+          builds={builds}
+          handleInputChange={handleInputChange}
+          removeBuild={removeBuild}
+        />
+      )}
+      {currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuComponent' && (
+        <GPUComponentTable
+          builds={builds}
+          handleInputChange={handleInputChange}
+          removeBuild={removeBuild}
+        />
+      )}
+      {currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuTesting' && (
+        <GPUTestingTable
+          builds={builds}
+          handleInputChange={handleInputChange}
+          removeBuild={removeBuild}
+          onExtractLog={handleExtractLog}
+        />
+      )}
+      {currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuFirmware' && (
+        <GPUFirmwareTable
+          builds={builds}
+          handleInputChange={handleInputChange}
+          removeBuild={removeBuild}
+          onExtractLog={handleExtractLog}
+        />
+      )}
+      {currentStep === 'systemInfo' && !showGPUInfo && (
         <SystemInfoTable
           builds={builds}
           setBuilds={setBuilds}
@@ -985,6 +1201,11 @@ const StartBuild = () => {
         navigatePrevious={navigation.navigatePrevious}
         navigateNext={navigation.navigateNext}
         saving={save.saving}
+        showGPUInfo={showGPUInfo}
+        gpuSubStep={gpuSubStep}
+        onSaveGPU={handleSaveGPU}
+        onContinueLaterGPU={handleContinueLaterGPU}
+        gpuSaving={gpuSaving}
       />
 
       {/* Auto-Save Indicator */}

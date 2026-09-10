@@ -633,6 +633,16 @@ updateGpuBuild: async (originalGpuSN, gpuData) => {
   }
 },
 
+getGpuBuildPhotos: async (gpuSN) => {
+  try {
+    const response = await axios.get(`${API_URL}/gpu-builds/${encodeURIComponent(gpuSN)}/photos`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching GPU build photos:', error);
+    return [];
+  }
+},
+
 saveGpuPhotos: async (gpuSN, photos) => {
   try {
     const response = await axios.post(`${API_URL}/gpu-builds/${encodeURIComponent(gpuSN)}/photos`, { photos });

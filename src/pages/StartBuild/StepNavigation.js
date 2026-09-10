@@ -4,14 +4,19 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
-const StepNavigation = ({ 
-  currentStep, 
-  systemInfoSubStep, 
-  builds, 
-  addNewBuild, 
-  navigatePrevious, 
-  navigateNext, 
-  saving
+const StepNavigation = ({
+  currentStep,
+  systemInfoSubStep,
+  builds,
+  addNewBuild,
+  navigatePrevious,
+  navigateNext,
+  saving,
+  showGPUInfo = false,
+  gpuSubStep = 'gpuInfo',
+  onSaveGPU,
+  gpuSaving = false,
+  onContinueLaterGPU,
 }) => {
   
   return (
@@ -34,10 +39,31 @@ const StepNavigation = ({
           </button>
         )}
         
-        {/* Show Next button for all steps except final Quality Indicator */}
-        {currentStep !== 'qualityIndicator' && (
-          <button 
-            className="btn-primary" 
+        {/* Continue Later + Save buttons on Firmware Details page */}
+        {showGPUInfo && gpuSubStep === 'gpuFirmware' && (
+          <>
+            <button
+              className="btn-secondary"
+              onClick={onContinueLaterGPU}
+              disabled={gpuSaving || saving}
+            >
+              Continue Later
+            </button>
+            <button
+              className="btn-primary"
+              onClick={onSaveGPU}
+              disabled={gpuSaving || saving}
+            >
+              {gpuSaving ? 'Saving...' : 'Save'}
+            </button>
+          </>
+        )}
+
+        {/* Hide Next on final GPU page (Firmware Details) and on Quality Indicator */}
+        {currentStep !== 'qualityIndicator' &&
+         !(showGPUInfo && gpuSubStep === 'gpuFirmware') && (
+          <button
+            className="btn-primary"
             onClick={navigateNext}
             disabled={saving}
           >

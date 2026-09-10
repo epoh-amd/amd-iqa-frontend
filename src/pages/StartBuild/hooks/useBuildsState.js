@@ -36,6 +36,35 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
       buildEngineer: '',
       isCustomConfig: ''
     },
+    gpuInfo: {
+      projectName: '',
+      po: '',
+      gpuPN: '',
+      gpuSN: '',
+      boardSN: '',
+      boardManufacturer: '',
+      asicPN: '',
+      cpuSN: '',
+      siliconRev: '',
+      boardRev: '',
+      gpuRev: '',
+      modelName: '',
+      cpuPowerRating: '',
+      heatsinkManufacturer: '',
+      heatsinkPN: '',
+      heatsinkSN: '',
+      visualInspection: '', visualInspectionNotes: '',
+      bootToOS: '', bootToOSNotes: '',
+      gpuDetected: '', gpuDetectedNotes: '',
+      fAuditEnablement: '', fAuditEnablementNotes: '',
+      fAuditValue: '',
+      agfhcLvl3: '', agfhcLvl3Notes: '',
+      roccRushTest: '', roccRushTestNotes: '',
+      hbmTest: '', hbmTestNotes: '',
+      transferBench: '', transferBenchNotes: '',
+      ifwiVersion: '',
+      rmVersion: '',
+    },
     systemInfo: {
       // Chassis Information
       projectName: '',
@@ -603,6 +632,11 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
           }
         });
       }
+    } else if (section === 'gpuInfo') {
+      if (!updatedBuilds[buildIndex].gpuInfo) updatedBuilds[buildIndex].gpuInfo = {};
+      updatedBuilds[buildIndex].gpuInfo[field] = value;
+      setBuilds(updatedBuilds);
+      return;
     } else if (section === 'systemInfo') {
       // Handle DIMM S/N separately
       if (field === 'dimmSN' && dimmIndex !== null) {

@@ -14,7 +14,10 @@ export const useNavigation = (
   validationFunctions,
   selectedBuildIndices,
   setSelectedBuildIndices,
-  allBuildsRef
+  allBuildsRef,
+  showGPUInfo = false,
+  gpuSubStep = 'gpuInfo',
+  setGpuSubStep = () => {}
 ) => {
   const [saveResults, setSaveResults] = useState([]);
 
@@ -334,7 +337,7 @@ export const useNavigation = (
     let validationErrors = [];
     
     // IMPORTANT: Validate current step before proceeding (MATCHING ORIGINAL LOGIC)
-    if (currentStep === 'systemInfo') {
+    if (currentStep === 'systemInfo' && !showGPUInfo) {
       if (systemInfoSubStep === 'chassisInfo') {
         validationErrors = await validateChassisInfo();
       } else if (systemInfoSubStep === 'cpuInfo') {
@@ -412,7 +415,16 @@ export const useNavigation = (
       setBuilds(updatedBuilds);
 
       // GPU mode: handle GPU sub-steps
-     
+      if (showGPUInfo) {
+        if (gpuSubStep === 'gpuInfo') {
+          setGpuSubStep('gpuComponent');
+        } else if (gpuSubStep === 'gpuComponent') {
+          setGpuSubStep('gpuTesting');
+        } else if (gpuSubStep === 'gpuTesting') {
+          setGpuSubStep('gpuFirmware');
+        }
+        return;
+      }
 
       // Move to next sub-step
       if (systemInfoSubStep === 'chassisInfo') {
@@ -456,7 +468,19 @@ export const useNavigation = (
   // Navigate to previous step/sub-step
   const navigatePrevious = () => {
     if (currentStep === 'systemInfo') {
-     
+      // GPU mode — navigate backwards through GPU sub-steps
+      if (showGPUInfo) {
+        if (gpuSubStep === 'gpuFirmware') {
+          setGpuSubStep('gpuTesting');
+        } else if (gpuSubStep === 'gpuTesting') {
+          setGpuSubStep('gpuComponent');
+        } else if (gpuSubStep === 'gpuComponent') {
+          setGpuSubStep('gpuInfo');
+        } else {
+          setCurrentStep('generalInfo');
+        }
+        return;
+      }
 
       if (systemInfoSubStep === 'chassisInfo') {
         // Restore full builds list if we previously filtered by selection
