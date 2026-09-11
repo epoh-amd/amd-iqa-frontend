@@ -122,6 +122,7 @@ export const generateCGTemplateXML = (selectedBuilds) => {
     xml += `      <PDU_Port2></PDU_Port2>\n`;
     xml += `      <PDU_Vendor></PDU_Vendor>\n`;
     xml += `      <PDU_Details></PDU_Details>\n`;
+    xml += `      <InvoiceNumber>${escapeXml(build.po || '')}</InvoiceNumber>\n`;
     xml += `      <Status>Available</Status>\n`;
     xml += `      <Location>${escapeXml(extractLocationBeforeColon(build.master_location) || '')}</Location>\n`;
     xml += `      <AssetType>Systems</AssetType>\n`;
@@ -471,6 +472,7 @@ export const generateCGTemplate = (selectedBuilds) => {
     'PDU Port2',
     'PDU Vendor',
     'PDU Details',
+    'InvoiceNumber',
     'Status',
     'Location',
     'Asset Type',
@@ -507,6 +509,7 @@ export const generateCGTemplate = (selectedBuilds) => {
       '', // PDU Port2 (blank)
       '', // PDU Vendor (blank)
       '', // PDU Details (blank)
+      build.po || '', // InvoiceNumber
       'Available', // Status
       extractLocationBeforeColon(build.master_location) || '', // Location from master_builds
       'Systems', // Asset Type
