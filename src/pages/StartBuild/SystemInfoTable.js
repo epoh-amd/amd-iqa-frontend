@@ -438,12 +438,15 @@ useEffect(() => {
                       <option value="">Select Socket</option>
                       <option value="SP7">SP7</option>
                       <option value="SP8">SP8</option>
+                      {build.systemInfo.projectName === 'Verano LPDDR' && (
+                        <option value="SB1">SB1</option>
+                      )}
                     </select>
                     {build.errors.cpuSocket && (
                       <div className="field-error">{build.errors.cpuSocket}</div>
                     )}
                   </td>
-                  
+
                   <td>
                     <select
                       value={build.systemInfo.cpuVendor || ''}
@@ -454,6 +457,9 @@ useEffect(() => {
                       <option value="Tyco">Tyco</option>
                       <option value="Foxconn">Foxconn</option>
                       <option value="Lotes">Lotes</option>
+                      {build.systemInfo.projectName === 'Verano LPDDR' && (
+                        <option value="N/A">N/A</option>
+                      )}
                     </select>
                     {build.errors.cpuVendor && (
                       <div className="field-error">{build.errors.cpuVendor}</div>
@@ -482,6 +488,9 @@ useEffect(() => {
                     >
                       <option value="">Select Program</option>
                       <option value="Weisshorn">Weisshorn</option>
+                      {build.systemInfo.projectName === 'Verano LPDDR' && (
+                        <option value="WeisshornLP">WeisshornLP</option>
+                      )}
                     </select>
                     {build.errors.cpuProgramName && (
                       <div className="field-error">{build.errors.cpuProgramName}</div>
