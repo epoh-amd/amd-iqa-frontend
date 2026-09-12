@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import UserManagement from './UserManagement';
 import EditDataPage from './EditDataPage';
+import FailureModeManagement from './FailureModeManagement';
 import '../../assets/css/admin.css';
 
 const AdminDashboard = () => {
