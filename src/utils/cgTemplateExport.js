@@ -458,20 +458,21 @@ export const generateCGTemplate = (selectedBuilds) => {
     'UDF_PlatformRev',
     'UDF_PlatformType',
     'Socket',
-    'LabRework ID',
-    'LabReworkName',
     'UDF_ChassisName',
     'UDF_ChassisSN',
-    'UDF_Backplane',
     'MACAddress',
     'UDF_BMCMac',
     'UDF_BMC',
+    'UDF_Backplane',
+    'UDF_LabRework',
+    'LabReworkName',
     'PDU IP',
-    'PFU Port',
-    'PDU IP2',
-    'PDU Port2',
+    'Port1',
+    'PDU2 IP',
+    'Port2',
     'PDU Vendor',
-    'PDU Details',
+    'PDU Info',
+    'UDF_RackUSpace',
     'InvoiceNumber',
     'Status',
     'Location',
@@ -488,36 +489,37 @@ export const generateCGTemplate = (selectedBuilds) => {
   // Add data rows for each selected build
   selectedBuilds.forEach(build => {
     const row = [
-      'Name', // keys
-      mapProjectNameForExport(build.project_name), // UDF_projectname
-      build.bmc_name || '', // Name
-      build.mb_sn || '', // UDF_MotherBoardSN
-      extractPlatformRev(build.platform_type), // UDF_PlatformRev
-      extractPlatformType(build.bmc_name), // UDF_PlatformType
-      build.cpu_socket || '', // Socket
-      '', // LabRework ID (blank)
-      '', // LabReworkName (blank)
-      build.chassis_type || '', // UDF_ChassisName
-      build.chassis_sn || '', // UDF_ChassisSN
-      getBackplaneFromSystemPN(build.system_pn), // UDF_Backplane
-      formatMacAddress(build.ethernet_mac), // MACAddress
-      formatMacAddress(build.bmc_mac), // UDF_BMCMac
-      build.bmc_name ? `${build.bmc_name}.amd.com` : '', // UDF_BMC
-      '', // PDU IP (blank)
-      '', // PFU Port (blank)
-      '', // PDU IP2 (blank)
-      '', // PDU Port2 (blank)
-      '', // PDU Vendor (blank)
-      '', // PDU Details (blank)
-      build.po || '', // InvoiceNumber
-      'Available', // Status
-      extractLocationBeforeColon(build.master_location) || '', // Location from master_builds
-      'Systems', // Asset Type
-      'AMD Server', // Asset Model
-      build.team_security || '', // Security Team from master_builds
-      extractLocationBeforeColon(build.department) || '', // Department from master_builds
-      'AMD_Server', // Workflow
-      'Systems' // EditorLayout
+      'Name',                                                     // keys
+      mapProjectNameForExport(build.project_name),               // UDF_projectname
+      build.bmc_name || '',                                       // Name
+      build.mb_sn || '',                                          // UDF_MotherBoardSN
+      extractPlatformRev(build.platform_type),                   // UDF_PlatformRev
+      extractPlatformType(build.bmc_name),                       // UDF_PlatformType
+      build.cpu_socket || '',                                     // Socket
+      build.chassis_type || '',                                   // UDF_ChassisName
+      build.chassis_sn || '',                                     // UDF_ChassisSN
+      formatMacAddress(build.ethernet_mac),                      // MACAddress
+      formatMacAddress(build.bmc_mac),                           // UDF_BMCMac
+      build.bmc_name ? `${build.bmc_name}.amd.com` : '',        // UDF_BMC
+      getBackplaneFromSystemPN(build.system_pn),                 // UDF_Backplane
+      '',                                                         // UDF_LabRework (blank)
+      '',                                                         // LabReworkName (blank)
+      '',                                                         // PDU IP (blank)
+      '',                                                         // Port1 (blank)
+      '',                                                         // PDU2 IP (blank)
+      '',                                                         // Port2 (blank)
+      '',                                                         // PDU Vendor (blank)
+      '',                                                         // PDU Info (blank)
+      '',                                                         // UDF_RackUSpace (blank)
+      build.po || '',                                             // InvoiceNumber
+      'Available',                                                // Status
+      extractLocationBeforeColon(build.master_location) || '',   // Location
+      'Systems',                                                  // Asset Type
+      'AMD Server',                                               // Asset Model
+      build.team_security || '',                                  // Security Team
+      extractLocationBeforeColon(build.department) || '',        // Department
+      'AMD_Server',                                               // Workflow
+      'Systems'                                                   // EditorLayout
     ];
     
     wsData.push(row);
