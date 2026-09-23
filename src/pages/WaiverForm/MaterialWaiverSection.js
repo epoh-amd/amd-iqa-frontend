@@ -55,14 +55,14 @@ const MaterialWaiverSection = ({
             </colgroup>
             <thead>
               <tr>
-                <th>Current Part Number <span style={{ color: '#dc3545' }}>*</span></th>
-                <th>Current Description</th>
-                <th>Current Qty</th>
-                <th>Current Refdes</th>
-                <th>To Be Part Number <span style={{ color: '#dc3545' }}>*</span></th>
-                <th>Description</th>
-                <th>New Qty</th>
-                <th>New Refdes</th>
+                <th style={{ background: '#e8f4fd' }}>Current Part Number <span style={{ color: '#dc3545' }}>*</span></th>
+                <th style={{ background: '#e8f4fd' }}>Current Description</th>
+                <th style={{ background: '#e8f4fd' }}>Current Qty</th>
+                <th style={{ background: '#e8f4fd' }}>Current Refdes</th>
+                <th style={{ background: '#e8f5e9' }}>To Be Part Number <span style={{ color: '#dc3545' }}>*</span></th>
+                <th style={{ background: '#e8f5e9' }}>New Description</th>
+                <th style={{ background: '#e8f5e9' }}>New Qty</th>
+                <th style={{ background: '#e8f5e9' }}>New Refdes</th>
                 <th>Action</th>
                 <th>Attachment</th>
                 <th></th>
@@ -73,7 +73,7 @@ const MaterialWaiverSection = ({
               {materialRows.map((row, index) => (
                 <React.Fragment key={index}>
                   <tr>
-                    <td>
+                    <td style={{ background: '#f0f8ff' }}>
                       <input
                         className="table-input"
                         placeholder="Current Part No"
@@ -82,7 +82,7 @@ const MaterialWaiverSection = ({
                       />
                     </td>
 
-                    <td>
+                    <td style={{ background: '#f0f8ff' }}>
                       <textarea
                         className="table-textarea small"
                         placeholder="Description"
@@ -91,7 +91,7 @@ const MaterialWaiverSection = ({
                       />
                     </td>
 
-                    <td>
+                    <td style={{ background: '#f0f8ff' }}>
                       <input
                         className="table-input"
                         placeholder="Qty"
@@ -100,7 +100,7 @@ const MaterialWaiverSection = ({
                       />
                     </td>
 
-                    <td>
+                    <td style={{ background: '#f0f8ff' }}>
                       <textarea
                         className="table-textarea small"
                         placeholder="Refdes"
@@ -109,7 +109,7 @@ const MaterialWaiverSection = ({
                       />
                     </td>
 
-                    <td>
+                    <td style={{ background: '#f0fff4' }}>
                       <input
                         className="table-input"
                         placeholder="To Be Part No"
@@ -118,7 +118,7 @@ const MaterialWaiverSection = ({
                       />
                     </td>
 
-                    <td>
+                    <td style={{ background: '#f0fff4' }}>
                       <textarea
                         className="table-textarea small"
                         placeholder="Description"
@@ -127,7 +127,7 @@ const MaterialWaiverSection = ({
                       />
                     </td>
 
-                    <td>
+                    <td style={{ background: '#f0fff4' }}>
                       <input
                         className="table-input"
                         placeholder="New Qty"
@@ -136,7 +136,7 @@ const MaterialWaiverSection = ({
                       />
                     </td>
 
-                    <td>
+                    <td style={{ background: '#f0fff4' }}>
                       <textarea
                         className="table-textarea small"
                         placeholder="New Refdes"

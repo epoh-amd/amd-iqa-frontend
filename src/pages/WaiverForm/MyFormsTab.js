@@ -225,7 +225,7 @@ const MyFormsTab = ({
                   </td>
 
                   <td style={{ fontSize: '13px', color: '#555', maxWidth: '180px' }}>
-                    {cancelledBy && !cancelledBy.toLowerCase().startsWith('requestor:') && status === 'New' ? (
+                    {cancelledBy && cancelledBy.toLowerCase().startsWith('approver:') && status === 'Cancelled' ? (
                       <div>
                         <div style={{ fontWeight: 500, color: '#c62828' }}>
                           Rejected by {cancelledBy.includes(':') ? cancelledBy.split(':').slice(1).join(':').trim() : cancelledBy}

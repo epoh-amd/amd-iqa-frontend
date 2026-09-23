@@ -1116,8 +1116,37 @@ const WaiverForm = () => {
         return;
       }
 
-      // Requestor submitting from All Forms — set to Pending Approval and notify approvers
+      // Requestor submitting from All Forms
       if (requestorEditMode) {
+        // If waiver was Cancelled (rejected by approver) — treat same as fresh New waiver: save as New, notify requestors only
+        if (waiverStatus === 'Cancelled') {
+          await api.submitWaiver({ ...payload, status: 'New' });
+          const requestorList = Array.isArray(formData.requestor)
+            ? formData.requestor.filter(Boolean)
+            : formData.requestor ? [formData.requestor] : [];
+          try {
+            await api.sendRequestorNotification({
+              waiverId: formData.waiverId,
+              partNumber: formData.partNumber,
+              description: formData.description,
+              revision: formData.revision,
+              assemblyLevel: formData.assemblyLevel,
+              subcontractor: formData.subcontractor,
+              reason: formData.reason,
+              submittedBy: user?.full_name || user?.email || '',
+              requestors: requestorList,
+            });
+          } catch (emailErr) {
+            console.error('Failed to notify requestors:', emailErr);
+          }
+          setShowForm(false);
+          setActiveTab('myforms');
+          fetchMyForms();
+          setPageMessage({ type: 'success', text: `Waiver ${formData.waiverId} resubmitted and requestors have been notified.` });
+          setTimeout(() => setPageMessage(null), 5000);
+          return;
+        }
+        // Otherwise — set to Pending Approval and notify approvers
         await api.submitWaiver({ ...payload, status: 'Pending Approval' });
         navigate(`/waiver-view?id=${formData.waiverId}&sendEmail=true`, {
           state: {
