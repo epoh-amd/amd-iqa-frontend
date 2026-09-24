@@ -145,10 +145,7 @@ export const useDashboardData = () => {
       setChartData(mergedChartData);
 
       // Set quality data using utility function
-      console.log('=== Quality Data Debug ===');
-      console.log('Raw quality data from API:', qualityDataResult);
       const processedQuality = processQualityData(qualityDataResult);
-      console.log('Processed quality data:', processedQuality);
       setQualityData(processedQuality);
 
     } catch (err) {

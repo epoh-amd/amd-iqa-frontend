@@ -1,9 +1,35 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faDownload, faSave, faTools, faClock, faTimes, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
-const GPUFirmwareTable = ({ builds, handleInputChange, removeBuild, onExtractLog }) => {
-  const getBuildReference = () => '';
+const getBuildReference = (build) => {
+  const g = build.gpuInfo || {};
+  if (g.projectName && g.gpuSN) return `${g.projectName} - ${g.gpuSN.slice(-4)}`;
+  return '';
+};
+
+const getGpuFpyStatus = (gpu) => {
+  const testFields = [
+    { field: 'visualInspection', failVal: 'Fail' },
+    { field: 'bootToOS',         failVal: 'No'   },
+    { field: 'gpuDetected',      failVal: 'No'   },
+    { field: 'fAuditEnablement', failVal: 'No'   },
+    { field: 'agfhcLvl3',        failVal: 'Fail' },
+    { field: 'roccRushTest',     failVal: 'Fail' },
+    { field: 'hbmTest',          failVal: 'Fail' },
+    { field: 'transferBench',    failVal: 'Fail' },
+  ];
+  const anyFilled = testFields.some(({ field }) => gpu[field]);
+  if (!anyFilled) return '';
+  const anyFail = testFields.some(({ field, failVal }) => gpu[field] === failVal);
+  return anyFail ? 'Fail' : 'Pass';
+};
+
+const GPUFirmwareTable = ({
+  builds, handleInputChange, removeBuild, onExtractLog,
+  onSaveGPU, onContinueLaterGPU, onSaveAndReworkGPU, gpuSaving = false,
+  showSaveActions = true, alwaysShowAllActions = false,
+}) => {
 
   return (
     <div className="builds-table-container">
@@ -15,6 +41,7 @@ const GPUFirmwareTable = ({ builds, handleInputChange, removeBuild, onExtractLog
             <th>Extract</th>
             <th>IFWI Version</th>
             <th>RM Version</th>
+            {showSaveActions && <th>Save Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -22,6 +49,7 @@ const GPUFirmwareTable = ({ builds, handleInputChange, removeBuild, onExtractLog
             const gpu = build.gpuInfo || {};
             const onChange = (field, value) =>
               handleInputChange(buildIndex, 'gpuInfo', field, value);
+            const fpy = getGpuFpyStatus(gpu);
             return (
               <tr key={build.id} className={`build-row ${build.status}`}>
                 <td className="row-actions">
@@ -71,6 +99,65 @@ const GPUFirmwareTable = ({ builds, handleInputChange, removeBuild, onExtractLog
                     />
                   </div>
                 </td>
+                {showSaveActions && (
+                  <td className="save-actions-cell">
+                    {alwaysShowAllActions ? (
+                      <div className="fail-actions">
+                        <button
+                          className="btn-save-rework"
+                          onClick={() => onSaveAndReworkGPU && onSaveAndReworkGPU(buildIndex)}
+                          disabled={gpuSaving}
+                          title="Save & Rework"
+                        >
+                          <FontAwesomeIcon icon={faTools} /> Save & Rework
+                        </button>
+                        <button
+                          className="btn-primary"
+                          style={{ backgroundColor: '#2e7d32', borderColor: '#2e7d32' }}
+                          onClick={() => onContinueLaterGPU && onContinueLaterGPU()}
+                          disabled={gpuSaving}
+                          title="Update Build"
+                        >
+                          <FontAwesomeIcon icon={faSave} /> Update Build
+                        </button>
+                      </div>
+                    ) : fpy === 'Pass' ? (
+                      <button
+                        className="btn-save-build"
+                        onClick={() => onSaveGPU && onSaveGPU()}
+                        disabled={gpuSaving}
+                        title="Save as complete build"
+                      >
+                        <FontAwesomeIcon icon={faSave} /> Save the Build
+                      </button>
+                    ) : fpy === 'Fail' ? (
+                      <div className="fail-actions">
+                        <button
+                          className="btn-save-rework"
+                          onClick={() => onSaveAndReworkGPU && onSaveAndReworkGPU(buildIndex)}
+                          disabled={gpuSaving}
+                          title="Save & Rework"
+                        >
+                          <FontAwesomeIcon icon={faTools} /> Save & Rework
+                        </button>
+                        <button
+                          className="btn-primary"
+                          style={{ backgroundColor: '#2e7d32', borderColor: '#2e7d32' }}
+                          onClick={() => onContinueLaterGPU && onContinueLaterGPU()}
+                          disabled={gpuSaving}
+                          title="Update Build"
+                        >
+                          <FontAwesomeIcon icon={faClock} /> Update Build
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="calculate-fpy-message">
+                        <FontAwesomeIcon icon={faExclamationTriangle} />
+                        Complete testing first
+                      </span>
+                    )}
+                  </td>
+                )}
               </tr>
             );
           })}

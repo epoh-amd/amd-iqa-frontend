@@ -12,6 +12,7 @@ import {
 import ProgressTracker from './ProgressTracker';
 import GeneralInfoTable from './GeneralInfoTable';
 import GPUInfoTable from './GPUInfoTable';
+import GPUSiliconTable from './GPUSiliconTable';
 import GPUComponentTable from './GPUComponentTable';
 import GPUTestingTable from './GPUTestingTable';
 import GPUFirmwareTable from './GPUFirmwareTable';
@@ -47,7 +48,8 @@ const StartBuild = () => {
   const [showGPUInfo, setShowGPUInfo] = useState(false);
   const [gpuSubStep, setGpuSubStep] = useState('gpuInfo');
   const [gpuSaving, setGpuSaving] = useState(false);
-  const [gpuSaveMessage, setGpuSaveMessage] = useState(null); // { type: 'success'|'error', text: '' }
+  const [gpuSaveMessage, setGpuSaveMessage] = useState(null);
+  const [gpuTestingEditable, setGpuTestingEditable] = useState(false); // { type: 'success'|'error', text: '' }
   const [reworkMode, setReworkMode] = useState(false);
   const [reworkBuildIndex, setReworkBuildIndex] = useState(null);
   const [savingIndex, setSavingIndex] = useState(null);
@@ -405,12 +407,47 @@ const StartBuild = () => {
       const g = build.gpuInfo || {};
       if (!g.gpuSN) { results.push({ error: 'GPU S/N required' }); continue; }
       try {
-        await api.saveGpuBuild({ ...Object.fromEntries(
-          ['gpuSN','cpuSN','projectName','po','gpuPN','boardSN','boardManufacturer','asicPN','siliconRev','boardRev','gpuRev','modelName',
-           'cpuPowerRating','heatsinkManufacturer','heatsinkPN','heatsinkSN','visualInspection','bootToOS',
-           'gpuDetected','fAuditEnablement','fAuditValue','agfhcLvl3','roccRushTest','hbmTest','transferBench',
-           'ifwiVersion','rmVersion'].map(k => [k, g[k] || null])
-        ), status: 'In Progress', buildEngineer: build.generalInfo?.buildEngineer || null });
+        await api.saveGpuBuild({
+          gpuSN: g.gpuSN, cpuSN: g.cpuSN || null,
+          projectName: g.projectName || null, po: g.po || null, gpuPN: g.gpuPN || null,
+          boardSN: g.boardSN || null, boardManufacturer: g.boardManufacturer || null, asicPN: g.asicPN || null,
+          siliconRev: g.siliconRev || null, boardRev: g.boardRev || null, gpuRev: g.gpuRev || null,
+          modelName: g.modelName || null, cpuPowerRating: g.cpuPowerRating || null,
+          heatsinkManufacturer: g.heatsinkManufacturer || null, heatsinkPN: g.heatsinkPN || null, heatsinkSN: g.heatsinkSN || null,
+          visualInspection: g.visualInspection || null, visualInspectionNotes: g.visualInspectionNotes || null,
+          bootToOS: g.bootToOS || null, bootToOSNotes: g.bootToOSNotes || null,
+          gpuDetected: g.gpuDetected || null, gpuDetectedNotes: g.gpuDetectedNotes || null,
+          fAuditEnablement: g.fAuditEnablement || null, fAuditEnablementNotes: g.fAuditEnablementNotes || null,
+          fAuditValue: g.fAuditValue || null,
+          agfhcLvl3: g.agfhcLvl3 || null, agfhcLvl3Notes: g.agfhcLvl3Notes || null,
+          roccRushTest: g.roccRushTest || null, roccRushTestNotes: g.roccRushTestNotes || null,
+          hbmTest: g.hbmTest || null, hbmTestNotes: g.hbmTestNotes || null,
+          transferBench: g.transferBench || null, transferBenchNotes: g.transferBenchNotes || null,
+          ifwiVersion: g.ifwiVersion || null, rmVersion: g.rmVersion || null,
+          status: 'In Progress', buildEngineer: build.generalInfo?.buildEngineer || null,
+        });
+
+        // Upload photos
+        const photoPayload = [];
+        const photoFields = ['visualInspection','bootToOS','gpuDetected','fAuditEnablement','agfhcLvl3','roccRushTest','hbmTest','transferBench'];
+        for (const field of photoFields) {
+          const photos = g[`${field}Photos`] || [];
+          for (const photo of photos) {
+            if (!photo.file) continue;
+            try {
+              const result = await api.uploadPhoto(photo.file, `gpu_${field}`);
+              photoPayload.push({ fieldName: field, filePath: result.filePath });
+            } catch (err) {
+              console.error(`Failed to upload GPU photo for ${field}:`, err);
+            }
+          }
+        }
+        if (photoPayload.length > 0) {
+          try { await api.saveGpuPhotos(g.gpuSN, photoPayload); } catch (err) {
+            console.error('Failed to save GPU photo paths:', err);
+          }
+        }
+
         results.push({ success: true, gpuSN: g.gpuSN });
       } catch (err) {
         results.push({ error: err.response?.data?.error || err.message, gpuSN: g.gpuSN });
@@ -993,7 +1030,7 @@ const StartBuild = () => {
           </button>
           <button
             className="btn-secondary"
-            onClick={() => { setShowGPUInfo(v => !v); setGpuSubStep('gpuInfo'); }}
+            onClick={() => { setShowGPUInfo(v => !v); setGpuSubStep('gpuInfo'); setGpuTestingEditable(false); }}
             style={{ background: showGPUInfo ? '#1a73e8' : undefined, color: showGPUInfo ? '#fff' : undefined }}
           >
             {showGPUInfo ? 'Server Information' : 'GPU Information'}
@@ -1065,6 +1102,7 @@ const StartBuild = () => {
             {currentStep === 'bkcDetails' ? 'BKC Details' :
               currentStep === 'qualityIndicator' ? 'Quality Indicator' :
               (currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuInfo') ? 'GPU Information' :
+              (currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuSilicon') ? 'Silicon Details' :
               (currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuComponent') ? 'Component/Rework Information' :
               (currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuTesting') ? 'Testing' :
               (currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuFirmware') ? 'Firmware Details' :
@@ -1094,6 +1132,13 @@ const StartBuild = () => {
           removeBuild={removeBuild}
         />
       )}
+      {currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuSilicon' && (
+        <GPUSiliconTable
+          builds={builds}
+          handleInputChange={handleInputChange}
+          removeBuild={removeBuild}
+        />
+      )}
       {currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuComponent' && (
         <GPUComponentTable
           builds={builds}
@@ -1107,6 +1152,7 @@ const StartBuild = () => {
           handleInputChange={handleInputChange}
           removeBuild={removeBuild}
           onExtractLog={handleExtractLog}
+          isEditable={true}
         />
       )}
       {currentStep === 'systemInfo' && showGPUInfo && gpuSubStep === 'gpuFirmware' && (
@@ -1115,6 +1161,8 @@ const StartBuild = () => {
           handleInputChange={handleInputChange}
           removeBuild={removeBuild}
           onExtractLog={handleExtractLog}
+          gpuSaving={gpuSaving}
+          showSaveActions={false}
         />
       )}
       {currentStep === 'systemInfo' && !showGPUInfo && (

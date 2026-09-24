@@ -31,7 +31,7 @@ const td     = { padding: '8px 10px', border: '1px solid #dee2e6', whiteSpace: '
 const GPU_SECTIONS = {
   gpuInfo:   { label: 'GPU Information',              cols: ['Project','PO','GPU P/N','GPU S/N','Board S/N','Board Mfr','ASIC P/N','CPU S/N','Silicon Rev','Board Rev','GPU Rev','Model Name','Power Rating','Heatsink Mfr'] },
   component: { label: 'Component/Rework Information', cols: ['Heatsink P/N','Heatsink S/N','Heatsink Mfr'] },
-  testing:   { label: 'Testing',                      cols: ['Visual Insp','Boot to OS','GPU Detected','F-Audit','F-Audit Val','AGFHC lvl3','Roccrush','HBM','TransferBench'] },
+  testing:   { label: 'Testing',                      cols: ['Visual Insp','Boot to OS','GPU Detected','F-Audit','F-Audit Val','AGFHC lvl3','Roccrush','HBM','TransferBench','FPY Status','Final Status'] },
   firmware:  { label: 'Firmware Details',             cols: ['IFWI Version','RM Version'] },
 };
 
@@ -106,6 +106,23 @@ const TestDetailsModal = ({ detail, onClose }) => {
   );
 };
 
+const FilterInput = ({ label, field, placeholder, value, onChange }) => (
+  <div className="filter-group">
+    <label>{label}</label>
+    <input type="text" placeholder={placeholder || `Enter ${label}`} value={value} onChange={e => onChange(field, e.target.value)} />
+  </div>
+);
+
+const FilterSelect = ({ label, field, options, value, onChange }) => (
+  <div className="filter-group">
+    <label>{label}</label>
+    <select value={value} onChange={e => onChange(field, e.target.value)}>
+      <option value="">All</option>
+      {options.map(o => <option key={o} value={o}>{o}</option>)}
+    </select>
+  </div>
+);
+
 const GPUSearchSection = ({ onSearch, loading, results = [], exporting, onExport }) => {
   const [filters, setFilters] = useState(defaultFilters);
   const [showFilters, setShowFilters] = useState(true);
@@ -115,22 +132,6 @@ const GPUSearchSection = ({ onSearch, loading, results = [], exporting, onExport
   const toggle = (key) => setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
   const set = (field, value) => setFilters(prev => ({ ...prev, [field]: value }));
   const reset = () => setFilters(defaultFilters);
-
-  const FilterInput = ({ label, field, placeholder }) => (
-    <div className="filter-group">
-      <label>{label}</label>
-      <input type="text" placeholder={placeholder || `Enter ${label}`} value={filters[field]} onChange={e => set(field, e.target.value)} />
-    </div>
-  );
-  const FilterSelect = ({ label, field, options }) => (
-    <div className="filter-group">
-      <label>{label}</label>
-      <select value={filters[field]} onChange={e => set(field, e.target.value)}>
-        <option value="">All</option>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
-    </div>
-  );
 
   const openTestDetail = async (r, dbField, label, value) => {
     const notes = r[NOTES_MAP[dbField]] || '';
@@ -180,14 +181,14 @@ const GPUSearchSection = ({ onSearch, loading, results = [], exporting, onExport
 
       {showFilters && (
         <div className="filter-content">
-          <FilterSelect label="Project Name" field="projectName" options={PROJECT_OPTIONS} />
-          <FilterInput  label="PO"          field="po" />
-          <FilterInput  label="GPU P/N"     field="gpuPN" />
-          <FilterInput  label="GPU S/N"     field="gpuSN" />
-          <FilterInput  label="ASIC P/N"    field="asicPN" />
-          <FilterInput  label="CPU S/N"     field="cpuSN" />
-          <FilterInput  label="Model Name"  field="modelName" />
-          <FilterSelect label="Status"      field="status" options={['In Progress','Completed']} />
+          <FilterSelect label="Project Name" field="projectName" options={PROJECT_OPTIONS} value={filters.projectName} onChange={set} />
+          <FilterInput  label="PO"          field="po"        value={filters.po}        onChange={set} />
+          <FilterInput  label="GPU P/N"     field="gpuPN"     value={filters.gpuPN}     onChange={set} />
+          <FilterInput  label="GPU S/N"     field="gpuSN"     value={filters.gpuSN}     onChange={set} />
+          <FilterInput  label="ASIC P/N"    field="asicPN"    value={filters.asicPN}    onChange={set} />
+          <FilterInput  label="CPU S/N"     field="cpuSN"     value={filters.cpuSN}     onChange={set} />
+          <FilterInput  label="Model Name"  field="modelName" value={filters.modelName} onChange={set} />
+          <FilterSelect label="Status"      field="status"    options={['In Progress','Completed']} value={filters.status} onChange={set} />
         </div>
       )}
 
@@ -268,6 +269,16 @@ const GPUSearchSection = ({ onSearch, loading, results = [], exporting, onExport
                     <TestCell r={r} dbField="rocc_rush_test"     label="Roccrush Test" />
                     <TestCell r={r} dbField="hbm_test"           label="HBM Test" />
                     <TestCell r={r} dbField="transfer_bench"     label="TransferBench" />
+                    <td style={td}>
+                      {r.fpy_status ? (
+                        <span className={`status-badge ${r.fpy_status === 'Pass' ? 'complete' : 'fail'}`}>{r.fpy_status}</span>
+                      ) : '-'}
+                    </td>
+                    <td style={td}>
+                      {r.final_status ? (
+                        <span className={`status-badge ${r.final_status === 'Pass' ? 'complete' : 'fail'}`}>{r.final_status}</span>
+                      ) : '-'}
+                    </td>
                   </> : <td style={{ ...td, background: '#f0f0f0', width: 12 }} />}
 
                   {/* Firmware */}

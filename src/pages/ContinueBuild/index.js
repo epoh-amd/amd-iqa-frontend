@@ -204,6 +204,8 @@ const ContinueBuild = () => {
         <GPUEditForm
           buildData={gpuBuildData}
           completesOnSave={true}
+          testingAlwaysEditable={true}
+          showFirmwareSaveActions={false}
           onComplete={() => {
             setGpuContinueMode(false);
             setGpuBuildData(null);
@@ -255,7 +257,6 @@ const ContinueBuild = () => {
                         <th>CPU S/N</th>
                         <th>GPU P/N</th>
                         <th>ASIC P/N</th>
-                        <th>Model</th>
                         <th>Last Updated</th>
                       </tr>
                     </thead>
@@ -276,7 +277,6 @@ const ContinueBuild = () => {
                           <td>{b.cpu_sn || '-'}</td>
                           <td>{b.gpu_pn || '-'}</td>
                           <td>{b.asic_pn || '-'}</td>
-                          <td>{b.model_name || '-'}</td>
                           <td>{b.updated_at ? new Date(b.updated_at).toLocaleDateString() : '-'}</td>
                         </tr>
                       ))}

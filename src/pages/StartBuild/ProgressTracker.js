@@ -6,6 +6,7 @@ import { faCheck, faCircle, faWrench } from '@fortawesome/free-solid-svg-icons';
 
 const GPU_STEPS = [
   { key: 'gpuInfo',      label: 'GPU Information' },
+  { key: 'gpuSilicon',   label: 'Silicon Details' },
   { key: 'gpuComponent', label: 'Component/Rework' },
   { key: 'gpuTesting',   label: 'Testing' },
   { key: 'gpuFirmware',  label: 'Firmware Details' },

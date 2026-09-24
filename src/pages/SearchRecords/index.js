@@ -162,15 +162,15 @@ const SearchRecords = () => {
         'Build Reference', 'Status', 'Build Engineer',                         //  3  (cols 0-2)
         'GPU Information','','','','','','','','','','','','',                   // 13  (cols 3-15)
         'Component/Rework Information','','',                                   //  3  (cols 16-18)
-        'Testing','','','','','','','','',                                      //  9  (cols 19-27)
-        'Firmware Details','',                                                  //  2  (cols 28-29)
+        'Testing','','','','','','','','','','',                                // 11  (cols 19-29)
+        'Firmware Details','',                                                  //  2  (cols 30-31)
       ];
 
       // Column name row
       const colRow = ['','Status','Build Engineer',
         'Project Name','PO','GPU P/N','GPU S/N','Board S/N','Board Manufacturer','ASIC P/N','CPU S/N','Silicon Rev','Board Rev','GPU Rev','Model Name','CPU Power Rating',
         'Heatsink P/N','Heatsink S/N','Heatsink Manufacturer',
-        'Visual Inspection','Boot to OS','GPU Detected','F-Audit Enablement','F-Audit Value','AGFHC lvl3','Roccrush Test','HBM Test','TransferBench',
+        'Visual Inspection','Boot to OS','GPU Detected','F-Audit Enablement','F-Audit Value','AGFHC lvl3','Roccrush Test','HBM Test','TransferBench','FPY Status','Final Status',
         'IFWI Version','RM Version',
       ];
 
@@ -185,6 +185,7 @@ const SearchRecords = () => {
         r.visual_inspection || '', r.boot_to_os || '', r.gpu_detected || '',
         r.f_audit_enablement || '', r.f_audit_value || '', r.agfhc_lvl3 || '',
         r.rocc_rush_test || '', r.hbm_test || '', r.transfer_bench || '',
+        r.fpy_status || '', r.final_status || '',
         r.ifwi_version || '', r.rm_version || '',
       ]);
 
@@ -193,10 +194,10 @@ const SearchRecords = () => {
 
       // Merge section header cells
       ws['!merges'] = [
-        { s: { r: 0, c: 3 },  e: { r: 0, c: 15 } }, // GPU Information      cols 3-15  (13: Project→CPU Power Rating)
+        { s: { r: 0, c: 3 },  e: { r: 0, c: 15 } }, // GPU Information      cols 3-15  (13)
         { s: { r: 0, c: 16 }, e: { r: 0, c: 18 } }, // Component/Rework     cols 16-18 (3)
-        { s: { r: 0, c: 19 }, e: { r: 0, c: 27 } }, // Testing              cols 19-27 (9)
-        { s: { r: 0, c: 28 }, e: { r: 0, c: 29 } }, // Firmware Details     cols 28-29 (2)
+        { s: { r: 0, c: 19 }, e: { r: 0, c: 29 } }, // Testing              cols 19-29 (11)
+        { s: { r: 0, c: 30 }, e: { r: 0, c: 31 } }, // Firmware Details     cols 30-31 (2)
       ];
 
       const wb = XLSX.utils.book_new();

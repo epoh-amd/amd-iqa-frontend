@@ -2,7 +2,8 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faBarcode } from '@fortawesome/free-solid-svg-icons';
 
-const HEATSINK_OPTIONS = ['AVC', 'CM'];
+const CPU_POWER_OPTIONS  = ['450W', '600W', '650W'];
+const HEATSINK_OPTIONS   = ['AVC', 'CM'];
 
 const getBuildReference = (build) => {
   const g = build.gpuInfo || {};
@@ -10,8 +11,7 @@ const getBuildReference = (build) => {
   return '';
 };
 
-const GPUComponentTable = ({ builds, handleInputChange, removeBuild }) => {
-
+const GPUSiliconTable = ({ builds, handleInputChange, removeBuild }) => {
   return (
     <div className="builds-table-container">
       <table className="builds-table">
@@ -19,8 +19,9 @@ const GPUComponentTable = ({ builds, handleInputChange, removeBuild }) => {
           <tr>
             <th className="row-actions">Actions</th>
             <th className="build-reference">Build Reference</th>
-            <th>Heatsink P/N</th>
-            <th>Heatsink S/N</th>
+            <th>CPU S/N</th>
+            <th>Silicon Rev</th>
+            <th>CPU Power Rating</th>
             <th>Heatsink Manufacturer</th>
           </tr>
         </thead>
@@ -40,15 +41,15 @@ const GPUComponentTable = ({ builds, handleInputChange, removeBuild }) => {
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </td>
-                <td className="build-reference">{getBuildReference(build, buildIndex)}</td>
+                <td className="build-reference">{getBuildReference(build)}</td>
                 <td>
                   <div className="scanner-input">
                     <input
                       type="text"
                       className="scanner-field"
-                      value={gpu.heatsinkPN || ''}
-                      placeholder="Scan Heatsink P/N"
-                      onChange={e => onChange('heatsinkPN', e.target.value)}
+                      value={gpu.cpuSN || ''}
+                      placeholder="Scan CPU S/N"
+                      onChange={e => onChange('cpuSN', e.target.value)}
                       autoComplete="off"
                       spellCheck="false"
                     />
@@ -60,14 +61,23 @@ const GPUComponentTable = ({ builds, handleInputChange, removeBuild }) => {
                     <input
                       type="text"
                       className="scanner-field"
-                      value={gpu.heatsinkSN || ''}
-                      placeholder="Scan Heatsink S/N"
-                      onChange={e => onChange('heatsinkSN', e.target.value)}
+                      value={gpu.siliconRev || ''}
+                      placeholder="Enter Silicon Rev"
+                      onChange={e => onChange('siliconRev', e.target.value)}
                       autoComplete="off"
                       spellCheck="false"
                     />
-                    <FontAwesomeIcon icon={faBarcode} className="scanner-icon" />
                   </div>
+                </td>
+                <td>
+                  <select
+                    className="scanner-field"
+                    value={gpu.cpuPowerRating || ''}
+                    onChange={e => onChange('cpuPowerRating', e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {CPU_POWER_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
                 </td>
                 <td>
                   <select
@@ -88,4 +98,4 @@ const GPUComponentTable = ({ builds, handleInputChange, removeBuild }) => {
   );
 };
 
-export default GPUComponentTable;
+export default GPUSiliconTable;

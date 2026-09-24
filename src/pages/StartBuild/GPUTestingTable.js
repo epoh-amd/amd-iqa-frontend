@@ -20,7 +20,7 @@ const TRIGGER_FIELDS = {
 const PhotoUpload = ({ buildIndex, field, photos = [], onAdd, onRemove }) => {
   const inputId = `gpu-photo-${buildIndex}-${field}`;
   return (
-    <div className="photo-upload" style={{ marginTop: '6px' }}>
+    <div className="photo-upload">
       <input
         type="file"
         accept="image/*"
@@ -30,7 +30,7 @@ const PhotoUpload = ({ buildIndex, field, photos = [], onAdd, onRemove }) => {
         onChange={e => { onAdd(e.target.files); e.target.value = ''; }}
       />
       <label htmlFor={inputId} className="upload-btn-small">
-        <FontAwesomeIcon icon={faCamera} /> Photo (optional)
+        <FontAwesomeIcon icon={faCamera} /> Photo
       </label>
       {photos.length > 0 && (
         <div className="uploaded-files">
@@ -48,8 +48,30 @@ const PhotoUpload = ({ buildIndex, field, photos = [], onAdd, onRemove }) => {
   );
 };
 
-const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog }) => {
-  const getBuildReference = () => '';
+const getBuildReference = (build) => {
+  const g = build.gpuInfo || {};
+  if (g.projectName && g.gpuSN) return `${g.projectName} - ${g.gpuSN.slice(-4)}`;
+  return '';
+};
+
+const getGpuFpyStatus = (gpu) => {
+  const testFields = [
+    { field: 'visualInspection', failVal: 'Fail' },
+    { field: 'bootToOS',         failVal: 'No'   },
+    { field: 'gpuDetected',      failVal: 'No'   },
+    { field: 'fAuditEnablement', failVal: 'No'   },
+    { field: 'agfhcLvl3',        failVal: 'Fail' },
+    { field: 'roccRushTest',     failVal: 'Fail' },
+    { field: 'hbmTest',          failVal: 'Fail' },
+    { field: 'transferBench',    failVal: 'Fail' },
+  ];
+  const anyFilled  = testFields.some(({ field }) => gpu[field]);
+  if (!anyFilled) return '';
+  const anyFail = testFields.some(({ field, failVal }) => gpu[field] === failVal);
+  return anyFail ? 'Fail' : 'Pass';
+};
+
+const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog, isEditable = false }) => {
 
   const onPhotoAdd = (buildIndex, field, files) => {
     const newPhotos = Array.from(files).map(f => ({ name: f.name, file: f }));
@@ -64,13 +86,25 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog 
     handleInputChange(buildIndex, 'gpuInfo', `${field}Photos`, updated);
   };
 
+  const lockedStyle = !isEditable ? { backgroundColor: '#f8f9fa', cursor: 'not-allowed', opacity: 0.75 } : {};
+
   return (
     <div className="builds-table-container">
+      {!isEditable && (
+        <div style={{
+          padding: '8px 14px', marginBottom: '8px', borderRadius: '6px',
+          background: '#fff3cd', border: '1px solid #ffc107',
+          color: '#856404', fontSize: '13px', fontWeight: 500
+        }}>
+          🔒 Testing fields are locked. Click <strong>Save &amp; Rework</strong> on the Firmware Details page to unlock for editing.
+        </div>
+      )}
       <table className="builds-table">
         <thead>
           <tr>
             <th className="row-actions">Actions</th>
             <th className="build-reference">Build Reference</th>
+            <th>FPY Status</th>
             <th>Visual Inspection</th>
             <th>Boot to OS</th>
             <th>GPU Detected</th>
@@ -86,8 +120,10 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog 
         <tbody>
           {builds.map((build, buildIndex) => {
             const gpu = build.gpuInfo || {};
-            const onChange = (field, value) =>
+            const onChange = (field, value) => {
+              if (!isEditable) return;
               handleInputChange(buildIndex, 'gpuInfo', field, value);
+            };
 
             // Inline renderer — NOT a component (avoids remount-on-render that loses focus)
             const renderTestField = (field, options) => {
@@ -100,6 +136,8 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog 
                     className="scanner-field"
                     value={gpu[field] || ''}
                     onChange={e => onChange(field, e.target.value)}
+                    disabled={!isEditable}
+                    style={lockedStyle}
                   >
                     <option value="">Select</option>
                     {options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -110,14 +148,26 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog 
                         value={gpu[notesField] || ''}
                         onChange={e => onChange(notesField, e.target.value)}
                         placeholder="Notes (optional)"
+                        disabled={!isEditable}
+                        style={lockedStyle}
                       />
-                      <PhotoUpload
-                        buildIndex={buildIndex}
-                        field={field}
-                        photos={gpu[`${field}Photos`] || []}
-                        onAdd={files => onPhotoAdd(buildIndex, field, files)}
-                        onRemove={idx => onPhotoRemove(buildIndex, field, idx)}
-                      />
+                      {isEditable ? (
+                        <PhotoUpload
+                          buildIndex={buildIndex}
+                          field={field}
+                          photos={gpu[`${field}Photos`] || []}
+                          onAdd={files => onPhotoAdd(buildIndex, field, files)}
+                          onRemove={idx => onPhotoRemove(buildIndex, field, idx)}
+                        />
+                      ) : (gpu[`${field}Photos`] || []).length > 0 && (
+                        <div className="uploaded-files">
+                          {(gpu[`${field}Photos`] || []).map((photo, idx) => (
+                            <div key={idx} className="uploaded-file">
+                              <span className="file-name">{photo.name || photo.path?.split('/').pop() || 'Photo'}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -136,6 +186,22 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog 
                   </button>
                 </td>
                 <td className="build-reference">{getBuildReference(build, buildIndex)}</td>
+                <td>
+                  {(() => {
+                    const fpy = getGpuFpyStatus(gpu);
+                    return (
+                      <select
+                        value={fpy}
+                        disabled
+                        className={`fpy-status ${fpy.toLowerCase()}`}
+                      >
+                        <option value="">-</option>
+                        <option value="Pass">Pass</option>
+                        <option value="Fail">Fail</option>
+                      </select>
+                    );
+                  })()}
+                </td>
                 <td>{renderTestField('visualInspection', PASS_FAIL)}</td>
                 <td>{renderTestField('bootToOS', YES_NO)}</td>
                 <td>{renderTestField('gpuDetected', YES_NO)}</td>
@@ -150,6 +216,8 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog 
                       onChange={e => onChange('fAuditValue', e.target.value)}
                       autoComplete="off"
                       spellCheck="false"
+                      disabled={!isEditable}
+                      style={lockedStyle}
                     />
                   </div>
                 </td>

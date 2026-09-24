@@ -6,6 +6,7 @@ import ProgressTracker from '../../StartBuild/ProgressTracker';
 import StepNavigation from '../../StartBuild/StepNavigation';
 import SaveResults from '../../StartBuild/SaveResults';
 import GPUInfoTable from '../../StartBuild/GPUInfoTable';
+import GPUSiliconTable from '../../StartBuild/GPUSiliconTable';
 import GPUComponentTable from '../../StartBuild/GPUComponentTable';
 import GPUTestingTable from '../../StartBuild/GPUTestingTable';
 import GPUFirmwareTable from '../../StartBuild/GPUFirmwareTable';
@@ -13,12 +14,14 @@ import GPUFirmwareTable from '../../StartBuild/GPUFirmwareTable';
 import api from '../../../services/api';
 import '../../../assets/css/startBuild.css';
 
-const GPU_SUB_STEPS = ['gpuInfo', 'gpuComponent', 'gpuTesting', 'gpuFirmware'];
+const GPU_SUB_STEPS = ['gpuInfo', 'gpuSilicon', 'gpuComponent', 'gpuTesting', 'gpuFirmware'];
 
-const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false }) => {
+const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false, testingAlwaysEditable = false, showFirmwareSaveActions = true }) => {
   const [gpuSubStep, setGpuSubStep] = useState('gpuInfo');
   const [saving, setSaving] = useState(false);
   const [saveResults, setSaveResults] = useState([]);
+  const [testingEditable, setTestingEditable] = useState(false);
+  const [reworkPage, setReworkPage] = useState(false);
 
   // Build the gpuInfo state from the DB row
   const [builds, setBuilds] = useState([{
@@ -171,9 +174,79 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false 
     }
   };
 
+  // Rework save — testing fields + final_status only; all other fields and fpy_status untouched
+  const handleSaveRework = async () => {
+    setSaving(true);
+    setSaveResults([]);
+    const g = builds[0].gpuInfo;
+    try {
+      await api.updateGpuBuild(buildData.gpu_sn, {
+        testingOnly: true,
+        visualInspection: g.visualInspection, visualInspectionNotes: g.visualInspectionNotes,
+        bootToOS: g.bootToOS, bootToOSNotes: g.bootToOSNotes,
+        gpuDetected: g.gpuDetected, gpuDetectedNotes: g.gpuDetectedNotes,
+        fAuditEnablement: g.fAuditEnablement, fAuditEnablementNotes: g.fAuditEnablementNotes,
+        fAuditValue: g.fAuditValue,
+        agfhcLvl3: g.agfhcLvl3, agfhcLvl3Notes: g.agfhcLvl3Notes,
+        roccRushTest: g.roccRushTest, roccRushTestNotes: g.roccRushTestNotes,
+        hbmTest: g.hbmTest, hbmTestNotes: g.hbmTestNotes,
+        transferBench: g.transferBench, transferBenchNotes: g.transferBenchNotes,
+      });
+
+      // Sync photos
+      const photoFields = ['visualInspection','bootToOS','gpuDetected','fAuditEnablement',
+                           'agfhcLvl3','roccRushTest','hbmTest','transferBench'];
+      const photoPayload = [];
+      for (const field of photoFields) {
+        const photos = g[`${field}Photos`] || [];
+        for (const photo of photos) {
+          if (photo.file) {
+            try { const r = await api.uploadPhoto(photo.file, `gpu_${field}`); photoPayload.push({ fieldName: field, filePath: r.filePath }); } catch {}
+          } else if (photo.path) {
+            photoPayload.push({ fieldName: field, filePath: photo.path });
+          }
+        }
+      }
+      await api.saveGpuPhotos(buildData.gpu_sn, photoPayload);
+
+      setSaveResults([{ type: 'success', message: `GPU build ${g.gpuSN} rework saved.` }]);
+      setTimeout(() => onComplete({ ...buildData, gpu_sn: g.gpuSN }), 1200);
+    } catch (err) {
+      setSaveResults([{ type: 'error', message: err.response?.data?.error || err.message || 'Failed to save.' }]);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Update Build — non-testing fields only; testing columns and statuses untouched in DB
+  const handleUpdateBuild = async () => {
+    setSaving(true);
+    setSaveResults([]);
+    const g = builds[0].gpuInfo;
+    try {
+      await api.updateGpuBuild(buildData.gpu_sn, {
+        gpuSN: g.gpuSN, cpuSN: g.cpuSN,
+        projectName: g.projectName, po: g.po, gpuPN: g.gpuPN,
+        boardSN: g.boardSN, boardManufacturer: g.boardManufacturer, asicPN: g.asicPN,
+        siliconRev: g.siliconRev, boardRev: g.boardRev, gpuRev: g.gpuRev,
+        cpuPowerRating: g.cpuPowerRating, heatsinkManufacturer: g.heatsinkManufacturer,
+        heatsinkPN: g.heatsinkPN, heatsinkSN: g.heatsinkSN,
+        ifwiVersion: g.ifwiVersion, rmVersion: g.rmVersion,
+        buildEngineer: buildData.build_engineer || null,
+      });
+      setSaveResults([{ type: 'success', message: `GPU build ${g.gpuSN} updated successfully.` }]);
+      setTimeout(() => onComplete({ ...buildData, gpu_sn: g.gpuSN }), 1200);
+    } catch (err) {
+      setSaveResults([{ type: 'error', message: err.response?.data?.error || err.message || 'Failed to save.' }]);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const currentIdx  = GPU_SUB_STEPS.indexOf(gpuSubStep);
   const subStepTitles = {
     gpuInfo:      'GPU Information',
+    gpuSilicon:   'Silicon Details',
     gpuComponent: 'Component/Rework Information',
     gpuTesting:   'Testing',
     gpuFirmware:  'Firmware Details',
@@ -181,6 +254,45 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false 
 
   // Build a fake progressStatus so ProgressTracker renders GPU steps
   const progressStatus = { generalInfo: 'completed', systemInfo: 'pending', bkcDetails: 'pending', qualityIndicator: 'pending' };
+
+  // ── Rework page (shown after clicking Save & Rework) ──────────────────────
+  if (reworkPage) {
+    return (
+      <div className="start-build-container edit-mode">
+        <div className="page-header">
+          <h1>Rework Testing: {buildData.gpu_sn}</h1>
+          <div className="header-actions">
+            <button className="btn-secondary" onClick={() => setReworkPage(false)}>← Back to Firmware</button>
+          </div>
+        </div>
+
+        <SaveResults saveResults={saveResults} />
+
+        <div className="sub-step-title">
+          <h2>Testing</h2>
+        </div>
+
+        <GPUTestingTable
+          builds={builds}
+          handleInputChange={handleInputChange}
+          removeBuild={() => {}}
+          isEditable={true}
+        />
+
+        <div className="step-navigation">
+          <div className="nav-left" />
+          <div className="nav-right">
+            <button className="btn-secondary" onClick={() => setReworkPage(false)} disabled={saving}>
+              Cancel
+            </button>
+            <button className="btn-primary" onClick={handleSaveRework} disabled={saving}>
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="start-build-container edit-mode">
@@ -207,14 +319,27 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false 
       {gpuSubStep === 'gpuInfo' && (
         <GPUInfoTable builds={builds} handleInputChange={handleInputChange} removeBuild={() => {}} isEditMode={true} />
       )}
+      {gpuSubStep === 'gpuSilicon' && (
+        <GPUSiliconTable builds={builds} handleInputChange={handleInputChange} removeBuild={() => {}} />
+      )}
       {gpuSubStep === 'gpuComponent' && (
         <GPUComponentTable builds={builds} handleInputChange={handleInputChange} removeBuild={() => {}} />
       )}
       {gpuSubStep === 'gpuTesting' && (
-        <GPUTestingTable builds={builds} handleInputChange={handleInputChange} removeBuild={() => {}} />
+        <GPUTestingTable builds={builds} handleInputChange={handleInputChange} removeBuild={() => {}} isEditable={testingAlwaysEditable || testingEditable} />
       )}
       {gpuSubStep === 'gpuFirmware' && (
-        <GPUFirmwareTable builds={builds} handleInputChange={handleInputChange} removeBuild={() => {}} />
+        <GPUFirmwareTable
+          builds={builds}
+          handleInputChange={handleInputChange}
+          removeBuild={() => {}}
+          onSaveGPU={handleSave}
+          onContinueLaterGPU={handleUpdateBuild}
+          onSaveAndReworkGPU={() => setReworkPage(true)}
+          gpuSaving={saving}
+          showSaveActions={showFirmwareSaveActions}
+          alwaysShowAllActions={showFirmwareSaveActions}
+        />
       )}
 
       {/* Navigation */}
@@ -224,13 +349,9 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false 
           <button className="btn-secondary" onClick={navigatePrevious} disabled={saving}>
             Previous
           </button>
-          {gpuSubStep !== 'gpuFirmware' ? (
+          {gpuSubStep !== 'gpuFirmware' && (
             <button className="btn-primary" onClick={navigateNext} disabled={saving}>
               Next
-            </button>
-          ) : (
-            <button className="btn-primary" onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving...' : 'Save'}
             </button>
           )}
         </div>

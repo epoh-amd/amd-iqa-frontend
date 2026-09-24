@@ -2,14 +2,17 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faBarcode } from '@fortawesome/free-solid-svg-icons';
 
-const SCANNER_FIELDS = new Set(['gpuPN', 'gpuSN', 'asicPN', 'cpuSN']);
+const SCANNER_FIELDS = new Set(['gpuPN', 'gpuSN', 'asicPN', 'boardSN']);
 
-const PROJECT_OPTIONS   = ['MI350P', 'MI410P'];
-const CPU_POWER_OPTIONS = ['450W', '600W', '650W'];
-const HEATSINK_OPTIONS = ['AVC', 'CM'];
+const PROJECT_OPTIONS = ['MI350P', 'MI410P'];
+
+const getBuildReference = (build) => {
+  const g = build.gpuInfo || {};
+  if (g.projectName && g.gpuSN) return `${g.projectName} - ${g.gpuSN.slice(-4)}`;
+  return '';
+};
 
 const GPUInfoTable = ({ builds, handleInputChange, removeBuild, isEditMode = false }) => {
-  const getBuildReference = () => '';
 
   return (
     <div className="builds-table-container">
@@ -25,13 +28,8 @@ const GPUInfoTable = ({ builds, handleInputChange, removeBuild, isEditMode = fal
             <th>Board S/N</th>
             <th>Board Manufacturer</th>
             <th>ASIC P/N</th>
-            <th>CPU S/N</th>
-            <th>Silicon Rev</th>
             <th>Board Rev</th>
             <th>GPU Rev</th>
-            <th>Model Name</th>
-            <th>CPU Power Rating</th>
-            <th>Heatsink Manufacturer</th>
           </tr>
         </thead>
         <tbody>
@@ -68,11 +66,8 @@ const GPUInfoTable = ({ builds, handleInputChange, removeBuild, isEditMode = fal
                   { field: 'boardSN',           placeholder: 'Enter Board S/N' },
                   { field: 'boardManufacturer', placeholder: 'Enter Board Manufacturer' },
                   { field: 'asicPN',            placeholder: 'Scan ASIC P/N' },
-                  { field: 'cpuSN',        placeholder: 'Scan CPU S/N' },
-                  { field: 'siliconRev',   placeholder: 'Enter Silicon Rev' },
                   { field: 'boardRev',     placeholder: 'Enter Board Rev' },
                   { field: 'gpuRev',       placeholder: 'Enter GPU Rev' },
-                  { field: 'modelName',    placeholder: 'Enter Model Name' },
                 ].map(({ field, placeholder }) => (
                   <td key={field}>
                     <div className="scanner-input">
@@ -92,18 +87,6 @@ const GPUInfoTable = ({ builds, handleInputChange, removeBuild, isEditMode = fal
                     </div>
                   </td>
                 ))}
-                <td>
-                  <select className="scanner-field" value={gpu.cpuPowerRating || ''} onChange={e => onChange('cpuPowerRating', e.target.value)}>
-                    <option value="">Select</option>
-                    {CPU_POWER_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                </td>
-                <td>
-                  <select className="scanner-field" value={gpu.heatsinkManufacturer || ''} onChange={e => onChange('heatsinkManufacturer', e.target.value)}>
-                    <option value="">Select</option>
-                    {HEATSINK_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                </td>
               </tr>
             );
           })}

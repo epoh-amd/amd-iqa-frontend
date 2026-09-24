@@ -417,6 +417,8 @@ export const useNavigation = (
       // GPU mode: handle GPU sub-steps
       if (showGPUInfo) {
         if (gpuSubStep === 'gpuInfo') {
+          setGpuSubStep('gpuSilicon');
+        } else if (gpuSubStep === 'gpuSilicon') {
           setGpuSubStep('gpuComponent');
         } else if (gpuSubStep === 'gpuComponent') {
           setGpuSubStep('gpuTesting');
@@ -475,6 +477,8 @@ export const useNavigation = (
         } else if (gpuSubStep === 'gpuTesting') {
           setGpuSubStep('gpuComponent');
         } else if (gpuSubStep === 'gpuComponent') {
+          setGpuSubStep('gpuSilicon');
+        } else if (gpuSubStep === 'gpuSilicon') {
           setGpuSubStep('gpuInfo');
         } else {
           setCurrentStep('generalInfo');
