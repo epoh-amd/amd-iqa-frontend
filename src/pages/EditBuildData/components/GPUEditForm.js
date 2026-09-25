@@ -141,6 +141,7 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
         ifwiVersion: g.ifwiVersion, rmVersion: g.rmVersion,
         status: completesOnSave ? 'Completed' : undefined,
         buildEngineer: buildData.build_engineer || null,
+        updateStatuses: completesOnSave ? true : undefined,
       });
 
       // Sync photos: upload new ones, delete removed ones via replace-all on gpu_build_photos
@@ -349,9 +350,13 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
           <button className="btn-secondary" onClick={navigatePrevious} disabled={saving}>
             Previous
           </button>
-          {gpuSubStep !== 'gpuFirmware' && (
+          {gpuSubStep !== 'gpuFirmware' ? (
             <button className="btn-primary" onClick={navigateNext} disabled={saving}>
               Next
+            </button>
+          ) : completesOnSave && (
+            <button className="btn-primary" onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving...' : 'Save'}
             </button>
           )}
         </div>
