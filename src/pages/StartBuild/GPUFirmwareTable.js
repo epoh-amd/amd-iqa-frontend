@@ -40,6 +40,7 @@ const GPUFirmwareTable = ({
             <th className="build-reference">Build Reference</th>
             <th>Extract</th>
             <th>IFWI Version</th>
+            <th>IFWI Build</th>
             <th>RM Version</th>
             {showSaveActions && <th>Save Actions</th>}
           </tr>
@@ -81,6 +82,19 @@ const GPUFirmwareTable = ({
                       value={gpu.ifwiVersion || ''}
                       placeholder="Enter IFWI Version"
                       onChange={e => onChange('ifwiVersion', e.target.value)}
+                      autoComplete="off"
+                      spellCheck="false"
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="scanner-input">
+                    <input
+                      type="text"
+                      className="scanner-field"
+                      value={gpu.ifwiBuild || ''}
+                      placeholder="Enter IFWI Build"
+                      onChange={e => onChange('ifwiBuild', e.target.value)}
                       autoComplete="off"
                       spellCheck="false"
                     />

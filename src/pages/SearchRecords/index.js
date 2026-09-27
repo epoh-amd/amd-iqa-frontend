@@ -163,20 +163,20 @@ const SearchRecords = () => {
         'GPU Information','','','','','','','','','','','','',                   // 13  (cols 3-15)
         'Component/Rework Information','','',                                   //  3  (cols 16-18)
         'Testing','','','','','','','','','','',                                // 11  (cols 19-29)
-        'Firmware Details','',                                                  //  2  (cols 30-31)
+        'Firmware Details','','',                                               //  3  (cols 30-32)
       ];
 
       // Column name row
-      const colRow = ['','Status','Build Engineer',
+      const colRow = ['Build Reference','Status','Build Engineer',
         'Project Name','PO','GPU P/N','GPU S/N','Board S/N','Board Manufacturer','ASIC P/N','CPU S/N','Silicon Rev','Board Rev','GPU Rev','Model Name','CPU Power Rating',
         'Heatsink P/N','Heatsink S/N','Heatsink Manufacturer',
         'Visual Inspection','Boot to OS','GPU Detected','F-Audit Enablement','F-Audit Value','AGFHC lvl3','Roccrush Test','HBM Test','TransferBench','FPY Status','Final Status',
-        'IFWI Version','RM Version',
+        'IFWI Version','IFWI Build','RM Version',
       ];
 
       // Data rows
       const dataRows = gpuResults.map(r => [
-        '', r.status || '', r.build_engineer || '',
+        r.build_reference || '', r.status || '', r.build_engineer || '',
         r.project_name || '', r.po || '', r.gpu_pn || '', r.gpu_sn || '',
         r.board_sn || '', r.board_manufacturer || '', r.asic_pn || '', r.cpu_sn || '',
         r.silicon_rev || '', r.board_rev || '', r.gpu_rev || '', r.model_name || '',
@@ -186,7 +186,7 @@ const SearchRecords = () => {
         r.f_audit_enablement || '', r.f_audit_value || '', r.agfhc_lvl3 || '',
         r.rocc_rush_test || '', r.hbm_test || '', r.transfer_bench || '',
         r.fpy_status || '', r.final_status || '',
-        r.ifwi_version || '', r.rm_version || '',
+        r.ifwi_version || '', r.ifwi_build || '', r.rm_version || '',
       ]);
 
       const aoa = [sectionRow, colRow, ...dataRows];
@@ -197,7 +197,7 @@ const SearchRecords = () => {
         { s: { r: 0, c: 3 },  e: { r: 0, c: 15 } }, // GPU Information      cols 3-15  (13)
         { s: { r: 0, c: 16 }, e: { r: 0, c: 18 } }, // Component/Rework     cols 16-18 (3)
         { s: { r: 0, c: 19 }, e: { r: 0, c: 29 } }, // Testing              cols 19-29 (11)
-        { s: { r: 0, c: 30 }, e: { r: 0, c: 31 } }, // Firmware Details     cols 30-31 (2)
+        { s: { r: 0, c: 30 }, e: { r: 0, c: 32 } }, // Firmware Details     cols 30-32 (3)
       ];
 
       const wb = XLSX.utils.book_new();

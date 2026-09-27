@@ -423,7 +423,7 @@ const StartBuild = () => {
           roccRushTest: g.roccRushTest || null, roccRushTestNotes: g.roccRushTestNotes || null,
           hbmTest: g.hbmTest || null, hbmTestNotes: g.hbmTestNotes || null,
           transferBench: g.transferBench || null, transferBenchNotes: g.transferBenchNotes || null,
-          ifwiVersion: g.ifwiVersion || null, rmVersion: g.rmVersion || null,
+          ifwiVersion: g.ifwiVersion || null, ifwiBuild: g.ifwiBuild || null, rmVersion: g.rmVersion || null,
           status: 'In Progress', buildEngineer: build.generalInfo?.buildEngineer || null,
         });
 
@@ -514,6 +514,7 @@ const StartBuild = () => {
           transferBench: g.transferBench || null,
           transferBenchNotes: g.transferBenchNotes || null,
           ifwiVersion: g.ifwiVersion || null,
+          ifwiBuild: g.ifwiBuild || null,
           rmVersion: g.rmVersion || null,
           status: 'Completed',
           buildEngineer: build.generalInfo?.buildEngineer || null,
@@ -565,7 +566,7 @@ const StartBuild = () => {
         visualInspection: '', bootToOS: '', gpuDetected: '',
         fAuditEnablement: '', fAuditValue: '',
         agfhcLvl3: '', roccRushTest: '', hbmTest: '', transferBench: '',
-        ifwiVersion: '', rmVersion: '',
+        ifwiVersion: '', ifwiBuild: '', rmVersion: '',
       };
       setBuilds(prev => prev.map(b => ({ ...b, gpuInfo: { ...emptyGpuInfo } })));
 

@@ -32,7 +32,7 @@ const GPU_SECTIONS = {
   gpuInfo:   { label: 'GPU Information',              cols: ['Project','PO','GPU P/N','GPU S/N','Board S/N','Board Mfr','ASIC P/N','CPU S/N','Silicon Rev','Board Rev','GPU Rev','Model Name','Power Rating','Heatsink Mfr'] },
   component: { label: 'Component/Rework Information', cols: ['Heatsink P/N','Heatsink S/N','Heatsink Mfr'] },
   testing:   { label: 'Testing',                      cols: ['Visual Insp','Boot to OS','GPU Detected','F-Audit','F-Audit Val','AGFHC lvl3','Roccrush','HBM','TransferBench','FPY Status','Final Status'] },
-  firmware:  { label: 'Firmware Details',             cols: ['IFWI Version','RM Version'] },
+  firmware:  { label: 'Firmware Details',             cols: ['IFWI Version','IFWI Build','RM Version'] },
 };
 
 // Fields that are "failed" when value matches trigger
@@ -240,7 +240,7 @@ const GPUSearchSection = ({ onSearch, loading, results = [], exporting, onExport
             <tbody>
               {results.map((r, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={tdRef}></td>
+                  <td style={tdRef}>{r.build_reference || '-'}</td>
                   <td style={td}>{r.status || '-'}</td>
                   <td style={td}>{r.build_engineer || '-'}</td>
 
@@ -282,7 +282,7 @@ const GPUSearchSection = ({ onSearch, loading, results = [], exporting, onExport
                   </> : <td style={{ ...td, background: '#f0f0f0', width: 12 }} />}
 
                   {/* Firmware */}
-                  {!collapsed.firmware ? [r.ifwi_version, r.rm_version].map((v, j) => <td key={`fw-${j}`} style={td}>{v || '-'}</td>)
+                  {!collapsed.firmware ? [r.ifwi_version, r.ifwi_build, r.rm_version].map((v, j) => <td key={`fw-${j}`} style={td}>{v || '-'}</td>)
                   : <td style={{ ...td, background: '#f0f0f0', width: 12 }} />}
                 </tr>
               ))}

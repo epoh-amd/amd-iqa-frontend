@@ -63,6 +63,7 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
       hbmTest: '', hbmTestNotes: '',
       transferBench: '', transferBenchNotes: '',
       ifwiVersion: '',
+      ifwiBuild: '',
       rmVersion: '',
     },
     systemInfo: {
