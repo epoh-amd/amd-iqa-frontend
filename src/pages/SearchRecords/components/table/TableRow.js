@@ -230,7 +230,26 @@ const TableRow = ({
           <td className="read-only-cell col-standard">{build.bios_version || '-'}</td>
           <td className="read-only-cell col-standard">{build.scm_fpga_version || '-'}</td>
           <td className="read-only-cell col-standard">{build.hpm_fpga_version || '-'}</td>
-          <td className="read-only-cell col-standard column-group-separator">{build.bmc_version || '-'}</td>
+          <td className="read-only-cell col-standard">{build.bmc_version || '-'}</td>
+          <td className="read-only-cell col-standard column-group-separator">
+            {build.cpu_pin_photo ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                <a
+                  href={`${BACKEND_URL}/${build.cpu_pin_photo.replace(/^\//, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ fontSize: '11px', color: '#1a73e8', wordBreak: 'break-all', textAlign: 'center' }}
+                >
+                  {build.cpu_pin_photo.split('/').pop()}
+                </a>
+                {build.cpu_pin_photo_uploaded_at && (
+                  <span style={{ fontSize: '10px', color: '#888' }}>
+                    {new Date(new Date(build.cpu_pin_photo_uploaded_at).getTime() + 12 * 60 * 60 * 1000).toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' })}
+                  </span>
+                )}
+              </div>
+            ) : '-'}
+          </td>
         </>
       )}
       {collapsedSections.bkcDetails && (
@@ -277,27 +296,8 @@ const TableRow = ({
               'No'
             )}
           </td>
-          <td className="read-only-cell col-standard">
-            <LogFileCell bmcName={build.bmc_name} logFileMap={logFileMap} />
-          </td>
           <td className="read-only-cell col-standard column-group-separator">
-            {build.cpu_pin_photo ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                <a
-                  href={`${BACKEND_URL}/${build.cpu_pin_photo.replace(/^\//, '')}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ fontSize: '11px', color: '#1a73e8', wordBreak: 'break-all', textAlign: 'center' }}
-                >
-                  {build.cpu_pin_photo.split('/').pop()}
-                </a>
-                {build.cpu_pin_photo_uploaded_at && (
-                  <span style={{ fontSize: '10px', color: '#888' }}>
-                    {new Date(new Date(build.cpu_pin_photo_uploaded_at).getTime() + 12 * 60 * 60 * 1000).toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' })}
-                  </span>
-                )}
-              </div>
-            ) : '-'}
+            <LogFileCell bmcName={build.bmc_name} logFileMap={logFileMap} />
           </td>
         </>
       )}

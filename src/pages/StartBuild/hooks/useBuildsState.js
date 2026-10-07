@@ -125,7 +125,9 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
       biosVersion: '',
       scmFpgaVersion: '',
       hpmFpgaVersion: '',
-      bmcVersion: ''
+      bmcVersion: '',
+      cpuPinPhotoFile: null,
+      cpuPinPhotoName: ''
     },
     bkcExtraction: {
       extracting: false,

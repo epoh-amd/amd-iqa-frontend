@@ -263,7 +263,15 @@ const StartBuild = () => {
       }
 
       await api.saveBuild(buildData);
-      await api.saveBkcDetails(build.systemInfo.chassisSN, build.bkcDetails);
+      // Upload CPU pin photo if selected
+      let bkcDetailsToSave = { ...build.bkcDetails };
+      if (build.bkcDetails.cpuPinPhotoFile) {
+        try {
+          const uploadResult = await api.uploadPhoto(build.bkcDetails.cpuPinPhotoFile, 'cpu_pin_condition');
+          bkcDetailsToSave.cpuPinPhoto = uploadResult.filePath;
+        } catch (err) { console.error('CPU pin photo upload failed:', err); }
+      }
+      await api.saveBkcDetails(build.systemInfo.chassisSN, bkcDetailsToSave);
       await api.saveQualityDetails(build.systemInfo.chassisSN, {
         ...build.qualityDetails,
         saveOption: saveOption

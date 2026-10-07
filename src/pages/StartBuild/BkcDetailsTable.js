@@ -2,12 +2,14 @@
 
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
+import {
   faCheck,
   faExclamationTriangle,
   faSync,
   faSpinner,
-  faTimes
+  faTimes,
+  faCamera,
+  faImage
 } from '@fortawesome/free-solid-svg-icons';
 
 const BkcDetailsTable = ({
@@ -53,6 +55,7 @@ const BkcDetailsTable = ({
             <th>SCM FPGA Version (Optional)</th>
             <th>HPM FPGA Version</th>
             <th>BMC Version</th>
+            <th>CPU Pin Condition</th>
           </tr>
         </thead>
         <tbody>
@@ -146,6 +149,37 @@ const BkcDetailsTable = ({
                   <div className="field-error">{build.errors.bmcVersion}</div>
                 )}
                 <PasteAllBtn field="bmcVersion" value={build.bkcDetails.bmcVersion} />
+              </td>
+              <td>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id={`cpu-pin-bkc-${build.id}`}
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      e.target.value = '';
+                      handleBkcFieldChange(buildIndex, 'cpuPinPhotoFile', file);
+                      handleBkcFieldChange(buildIndex, 'cpuPinPhotoName', file.name);
+                    }}
+                  />
+                  <label
+                    htmlFor={`cpu-pin-bkc-${build.id}`}
+                    className="upload-btn-small"
+                    style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    title="Upload CPU pin condition photo"
+                  >
+                    <FontAwesomeIcon icon={faCamera} /> {build.bkcDetails.cpuPinPhotoName ? 'Change' : 'Upload'}
+                  </label>
+                  {build.bkcDetails.cpuPinPhotoName && (
+                    <span style={{ fontSize: '11px', color: '#333', wordBreak: 'break-all', textAlign: 'center' }}>
+                      <FontAwesomeIcon icon={faImage} style={{ marginRight: 3 }} />
+                      {build.bkcDetails.cpuPinPhotoName}
+                    </span>
+                  )}
+                </div>
               </td>
             </tr>
           ))}

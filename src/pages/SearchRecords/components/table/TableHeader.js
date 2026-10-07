@@ -211,7 +211,8 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
             <th className="col-standard">BIOS Version</th>
             <th className="col-standard">SCM FPGA</th>
             <th className="col-standard">HPM FPGA</th>
-            <th className="col-standard column-group-separator">BMC Version</th>
+            <th className="col-standard">BMC Version</th>
+            <th className="col-standard column-group-separator">CPU Pin Condition</th>
           </>
         )}
         {collapsedSections.bkcDetails && (
@@ -227,8 +228,7 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
             <th className="col-wide">Problem Description</th>
             <th className="col-standard">Failure Mode</th>
             <th className="col-standard">Rework</th>
-            <th className="col-standard">Log File</th>
-            <th className="col-standard column-group-separator">CPU Pin Condition</th>
+            <th className="col-standard column-group-separator">Log File</th>
           </>
         )}
         {collapsedSections.qualityIndicator && (
