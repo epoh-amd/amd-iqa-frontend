@@ -653,6 +653,36 @@ saveGpuPhotos: async (gpuSN, photos) => {
   }
 },
 
+matchEthernetMac: async (ipAddress) => {
+  try {
+    const response = await axios.post(`${API_URL}/match-ethernet-mac`, { ipAddress });
+    return response.data;
+  } catch (error) {
+    console.error('Error matching Ethernet MAC:', error);
+    throw error;
+  }
+},
+
+matchBmcMac: async (bmcName) => {
+  try {
+    const response = await axios.post(`${API_URL}/match-bmc-mac`, { bmcName });
+    return response.data;
+  } catch (error) {
+    console.error('Error matching BMC MAC:', error);
+    throw error;
+  }
+},
+
+extractGpuFirmware: async (hostname) => {
+  try {
+    const response = await axios.post(`${API_URL}/gpu-builds/extract-firmware`, { hostname });
+    return response.data;
+  } catch (error) {
+    console.error('Error extracting GPU firmware:', error);
+    throw error;
+  }
+},
+
 saveGpuBuild: async (gpuData) => {
   try {
     const response = await axios.post(`${API_URL}/gpu-builds`, gpuData);
@@ -1159,7 +1189,8 @@ saveMasterBuildData: async (chassisSN, masterData) => {
       costCenter: masterData.costCenter,
       capitalization: masterData.capitalization,
       deliveryDate: masterData.deliveryDate,
-      masterStatus: masterData.masterStatus
+      masterStatus: masterData.masterStatus,
+      cpuPinPhoto: masterData.cpuPinPhoto ?? masterData.cpu_pin_photo
     });
     return response.data;
   } catch (error) {
@@ -1281,16 +1312,11 @@ updateMasterBuildData: async (chassisSN, updates) => {
  * @returns {Promise<array>} - Array of builds matching search criteria
  * @throws {Error} - Search failures
  */
-searchBuilds: async (filters) => {
+searchBuilds: async (filters, exportAll = false) => {
   try {
-    console.log('Searching builds with filters:', filters);
-    
-    // FIXED: Use correct endpoint path from server.js
-    const response = await axios.post(`${API_URL}/search-builds`, filters);
-    
-    console.log(`Search returned ${response.data.length} results`);
-    
-    return response.data;
+    const response = await axios.post(`${API_URL}/search-builds`, { ...filters, exportAll });
+    const { results, totalCount } = response.data;
+    return { results, totalCount };
   } catch (error) {
     console.error('Error searching builds:', error);
     throw error;

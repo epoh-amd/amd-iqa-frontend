@@ -298,6 +298,7 @@ const SearchRecords = () => {
             systemPNOptions={systemPNOptions}
             buildTechnicianOptions={buildTechnicianOptions}
             searchResults={searchResults}
+            currentFilters={filters}
             changeGearOptions={changeGearOptions}
           />
           {searched && (

@@ -94,22 +94,24 @@ export const useSearchHandlers = (filters, setFilters, setSearchResults, setLoad
     setSearched(true);
     
     try {
-      // Call the search API with all filters - FIXED: Use correct endpoint
-      console.log('Searching with filters:', filters);
-      const response = await api.searchBuilds(filters);
-      console.log('Search response:', response);
-      
-      setSearchResults(response);
-      
-      if (response.length === 0) {
+      const { results, totalCount } = await api.searchBuilds(filters);
+
+      setSearchResults(results);
+
+      if (results.length === 0) {
         setMessages([{
           type: 'info',
           text: 'No records found matching your search criteria.'
         }]);
       } else {
+        const showing = results.length;
+        const total   = totalCount ?? showing;
+        const capped  = total > showing;
         setMessages([{
           type: 'success',
-          text: `Found ${response.length} record(s) matching your search criteria.`
+          text: capped
+            ? `Showing ${showing} of ${total} record(s). Refine your filters or use Export to get all results.`
+            : `Found ${total} record(s) matching your search criteria.`
         }]);
       }
     } catch (error) {

@@ -37,6 +37,7 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
       isCustomConfig: ''
     },
     gpuInfo: {
+      hostname: '',
       projectName: '',
       po: '',
       gpuPN: '',

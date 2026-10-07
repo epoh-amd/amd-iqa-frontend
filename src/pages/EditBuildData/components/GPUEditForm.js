@@ -29,6 +29,7 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
     status: '',
     systemInfo: { bmcName: buildData.gpu_sn },
     gpuInfo: {
+      hostname:             buildData.hostname || '',
       projectName:          buildData.project_name || '',
       po:                   buildData.po || '',
       gpuPN:                buildData.gpu_pn || '',
@@ -228,6 +229,7 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
     try {
       await api.updateGpuBuild(buildData.gpu_sn, {
         gpuSN: g.gpuSN, cpuSN: g.cpuSN,
+        hostname: g.hostname || null,
         projectName: g.projectName, po: g.po, gpuPN: g.gpuPN,
         boardSN: g.boardSN, boardManufacturer: g.boardManufacturer, asicPN: g.asicPN,
         siliconRev: g.siliconRev, boardRev: g.boardRev, gpuRev: g.gpuRev,

@@ -185,6 +185,15 @@ export const useSaveHandlers = (masterData, setMasterData, selectedBuilds, setMe
         if (buildData.masterStatus !== undefined && buildData.masterStatus !== '' && buildData.masterStatus !== build.master_status) {
           dataToSave.masterStatus = buildData.masterStatus;
         }
+        // Upload CPU pin photo if a new file was selected
+        if (buildData.cpu_pin_photo_file) {
+          try {
+            const uploadResult = await api.uploadPhoto(buildData.cpu_pin_photo_file, 'cpu_pin_condition');
+            dataToSave.cpuPinPhoto = uploadResult.filePath;
+          } catch (uploadErr) {
+            console.error('Failed to upload CPU pin photo:', uploadErr);
+          }
+        }
         
         // Skip if no changes
         if (Object.keys(dataToSave).length === 0) {

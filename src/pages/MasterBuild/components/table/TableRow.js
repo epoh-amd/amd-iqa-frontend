@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faCamera, faImage } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../../../contexts/AuthContext.js';
 
 
@@ -241,6 +241,13 @@ const TableRow = ({
             </span>
           </td>
           <td className="read-only-cell col-standard">
+            {build.final_status ? (
+              <span className={`status-badge ${build.final_status === 'Pass' ? 'complete' : 'fail'}`}>
+                {build.final_status}
+              </span>
+            ) : '-'}
+          </td>
+          <td className="read-only-cell col-standard">
             <span className={`status-badge ${getStatusBadgeClass(build.status)}`}>
               {build.status || '-'}
             </span>
@@ -259,7 +266,7 @@ const TableRow = ({
               </span>
             )}
           </td>
-          <td className="read-only-cell col-standard column-group-separator">
+          <td className="read-only-cell col-standard">
             {build.has_rework === 'Yes' ? (
               <span
                 className="link-text"
@@ -275,6 +282,63 @@ const TableRow = ({
               'No'
             )}
           </td>
+          {/* CPU Pin Condition */}
+          {(() => {
+            const buildState = masterData?.builds?.[build.chassis_sn] || {};
+            const pendingName = buildState.cpu_pin_photo_name;
+            const savedPhoto  = build.cpu_pin_photo || buildState.cpu_pin_photo;
+            return (
+              <td className="col-standard column-group-separator" onClick={e => e.stopPropagation()}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id={`cpu-pin-photo-${build.chassis_sn}`}
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      e.target.value = '';
+                      handleFieldChange(build.chassis_sn, 'cpu_pin_photo_file', file);
+                      handleFieldChange(build.chassis_sn, 'cpu_pin_photo_name', file.name);
+                    }}
+                  />
+                  <label
+                    htmlFor={`cpu-pin-photo-${build.chassis_sn}`}
+                    className="upload-btn-small"
+                    style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    title="Upload CPU pin condition photo"
+                  >
+                    <FontAwesomeIcon icon={faCamera} /> {pendingName ? 'Change' : 'Upload'}
+                  </label>
+                  {/* Newly selected file — pending save */}
+                  {pendingName && (
+                    <span style={{ fontSize: '11px', color: '#333', wordBreak: 'break-all', textAlign: 'center' }}>
+                      {pendingName}
+                    </span>
+                  )}
+                  {/* Existing saved photo */}
+                  {!pendingName && savedPhoto && (
+                    <>
+                      <a
+                        href={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${savedPhoto.replace(/^\//, '')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ fontSize: '11px', color: '#1a73e8', wordBreak: 'break-all', textAlign: 'center' }}
+                      >
+                        <FontAwesomeIcon icon={faImage} /> {savedPhoto.split('/').pop()}
+                      </a>
+                      {build.cpu_pin_photo_uploaded_at && (
+                        <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
+                          {new Date(new Date(build.cpu_pin_photo_uploaded_at).getTime() + 12 * 60 * 60 * 1000).toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' })}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </td>
+            );
+          })()}
         </>
       )}
       {collapsedSections.qualityIndicator && (

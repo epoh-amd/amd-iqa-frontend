@@ -399,6 +399,30 @@ const StartBuild = () => {
     }
   };
 
+  // Extract GPU firmware from hostname via SSH
+  const handleGpuFirmwareExtract = async (buildIndex) => {
+    const g = builds[buildIndex]?.gpuInfo || {};
+    if (!g.hostname) {
+      setGpuSaveMessage({ type: 'error', text: 'Please enter the hostname before you extract.' });
+      setTimeout(() => setGpuSaveMessage(null), 5000);
+      return;
+    }
+    handleInputChange(buildIndex, 'gpuInfo', 'extracting', true);
+    try {
+      const result = await api.extractGpuFirmware(g.hostname);
+      if (result.ifwiVersion)  handleInputChange(buildIndex, 'gpuInfo', 'ifwiVersion',  result.ifwiVersion);
+      if (result.ifwiBuild)    handleInputChange(buildIndex, 'gpuInfo', 'ifwiBuild',    result.ifwiBuild);
+      if (result.rmVersion)    handleInputChange(buildIndex, 'gpuInfo', 'rmVersion',    result.rmVersion);
+      setGpuSaveMessage({ type: 'success', text: 'Firmware values extracted successfully.' });
+      setTimeout(() => setGpuSaveMessage(null), 4000);
+    } catch (err) {
+      setGpuSaveMessage({ type: 'error', text: 'Extract failed. Please make sure hostname is entered correctly & system is live.' });
+      setTimeout(() => setGpuSaveMessage(null), 7000);
+    } finally {
+      handleInputChange(buildIndex, 'gpuInfo', 'extracting', false);
+    }
+  };
+
   // Save GPU build with In Progress status (Continue Later)
   const handleContinueLaterGPU = async () => {
     setGpuSaving(true);
@@ -409,6 +433,7 @@ const StartBuild = () => {
       try {
         await api.saveGpuBuild({
           gpuSN: g.gpuSN, cpuSN: g.cpuSN || null,
+          hostname: g.hostname || null,
           projectName: g.projectName || null, po: g.po || null, gpuPN: g.gpuPN || null,
           boardSN: g.boardSN || null, boardManufacturer: g.boardManufacturer || null, asicPN: g.asicPN || null,
           siliconRev: g.siliconRev || null, boardRev: g.boardRev || null, gpuRev: g.gpuRev || null,
@@ -482,6 +507,7 @@ const StartBuild = () => {
         await api.saveGpuBuild({
           gpuSN: g.gpuSN,
           cpuSN: g.cpuSN || null,
+          hostname: g.hostname || null,
           projectName: g.projectName || null,
           po: g.po || null,
           gpuPN: g.gpuPN || null,
@@ -566,7 +592,7 @@ const StartBuild = () => {
         visualInspection: '', bootToOS: '', gpuDetected: '',
         fAuditEnablement: '', fAuditValue: '',
         agfhcLvl3: '', roccRushTest: '', hbmTest: '', transferBench: '',
-        ifwiVersion: '', ifwiBuild: '', rmVersion: '',
+        hostname: '', ifwiVersion: '', ifwiBuild: '', rmVersion: '',
       };
       setBuilds(prev => prev.map(b => ({ ...b, gpuInfo: { ...emptyGpuInfo } })));
 
@@ -1161,7 +1187,7 @@ const StartBuild = () => {
           builds={builds}
           handleInputChange={handleInputChange}
           removeBuild={removeBuild}
-          onExtractLog={handleExtractLog}
+          onExtractLog={handleGpuFirmwareExtract}
           gpuSaving={gpuSaving}
           showSaveActions={false}
         />

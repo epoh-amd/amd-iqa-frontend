@@ -2,13 +2,14 @@ import React, { useRef, useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import api from '../../services/api';
 
-import { 
+import {
   faBarcode,
   faCheck,
   faExclamationTriangle,
   faCamera,
   faTrash,
-  faChevronDown
+  faChevronDown,
+  faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 
 
@@ -39,6 +40,16 @@ const SystemInfoTable = ({
   isEditMode = false
 }) => {
   
+  // BMC Match state keyed by buildIndex
+  const [bmcMatchState, setBmcMatchState] = useState({});
+  const setBmcMatch = (idx, patch) =>
+    setBmcMatchState(prev => ({ ...prev, [idx]: { ...prev[idx], ...patch } }));
+
+  // Ethernet MAC Match state keyed by buildIndex
+  const [ethMatchState, setEthMatchState] = useState({});
+  const setEthMatch = (idx, patch) =>
+    setEthMatchState(prev => ({ ...prev, [idx]: { ...prev[idx], ...patch } }));
+
   const [projects, setProjects] = useState([]);
 useEffect(() => {
   const fetchProjects = async () => {
@@ -380,6 +391,48 @@ useEffect(() => {
                       />
                       <FontAwesomeIcon icon={faBarcode} className="scanner-icon" />
                     </div>
+                    {(() => {
+                      const ms = bmcMatchState[buildIndex] || {};
+                      return (
+                        <>
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            style={{
+                              marginTop: '4px', padding: '2px 8px', fontSize: '11px',
+                              ...(ms.success   ? { backgroundColor: '#2e7d32', borderColor: '#2e7d32', color: '#fff' } :
+                                  ms.notMatch ? { backgroundColor: '#c62828', borderColor: '#c62828', color: '#fff' } : {})
+                            }}
+                            disabled={ms.loading}
+                            onClick={async () => {
+                              if (!build.systemInfo.bmcMac || !build.systemInfo.bmcMac.trim()) {
+                                setBmcMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'Please input BMC MAC before matching.' });
+                                return;
+                              }
+                              setBmcMatch(buildIndex, { loading: true, success: false, notMatch: false, error: '' });
+                              try {
+                                const result = await api.matchBmcMac(build.systemInfo.bmcName);
+                                const userInput = (build.systemInfo.bmcMac || '').trim().toLowerCase();
+                                const sshMac   = (result.bmcMac || '').trim().toLowerCase();
+                                const isMatch  = userInput === sshMac;
+                                setBmcMatch(buildIndex, { loading: false, success: isMatch, notMatch: !isMatch, error: '' });
+                              } catch (err) {
+                                setBmcMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'SSH failed. Check BMC name & connectivity.' });
+                              }
+                            }}
+                          >
+                            {ms.loading
+                              ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 4 }} />Matching...</>
+                              : ms.success
+                                ? <><FontAwesomeIcon icon={faCheck} style={{ marginRight: 4 }} />Matched</>
+                                : ms.notMatch
+                                  ? 'Not Matched'
+                                  : 'Match'}
+                          </button>
+                          {ms.error && <div className="field-error">{ms.error}</div>}
+                        </>
+                      );
+                    })()}
                     {build.errors.bmcMac && (
                       <div className="field-error">{build.errors.bmcMac}</div>
                     )}
@@ -427,6 +480,60 @@ useEffect(() => {
                     {build.errors.ethernetMac && (
                       <div className="field-error">{build.errors.ethernetMac}</div>
                     )}
+                    {/* IP input + Match button for Ethernet MAC */}
+                    <input
+                      type="text"
+                      placeholder="Enter IP to match"
+                      value={build.systemInfo.ethernetMatchIp || ''}
+                      onChange={e => handleInputChange(buildIndex, 'systemInfo', 'ethernetMatchIp', e.target.value)}
+                      style={{ marginTop: '4px', width: '100%', fontSize: '11px', padding: '2px 6px', border: '1px solid #ccc', borderRadius: '4px' }}
+                      autoComplete="off"
+                      spellCheck="false"
+                    />
+                    {(() => {
+                      const ms = ethMatchState[buildIndex] || {};
+                      return (
+                        <>
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            style={{
+                              marginTop: '4px', padding: '2px 8px', fontSize: '11px',
+                              ...(ms.success   ? { backgroundColor: '#2e7d32', borderColor: '#2e7d32', color: '#fff' } :
+                                  ms.notMatch ? { backgroundColor: '#c62828', borderColor: '#c62828', color: '#fff' } : {})
+                            }}
+                            disabled={ms.loading}
+                            onClick={async () => {
+                              if (!build.systemInfo.ethernetMac || !build.systemInfo.ethernetMac.trim()) {
+                                setEthMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'Please input Ethernet MAC before matching.' });
+                                return;
+                              }
+                              if (!build.systemInfo.ethernetMatchIp || !build.systemInfo.ethernetMatchIp.trim()) {
+                                setEthMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'Please input IP address before matching.' });
+                                return;
+                              }
+                              setEthMatch(buildIndex, { loading: true, success: false, notMatch: false, error: '' });
+                              try {
+                                const result = await api.matchEthernetMac(build.systemInfo.ethernetMatchIp);
+                                const userInput = (build.systemInfo.ethernetMac || '').trim().toLowerCase();
+                                const sshMac   = (result.ethernetMac || '').trim().toLowerCase();
+                                const isMatch  = userInput === sshMac;
+                                setEthMatch(buildIndex, { loading: false, success: isMatch, notMatch: !isMatch, error: '' });
+                              } catch (err) {
+                                setEthMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'SSH failed. Check IP & connectivity.' });
+                              }
+                            }}
+                          >
+                            {ms.loading
+                              ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 4 }} />Matching...</>
+                              : ms.success
+                                ? <><FontAwesomeIcon icon={faCheck} style={{ marginRight: 4 }} />Matched</>
+                                : ms.notMatch ? 'Not Matched' : 'Match'}
+                          </button>
+                          {ms.error && <div className="field-error">{ms.error}</div>}
+                        </>
+                      );
+                    })()}
                   </td>
                   
                   <td>

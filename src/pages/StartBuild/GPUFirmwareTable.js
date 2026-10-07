@@ -68,10 +68,11 @@ const GPUFirmwareTable = ({
                     className="btn-secondary"
                     style={{ padding: '4px 10px', fontSize: '12px', whiteSpace: 'nowrap' }}
                     onClick={() => onExtractLog && onExtractLog(buildIndex)}
-                    title="Extract firmware versions"
+                    disabled={gpu.extracting}
+                    title="Extract firmware versions from hostname"
                   >
                     <FontAwesomeIcon icon={faDownload} style={{ marginRight: '4px' }} />
-                    Extract
+                    {gpu.extracting ? 'Extracting...' : 'Extract'}
                   </button>
                 </td>
                 <td>

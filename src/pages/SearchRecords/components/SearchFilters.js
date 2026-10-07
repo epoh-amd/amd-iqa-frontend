@@ -29,7 +29,8 @@ const SearchFilters = ({
   systemPNOptions = [],
   buildTechnicianOptions = [],
   searchResults = [],
-  changeGearOptions = []
+  changeGearOptions = [],
+  currentFilters = {}
 }) => {
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [exporting, setExporting] = React.useState(false);
@@ -53,7 +54,9 @@ const SearchFilters = ({
 
     setExporting(true);
     try {
-      await exportMasterBuildsToExcel(searchResults);
+      const api = (await import('../../../services/api')).default;
+      const { results: allResults } = await api.searchBuilds(currentFilters, true);
+      await exportMasterBuildsToExcel(allResults);
     } catch (error) {
       console.error('Export failed:', error);
       alert('Failed to export data. Please try again.');
