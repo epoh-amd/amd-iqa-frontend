@@ -330,7 +330,7 @@ const TableRow = ({
                       </a>
                       {build.cpu_pin_photo_uploaded_at && (
                         <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
-                          {new Date(new Date(build.cpu_pin_photo_uploaded_at).getTime() + 12 * 60 * 60 * 1000).toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' })}
+                          {new Date(new Date(build.cpu_pin_photo_uploaded_at).getTime() + 12 * 60 * 60 * 1000).toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' })}
                         </div>
                       )}
                     </>
