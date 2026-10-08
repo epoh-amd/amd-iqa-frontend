@@ -174,10 +174,21 @@ const BkcDetailsTable = ({
                     <FontAwesomeIcon icon={faCamera} /> {build.bkcDetails.cpuPinPhotoName ? 'Change' : 'Upload'}
                   </label>
                   {build.bkcDetails.cpuPinPhotoName && (
-                    <span style={{ fontSize: '11px', color: '#333', wordBreak: 'break-all', textAlign: 'center' }}>
-                      <FontAwesomeIcon icon={faImage} style={{ marginRight: 3 }} />
-                      {build.bkcDetails.cpuPinPhotoName}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#333' }}>
+                      <FontAwesomeIcon icon={faImage} />
+                      <span style={{ wordBreak: 'break-all' }}>{build.bkcDetails.cpuPinPhotoName}</span>
+                      <button
+                        type="button"
+                        title="Remove photo"
+                        onClick={() => {
+                          handleBkcFieldChange(buildIndex, 'cpuPinPhotoFile', null);
+                          handleBkcFieldChange(buildIndex, 'cpuPinPhotoName', '');
+                        }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c62828', padding: 0, fontSize: '12px' }}
+                      >
+                        <FontAwesomeIcon icon={faTimes} />
+                      </button>
+                    </div>
                   )}
                 </div>
               </td>
