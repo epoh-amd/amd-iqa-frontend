@@ -565,7 +565,10 @@ useEffect(() => {
                       <option value="Foxconn">Foxconn</option>
                       <option value="Lotes">Lotes</option>
                       {build.systemInfo.projectName === 'Verano LPDDR' && (
-                        <option value="N/A">N/A</option>
+                        <>
+                          <option value="Ironwood">Ironwood</option>
+                          <option value="N/A">N/A</option>
+                        </>
                       )}
                     </select>
                     {build.errors.cpuVendor && (

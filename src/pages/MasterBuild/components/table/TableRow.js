@@ -282,63 +282,6 @@ const TableRow = ({
               'No'
             )}
           </td>
-          {/* CPU Pin Condition */}
-          {(() => {
-            const buildState = masterData?.builds?.[build.chassis_sn] || {};
-            const pendingName = buildState.cpu_pin_photo_name;
-            const savedPhoto  = build.cpu_pin_photo || buildState.cpu_pin_photo;
-            return (
-              <td className="col-standard column-group-separator" onClick={e => e.stopPropagation()}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    id={`cpu-pin-photo-${build.chassis_sn}`}
-                    style={{ display: 'none' }}
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-                      e.target.value = '';
-                      handleFieldChange(build.chassis_sn, 'cpu_pin_photo_file', file);
-                      handleFieldChange(build.chassis_sn, 'cpu_pin_photo_name', file.name);
-                    }}
-                  />
-                  <label
-                    htmlFor={`cpu-pin-photo-${build.chassis_sn}`}
-                    className="upload-btn-small"
-                    style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
-                    title="Upload CPU pin condition photo"
-                  >
-                    <FontAwesomeIcon icon={faCamera} /> {pendingName ? 'Change' : 'Upload'}
-                  </label>
-                  {/* Newly selected file — pending save */}
-                  {pendingName && (
-                    <span style={{ fontSize: '11px', color: '#333', wordBreak: 'break-all', textAlign: 'center' }}>
-                      {pendingName}
-                    </span>
-                  )}
-                  {/* Existing saved photo */}
-                  {!pendingName && savedPhoto && (
-                    <>
-                      <a
-                        href={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${savedPhoto.replace(/^\//, '')}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{ fontSize: '11px', color: '#1a73e8', wordBreak: 'break-all', textAlign: 'center' }}
-                      >
-                        <FontAwesomeIcon icon={faImage} /> {savedPhoto.split('/').pop()}
-                      </a>
-                      {build.cpu_pin_photo_uploaded_at && (
-                        <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
-                          {new Date(new Date(build.cpu_pin_photo_uploaded_at).getTime() + 12 * 60 * 60 * 1000).toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' })}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </td>
-            );
-          })()}
         </>
       )}
       {collapsedSections.qualityIndicator && (
@@ -655,7 +598,14 @@ const TableRow = ({
               {/* HW Ops */}
               <optgroup label="HW Ops">
                 <option value="HW Ops">HW Ops</option>
+                <option value="HW Ops : System Sales">HW Ops : System Sales</option>
                 <option value="HW Ops Non SPSE">HW Ops Non SPSE</option>
+                <option value="HW Ops Non SPSE : DFx">HW Ops Non SPSE : DFx</option>
+                <option value="HW Ops Non SPSE : PDG">HW Ops Non SPSE : PDG</option>
+                <option value="HW Ops Non SPSE : Product Dev">HW Ops Non SPSE : Product Dev</option>
+                <option value="HW Ops Non SPSE : PSO">HW Ops Non SPSE : PSO</option>
+                <option value="HW Ops Non SPSE : Quality">HW Ops Non SPSE : Quality</option>
+                <option value="HW Ops Non SPSE : Sys Arch and Eng">HW Ops Non SPSE : Sys Arch and Eng</option>
                 <option value="HW Ops Non-SPSE : Tools">HW Ops Non-SPSE : Tools</option>
                 <option value="HW Ops Non-SPSE : ICT">HW Ops Non-SPSE : ICT</option>
                 <option value="HW Ops Non-SPSE : Embedded">HW Ops Non-SPSE : Embedded</option>
@@ -742,7 +692,7 @@ const TableRow = ({
                 <option value="Boards">Boards</option>
                 <option value="CISE">CISE</option>
                 <option value="Core Validation">Core Validation</option>
-                <option value="DebugCap">DebugCap</option>
+                <option value="Server Debug">Server Debug</option>
                 <option value="FAE">FAE</option>
                 <option value="LPAD">LPAD</option>
                 <option value="NBIO Design">NBIO Design</option>
