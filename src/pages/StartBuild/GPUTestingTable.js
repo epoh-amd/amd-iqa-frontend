@@ -103,17 +103,27 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog,
         <thead>
           <tr>
             <th className="row-actions">Actions</th>
-            <th className="build-reference">Build Reference</th>
             <th>FPY Status</th>
-            <th>Visual Inspection</th>
-            <th>Boot to OS</th>
-            <th>GPU Detected</th>
-            <th>F-audit Enablement</th>
-            <th>F-audit Value</th>
-            <th>AGFHC lvl3</th>
-            <th>Roccrush Test</th>
-            <th>HBM Test</th>
-            <th>TransferBench</th>
+            {(() => {
+              const apBtn = (field, val, label) => (
+                <button type="button" onClick={() => builds.forEach((_, i) => handleInputChange(i, 'gpuInfo', field, val))}
+                  style={{ display: 'block', marginTop: '4px', fontSize: '11px', padding: '2px 8px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  disabled={!isEditable}
+                >All Pass</button>
+              );
+              return (
+                <>
+                  <th>Visual Inspection{apBtn('visualInspection', 'Pass')}</th>
+                  <th>GPU Detected{apBtn('gpuDetected', 'Yes')}</th>
+                  <th>F-audit Enablement{apBtn('fAuditEnablement', 'Yes')}</th>
+                  <th>F-audit Value</th>
+                  <th>AGFHC lvl3{apBtn('agfhcLvl3', 'Pass')}</th>
+                  <th>Roccrush Test{apBtn('roccRushTest', 'Pass')}</th>
+                  <th>HBM Test{apBtn('hbmTest', 'Pass')}</th>
+                  <th>TransferBench{apBtn('transferBench', 'Pass')}</th>
+                </>
+              );
+            })()}
             <th>Extract Log</th>
           </tr>
         </thead>
@@ -185,7 +195,7 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog,
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </td>
-                <td className="build-reference">{getBuildReference(build, buildIndex)}</td>
+                
                 <td>
                   {(() => {
                     const fpy = getGpuFpyStatus(gpu);
@@ -203,7 +213,7 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog,
                   })()}
                 </td>
                 <td>{renderTestField('visualInspection', PASS_FAIL)}</td>
-                <td>{renderTestField('bootToOS', YES_NO)}</td>
+
                 <td>{renderTestField('gpuDetected', YES_NO)}</td>
                 <td>{renderTestField('fAuditEnablement', YES_NO)}</td>
                 <td>

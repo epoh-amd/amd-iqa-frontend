@@ -18,7 +18,7 @@ const GPUComponentTable = ({ builds, handleInputChange, removeBuild }) => {
         <thead>
           <tr>
             <th className="row-actions">Actions</th>
-            <th className="build-reference">Build Reference</th>
+            
             <th>Heatsink P/N</th>
             <th>Heatsink S/N</th>
             <th>Heatsink Manufacturer</th>
@@ -40,7 +40,7 @@ const GPUComponentTable = ({ builds, handleInputChange, removeBuild }) => {
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </td>
-                <td className="build-reference">{getBuildReference(build, buildIndex)}</td>
+                
                 <td>
                   <div className="scanner-input">
                     <input

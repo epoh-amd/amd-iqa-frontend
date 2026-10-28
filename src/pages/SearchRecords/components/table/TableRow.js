@@ -274,6 +274,13 @@ const TableRow = ({
               {build.status || '-'}
             </span>
           </td>
+          <td className="read-only-cell col-standard">
+            {build.rma_status ? (
+              <span className={`status-badge ${build.rma_status === 'RMA Pass' || build.rma_status === 'Pass' ? 'complete' : 'fail'}`}>
+                {build.rma_status}
+              </span>
+            ) : '-'}
+          </td>
           <td className="read-only-cell col-wide">{build.problem_description || '-'}</td>
           <td className="read-only-cell col-standard">
             {build.failure_modes_combined && (

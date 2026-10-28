@@ -783,6 +783,11 @@ getRma: async (chassisSN) => {
   return res.data;
 },
 
+getAllRma: async () => {
+  const res = await axios.get(`${API_URL}/rma`);
+  return Array.isArray(res.data) ? res.data : [];
+},
+
   /**
  * Add new part number to database
  * Used when user selects "Other" and enters a custom part number

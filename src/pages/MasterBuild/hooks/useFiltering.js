@@ -45,6 +45,7 @@ export const useFiltering = (builds) => {
     smsOrder: '',
     buildName: '',
     fpyStatus: '',
+    rmaStatus: '',
     canContinue: '',
     masterStatus: ''
   });
@@ -200,6 +201,14 @@ export const useFiltering = (builds) => {
         return false;
       }
 
+      // RMA Status filter - legacy rows may store "RMA Pass"/"RMA Fail"
+      if (filters.rmaStatus) {
+        const rmaValue = String(build.rma_status || '').trim().replace(/^RMA\s+/i, '').toLowerCase();
+        if (rmaValue !== filters.rmaStatus.toLowerCase()) {
+          return false;
+        }
+      }
+
 
       // Can Continue filter
       if (filters.canContinue && build.can_continue !== filters.canContinue) {
@@ -214,7 +223,8 @@ export const useFiltering = (builds) => {
 
       // DEFAULT EXCLUSION: Exclude "Delivered" and "Incomplete" builds unless explicitly filtered
       // Only apply this exclusion when masterStatus filter is NOT set (i.e., user hasn't chosen a specific status)
-      if (!filters.masterStatus) {
+      // RMA'd units are usually already Delivered, so the RMA filter bypasses this exclusion
+      if (!filters.masterStatus && !filters.rmaStatus) {
         if (build.master_status === 'Delivered' || build.master_status === 'Incomplete') {
           return false;
         }

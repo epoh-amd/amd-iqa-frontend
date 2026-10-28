@@ -487,7 +487,7 @@ const TableRow = ({
               <option value="Server MemVal">Server MemVal</option>
               <option value="Server Firmware Security">Server Firmware Security</option>
               <option value="Server Platform Team">Server Platform Team</option>
-              <option value="Server Validation Team">Server Validation Team</option>
+              <option value="System Validation Testing">System Validation Testing</option>
               <option value="SEVAL">SEVAL</option>
               <option value="Shared Bios">Shared Bios</option>
               <option value="SIP">SIP</option>
@@ -673,17 +673,17 @@ const TableRow = ({
                 <option value="Server Firmware : VV Automation">Server Firmware : VV Automation</option>
               </optgroup>
 
-              {/* Server Validation Team */}
-              <optgroup label="Server Validation Team">
-                <option value="Server Validation Team">Server Validation Team</option>
-                <option value="Server Validation Team : Automation">Server Validation Team : Automation</option>
-                <option value="Server Validation Team : Automation : Development">Server Validation Team : Automation : Development</option>
-                <option value="Server Validation Team : Automation : Val - Execution">Server Validation Team : Automation : Val - Execution</option>
-                <option value="Server Validation Team : DDR">Server Validation Team : DDR</option>
-                <option value="Server Validation Team : Full Chip">Server Validation Team : Full Chip</option>
-                <option value="Server Validation Team : Functional Validation">Server Validation Team : Functional Validation</option>
-                <option value="Server Validation Team : IO">Server Validation Team : IO</option>
-                <option value="Server Validation Team : PMM">Server Validation Team : PMM</option>
+              {/* System Validation Testing */}
+              <optgroup label="System Validation Testing">
+                <option value="System Validation Testing">System Validation Testing</option>
+                <option value="System Validation Testing : Automation">System Validation Testing : Automation</option>
+                <option value="System Validation Testing : Automation : Development">System Validation Testing : Automation : Development</option>
+                <option value="System Validation Testing : Automation : Val - Execution">System Validation Testing : Automation : Val - Execution</option>
+                <option value="System Validation Testing : DDR">System Validation Testing : DDR</option>
+                <option value="System Validation Testing : Full Chip">System Validation Testing : Full Chip</option>
+                <option value="System Validation Testing : Functional Validation">System Validation Testing : Functional Validation</option>
+                <option value="System Validation Testing : IO">System Validation Testing : IO</option>
+                <option value="System Validation Testing : PMM">System Validation Testing : PMM</option>
               </optgroup>
 
               {/* Other Departments */}

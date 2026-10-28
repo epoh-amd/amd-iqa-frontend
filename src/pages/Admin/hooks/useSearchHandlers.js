@@ -97,10 +97,11 @@ export const useSearchHandlers = (filters, setFilters, setSearchResults, setLoad
     console.log('Searching with filters:', filters);
 
     // ✅ 1. Fetch builds (existing)
-    const response = await api.searchBuilds(filters);
+    const rawResponse = await api.searchBuilds(filters);
+    const response = Array.isArray(rawResponse?.results) ? rawResponse.results : [];
 
     // ✅ 2. Fetch RMA (new)
-    const rmaData = await api.getRma();
+    const rmaData = await api.getAllRma();
 
     console.log("rmadata", rmaData);
 

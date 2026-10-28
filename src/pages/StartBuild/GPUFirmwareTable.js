@@ -37,7 +37,6 @@ const GPUFirmwareTable = ({
         <thead>
           <tr>
             <th className="row-actions">Actions</th>
-            <th className="build-reference">Build Reference</th>
             <th>Extract</th>
             <th>IFWI Version</th>
             <th>IFWI Build</th>
@@ -62,7 +61,6 @@ const GPUFirmwareTable = ({
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </td>
-                <td className="build-reference">{getBuildReference(build, buildIndex)}</td>
                 <td>
                   <button
                     className="btn-secondary"

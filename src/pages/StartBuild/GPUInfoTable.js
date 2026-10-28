@@ -20,8 +20,7 @@ const GPUInfoTable = ({ builds, handleInputChange, removeBuild, isEditMode = fal
         <thead>
           <tr>
             <th className="row-actions">Actions</th>
-            <th className="build-reference">Build Reference</th>
-            <th>Hostname</th>
+            <th>Server Reference</th>
             <th>Project Name</th>
             <th>PO</th>
             <th>GPU P/N</th>
@@ -49,14 +48,13 @@ const GPUInfoTable = ({ builds, handleInputChange, removeBuild, isEditMode = fal
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </td>
-                <td className="build-reference">{getBuildReference(build, buildIndex)}</td>
                 <td>
                   <div className="scanner-input">
                     <input
                       type="text"
                       className="scanner-field"
                       value={gpu.hostname || ''}
-                      placeholder="Enter Hostname"
+                      placeholder="Enter Server Reference"
                       onChange={e => onChange('hostname', e.target.value)}
                       autoComplete="off"
                       spellCheck="false"

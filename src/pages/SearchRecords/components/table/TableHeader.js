@@ -225,6 +225,7 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
             <th className="col-standard">FPY Status</th>
             <th className="col-standard">Final Status</th>
             <th className="col-standard">Build Status</th>
+            <th className="col-standard">RMA Status</th>
             <th className="col-wide">Problem Description</th>
             <th className="col-standard">Failure Mode</th>
             <th className="col-standard">Rework</th>

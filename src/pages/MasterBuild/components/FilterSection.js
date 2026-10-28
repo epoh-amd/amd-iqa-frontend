@@ -218,6 +218,19 @@ const FilterSection = ({ filters, onFilterChange, onReset, isCollapsed, onToggle
               </select>
             </div>
 
+            {/* RMA Status */}
+            <div className="filter-group">
+              <label>RMA Status</label>
+              <select
+                value={filters.rmaStatus}
+                onChange={(e) => onFilterChange('rmaStatus', e.target.value)}
+              >
+                <option value="">All RMA</option>
+                <option value="Pass">Pass</option>
+                <option value="Fail">Fail</option>
+              </select>
+            </div>
+
             {/* 16. Rework */}
             <div className="filter-group">
               <label>Rework</label>

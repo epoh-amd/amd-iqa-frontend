@@ -256,7 +256,7 @@ const EditBuildData = () => {
                       <thead>
                         <tr>
                           <th>Select</th>
-                          {['Build Engineer','GPU S/N','CPU S/N','Project','PO','GPU P/N','ASIC P/N','Silicon Rev','Board Rev','GPU Rev','Model','Power Rating','Heatsink Mfr','Heatsink P/N','Heatsink S/N','Visual Insp','Boot to OS','GPU Detected','F-Audit','F-Audit Val','AGFHC lvl3','Roccrush','HBM','TransferBench','IFWI Ver','RM Ver'].map(h => (
+                          {['Build Engineer','Server Reference','GPU S/N','CPU S/N','Project','PO','GPU P/N','ASIC P/N','Silicon Rev','Board Rev','GPU Rev','Model','Power Rating','Heatsink Mfr','Heatsink P/N','Heatsink S/N','Visual Insp','GPU Detected','F-Audit','F-Audit Val','AGFHC lvl3','Roccrush','HBM','TransferBench','IFWI Ver','RM Ver'].map(h => (
                             <th key={h}>{h}</th>
                           ))}
                         </tr>
@@ -276,7 +276,7 @@ const EditBuildData = () => {
                                 onClick={e => e.stopPropagation()}
                               />
                             </td>
-                            {[r.build_engineer,r.gpu_sn,r.cpu_sn,r.project_name,r.po,r.gpu_pn,r.asic_pn,r.silicon_rev,r.board_rev,r.gpu_rev,r.model_name,r.cpu_power_rating,r.heatsink_manufacturer,r.heatsink_pn,r.heatsink_sn,r.visual_inspection,r.boot_to_os,r.gpu_detected,r.f_audit_enablement,r.f_audit_value,r.agfhc_lvl3,r.rocc_rush_test,r.hbm_test,r.transfer_bench,r.ifwi_version,r.rm_version].map((val, j) => (
+                            {[r.build_engineer,r.server_reference,r.gpu_sn,r.cpu_sn,r.project_name,r.po,r.gpu_pn,r.asic_pn,r.silicon_rev,r.board_rev,r.gpu_rev,r.model_name,r.cpu_power_rating,r.heatsink_manufacturer,r.heatsink_pn,r.heatsink_sn,r.visual_inspection,r.gpu_detected,r.f_audit_enablement,r.f_audit_value,r.agfhc_lvl3,r.rocc_rush_test,r.hbm_test,r.transfer_bench,r.ifwi_version,r.rm_version].map((val, j) => (
                               <td key={j}>{val || '-'}</td>
                             ))}
                           </tr>
