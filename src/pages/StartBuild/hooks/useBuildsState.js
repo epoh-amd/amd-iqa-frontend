@@ -711,7 +711,8 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
           if (currentChassisSN) {
             updatedBuilds[buildIndex].systemInfo.bmcName = generateBMCName(
               platformType,
-              currentChassisSN
+              currentChassisSN,
+              value  // value here is the system P/N being set
             );
           }
         } catch (error) {
@@ -732,7 +733,11 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
       if (field === 'chassisSN' && value && shouldNavigate) {
         const platformType = updatedBuilds[buildIndex].systemInfo.platformType;
         if (platformType) {
-          updatedBuilds[buildIndex].systemInfo.bmcName = generateBMCName(platformType, value);
+          updatedBuilds[buildIndex].systemInfo.bmcName = generateBMCName(
+            platformType,
+            value,
+            updatedBuilds[buildIndex].systemInfo.systemPN || ''
+          );
         }
       }
 
@@ -850,11 +855,16 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
     return words.find(word => word.length > 3) || words[0] || '';
   };
 
+  const FALCONS_PNS = ['019FALCN06-F001', '019FALCN06-F002', '019FALCN06-F101', '019FALCN06-F201'];
+
   // Generate BMC name
-  const generateBMCName = (platformType, chassisSN) => {
+  const generateBMCName = (platformType, chassisSN, systemPN = '') => {
     if (!platformType || !chassisSN) return '';
 
-    const platformName = extractManufacturerPrefix(platformType);
+    let platformName = extractManufacturerPrefix(platformType);
+    if (FALCONS_PNS.includes(systemPN.trim().toUpperCase())) {
+      platformName = 'Falcons';
+    }
     const lastFourDigits = chassisSN.slice(-4);
 
     return `${platformName}-${lastFourDigits}`;
