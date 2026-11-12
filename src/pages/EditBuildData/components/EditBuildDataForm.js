@@ -119,7 +119,10 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
         dimmsDetectedPhotos: parsePhotos(buildData.photos, 'dimms_detected'),
         lomWorkingStatus: buildData.lom_working_status || '',
         lomWorkingNotes: buildData.lom_working_notes || '',
-        lomWorkingPhotos: parsePhotos(buildData.photos, 'lom_working')
+        lomWorkingPhotos: parsePhotos(buildData.photos, 'lom_working'),
+        ancTestStatus: buildData.anc_test_status || '',
+        ancTestNotes: buildData.anc_test_notes || '',
+        ancTestPhotos: parsePhotos(buildData.photos, 'anc_test')
       },
       bkcDetails: {
         biosVersion: buildData.bios_version || '',
@@ -325,6 +328,17 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
     setBuilds(updatedBuilds);
   };
 
+  const normalizePhotoType = (type) => {
+    const map = {
+      visualInspection: 'visual_inspection',
+      dimmsDetected: 'dimms_detected',
+      boot: 'boot',
+      lomWorking: 'lom_working',
+      ancTest: 'anc_test',
+    };
+    return map[type] || type;
+  };
+
   // Handle file selection for photos
   const handleFileSelection = (buildIndex, photoType, files) => {
     const updatedBuilds = [...builds];
@@ -336,7 +350,7 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
     const newPhotos = Array.from(files).map(file => ({
       name: file.name,
       file: file,
-      type: photoType,
+      type: normalizePhotoType(photoType),
       preview: URL.createObjectURL(file)
     }));
 
@@ -484,7 +498,8 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
         ...(updatedReworkBuild.systemInfo.visualInspectionPhotos || []),
         ...(updatedReworkBuild.systemInfo.bootPhotos || []),
         ...(updatedReworkBuild.systemInfo.dimmsDetectedPhotos || []),
-        ...(updatedReworkBuild.systemInfo.lomWorkingPhotos || [])
+        ...(updatedReworkBuild.systemInfo.lomWorkingPhotos || []),
+        ...(updatedReworkBuild.systemInfo.ancTestPhotos || [])
       ];
 
       const uploadedPhotos = [];

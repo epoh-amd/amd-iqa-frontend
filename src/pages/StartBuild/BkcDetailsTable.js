@@ -53,8 +53,9 @@ const BkcDetailsTable = ({
             <th>Extract</th>
             <th>BIOS Version</th>
             <th>SCM FPGA Version (Optional)</th>
-            <th>HPM FPGA Version</th>
+            <th>{builds.some(b => b.systemInfo.projectName === 'MI430x') ? 'CPLD Version' : 'HPM FPGA Version'}</th>
             <th>BMC Version</th>
+            <th>PLDM Version</th>
             <th>CPU Pin Condition</th>
           </tr>
         </thead>
@@ -125,17 +126,35 @@ const BkcDetailsTable = ({
                 )}
               </td>
               <td>
-                <input
-                  type="text"
-                  value={build.bkcDetails.hpmFpgaVersion}
-                  onChange={(e) => handleBkcFieldChange(buildIndex, 'hpmFpgaVersion', e.target.value)}
-                  placeholder="Enter HPM FPGA Version"
-                  className={build.errors.hpmFpgaVersion ? 'error' : ''}
-                />
-                {build.errors.hpmFpgaVersion && (
-                  <div className="field-error">{build.errors.hpmFpgaVersion}</div>
+                {build.systemInfo.projectName === 'MI430x' ? (
+                  <>
+                    <input
+                      type="text"
+                      value={build.bkcDetails.cpldVersion || ''}
+                      onChange={(e) => handleBkcFieldChange(buildIndex, 'cpldVersion', e.target.value)}
+                      placeholder="Enter CPLD Version"
+                      className={build.errors.cpldVersion ? 'error' : ''}
+                    />
+                    {build.errors.cpldVersion && (
+                      <div className="field-error">{build.errors.cpldVersion}</div>
+                    )}
+                    <PasteAllBtn field="cpldVersion" value={build.bkcDetails.cpldVersion} />
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      value={build.bkcDetails.hpmFpgaVersion}
+                      onChange={(e) => handleBkcFieldChange(buildIndex, 'hpmFpgaVersion', e.target.value)}
+                      placeholder="Enter HPM FPGA Version"
+                      className={build.errors.hpmFpgaVersion ? 'error' : ''}
+                    />
+                    {build.errors.hpmFpgaVersion && (
+                      <div className="field-error">{build.errors.hpmFpgaVersion}</div>
+                    )}
+                    <PasteAllBtn field="hpmFpgaVersion" value={build.bkcDetails.hpmFpgaVersion} />
+                  </>
                 )}
-                <PasteAllBtn field="hpmFpgaVersion" value={build.bkcDetails.hpmFpgaVersion} />
               </td>
               <td>
                 <input
@@ -151,45 +170,62 @@ const BkcDetailsTable = ({
                 <PasteAllBtn field="bmcVersion" value={build.bkcDetails.bmcVersion} />
               </td>
               <td>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <input
+                  type="text"
+                  value={build.bkcDetails.pldmVersion || ''}
+                  onChange={(e) => handleBkcFieldChange(buildIndex, 'pldmVersion', e.target.value)}
+                  placeholder="Enter PLDM Version"
+                  className={build.errors.pldmVersion ? 'error' : ''}
+                />
+                {build.errors.pldmVersion && (
+                  <div className="field-error">{build.errors.pldmVersion}</div>
+                )}
+                <PasteAllBtn field="pldmVersion" value={build.bkcDetails.pldmVersion} />
+              </td>
+              <td>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     id={`cpu-pin-bkc-${build.id}`}
                     style={{ display: 'none' }}
                     onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
+                      const newFiles = Array.from(e.target.files);
+                      if (!newFiles.length) return;
                       e.target.value = '';
-                      handleBkcFieldChange(buildIndex, 'cpuPinPhotoFile', file);
-                      handleBkcFieldChange(buildIndex, 'cpuPinPhotoName', file.name);
+                      const existing = build.bkcDetails.cpuPinPhotoFiles || [];
+                      handleBkcFieldChange(buildIndex, 'cpuPinPhotoFiles', [
+                        ...existing,
+                        ...newFiles.map(f => ({ file: f, name: f.name }))
+                      ]);
                     }}
                   />
                   <label
                     htmlFor={`cpu-pin-bkc-${build.id}`}
                     className="upload-btn-small"
                     style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
-                    title="Upload CPU pin condition photo"
+                    title="Upload CPU pin condition photos"
                   >
-                    <FontAwesomeIcon icon={faCamera} /> {build.bkcDetails.cpuPinPhotoName ? 'Change' : 'Upload'}
+                    <FontAwesomeIcon icon={faCamera} /> Upload
                   </label>
-                  {build.bkcDetails.cpuPinPhotoName && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#333' }}>
+                  {(build.bkcDetails.cpuPinPhotoFiles || []).map((photoObj, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#333' }}>
                       <FontAwesomeIcon icon={faImage} />
-                      <span style={{ wordBreak: 'break-all' }}>{build.bkcDetails.cpuPinPhotoName}</span>
+                      <span style={{ wordBreak: 'break-all' }}>{photoObj.name}</span>
                       <button
                         type="button"
                         title="Remove photo"
                         onClick={() => {
-                          handleBkcFieldChange(buildIndex, 'cpuPinPhotoFile', null);
-                          handleBkcFieldChange(buildIndex, 'cpuPinPhotoName', '');
+                          const updated = (build.bkcDetails.cpuPinPhotoFiles || []).filter((_, i) => i !== idx);
+                          handleBkcFieldChange(buildIndex, 'cpuPinPhotoFiles', updated);
                         }}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c62828', padding: 0, fontSize: '12px' }}
                       >
                         <FontAwesomeIcon icon={faTimes} />
                       </button>
                     </div>
-                  )}
+                  ))}
                 </div>
               </td>
             </tr>

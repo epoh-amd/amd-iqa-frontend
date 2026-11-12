@@ -9,7 +9,7 @@ export const useFileHandling = (builds, setBuilds) => {
       dimmsDetected: 'dimms_detected',
       boot: 'boot',
       lomWorking: 'lom_working',
-      // Add more mappings as needed
+      ancTest: 'anc_test',
     };
     return map[type] || type;
   };

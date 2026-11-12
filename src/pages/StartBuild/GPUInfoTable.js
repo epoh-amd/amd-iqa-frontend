@@ -4,7 +4,7 @@ import { faTrash, faBarcode } from '@fortawesome/free-solid-svg-icons';
 
 const SCANNER_FIELDS = new Set(['gpuPN', 'gpuSN', 'asicPN', 'boardSN']);
 
-const PROJECT_OPTIONS = ['MI350P', 'MI410P'];
+const PROJECT_OPTIONS = ['MI350P', 'MI410P', 'MI430x'];
 
 const getBuildReference = (build) => {
   const g = build.gpuInfo || {};
@@ -22,6 +22,9 @@ const GPUInfoTable = ({ builds, handleInputChange, removeBuild, isEditMode = fal
             <th className="row-actions">Actions</th>
             <th>Server Reference</th>
             <th>Project Name</th>
+            {builds.some(b => (b.gpuInfo?.projectName) === 'MI430x') && <th>EAM P/N</th>}
+            {builds.some(b => (b.gpuInfo?.projectName) === 'MI430x') && <th>EAM S/N</th>}
+            {builds.some(b => (b.gpuInfo?.projectName) === 'MI430x') && <th>PCBA S/N</th>}
             <th>PO</th>
             <th>GPU P/N</th>
             <th>GPU S/N</th>
@@ -71,6 +74,53 @@ const GPUInfoTable = ({ builds, handleInputChange, removeBuild, isEditMode = fal
                     {PROJECT_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
                 </td>
+                {gpu.projectName === 'MI430x' && (
+                  <td>
+                    <div className="scanner-input">
+                      <input
+                        type="text"
+                        className="scanner-field"
+                        value={gpu.eamPN || ''}
+                        placeholder="Enter EAM P/N"
+                        onChange={e => onChange('eamPN', e.target.value)}
+                        autoComplete="off"
+                        spellCheck="false"
+                      />
+                    </div>
+                  </td>
+                )}
+                {gpu.projectName === 'MI430x' && (
+                  <td>
+                    <div className="scanner-input">
+                      <input
+                        type="text"
+                        className={`scanner-field ${build.errors?.eamSN ? 'error' : ''}`}
+                        value={gpu.eamSN || ''}
+                        placeholder="Enter EAM S/N"
+                        onChange={e => onChange('eamSN', e.target.value)}
+                        autoComplete="off"
+                        spellCheck="false"
+                      />
+                    </div>
+                    {build.errors?.eamSN && <div className="field-error">{build.errors.eamSN}</div>}
+                  </td>
+                )}
+                {gpu.projectName === 'MI430x' && (
+                  <td>
+                    <div className="scanner-input">
+                      <input
+                        type="text"
+                        className={`scanner-field ${build.errors?.pcbaSN ? 'error' : ''}`}
+                        value={gpu.pcbaSN || ''}
+                        placeholder="Enter PCBA S/N"
+                        onChange={e => onChange('pcbaSN', e.target.value)}
+                        autoComplete="off"
+                        spellCheck="false"
+                      />
+                    </div>
+                    {build.errors?.pcbaSN && <div className="field-error">{build.errors.pcbaSN}</div>}
+                  </td>
+                )}
                 {[
                   { field: 'po',           placeholder: 'Enter PO' },
                   { field: 'gpuPN',             placeholder: 'Scan GPU P/N' },

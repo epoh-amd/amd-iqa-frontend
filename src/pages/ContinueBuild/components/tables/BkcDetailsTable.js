@@ -26,8 +26,9 @@ const BkcDetailsTable = ({
             <th>Extract</th>
             <th>BIOS Version</th>
             <th>SCM FPGA Version (Optional)</th>
-            <th>HPM FPGA Version</th>
+            <th>{builds.some(b => b.systemInfo?.projectName === 'MI430x') ? 'CPLD Version' : 'HPM FPGA Version'}</th>
             <th>BMC Version</th>
+            <th>PLDM Version</th>
           </tr>
         </thead>
         <tbody>
@@ -57,12 +58,19 @@ const BkcDetailsTable = ({
               </td>
               <td>
                 <div className="read-only-value">
-                  {build.bkcDetails.hpmFpgaVersion || '-'}
+                  {build.systemInfo?.projectName === 'MI430x'
+                    ? (build.bkcDetails.cpldVersion || '-')
+                    : (build.bkcDetails.hpmFpgaVersion || '-')}
                 </div>
               </td>
               <td>
                 <div className="read-only-value">
                   {build.bkcDetails.bmcVersion || '-'}
+                </div>
+              </td>
+              <td>
+                <div className="read-only-value">
+                  {build.bkcDetails.pldmVersion || '-'}
                 </div>
               </td>
             </tr>

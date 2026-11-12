@@ -287,8 +287,14 @@ export const useNavigation = (
       if (!build.bkcDetails.biosVersion) {
         errors.push(`Build ${i + 1}: BIOS Version is required`);
       }
-      if (!build.bkcDetails.hpmFpgaVersion) {
-        errors.push(`Build ${i + 1}: HPM FPGA Version is required`);
+      if (build.systemInfo.projectName === 'MI430x') {
+        if (!build.bkcDetails.cpldVersion) {
+          errors.push(`Build ${i + 1}: CPLD Version is required`);
+        }
+      } else {
+        if (!build.bkcDetails.hpmFpgaVersion) {
+          errors.push(`Build ${i + 1}: HPM FPGA Version is required`);
+        }
       }
       if (!build.bkcDetails.bmcVersion) {
         errors.push(`Build ${i + 1}: BMC Version is required`);
@@ -308,8 +314,13 @@ export const useNavigation = (
       build.systemInfo.lomWorkingStatus
     ];
 
+    // For MI430x, ANC Test failure also counts as FPY fail
+    if (build.systemInfo.projectName === 'MI430x' && build.systemInfo.ancTestStatus === 'Fail') {
+      return 'Fail';
+    }
+
     // FPY is Pass only if all tests pass
-    const allTestsPass = testingResults.every(result => 
+    const allTestsPass = testingResults.every(result =>
       result === 'Pass' || result === 'Yes'
     );
 

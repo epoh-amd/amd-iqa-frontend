@@ -39,6 +39,9 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
     gpuInfo: {
       hostname: '',
       projectName: '',
+      eamPN: '',
+      eamSN: '',
+      pcbaSN: '',
       po: '',
       gpuPN: '',
       gpuSN: '',
@@ -77,6 +80,7 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
       chassisType: '',
       bmcName: '',
       bmcMac: '',
+      amcSN: '',
       mbSN: '',
       ethernetMac: '',
       cpuSocket: '',
@@ -108,7 +112,10 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
       dimmsDetectedPhotos: [],
       lomWorkingStatus: '',
       lomWorkingNotes: '',
-      lomWorkingPhotos: []
+      lomWorkingPhotos: [],
+      ancTestStatus: '',
+      ancTestNotes: '',
+      ancTestPhotos: []
     },
     status: 'pending',
     errors: {},
@@ -125,9 +132,10 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
       biosVersion: '',
       scmFpgaVersion: '',
       hpmFpgaVersion: '',
+      cpldVersion: '',
       bmcVersion: '',
-      cpuPinPhotoFile: null,
-      cpuPinPhotoName: ''
+      pldmVersion: '',
+      cpuPinPhotoFiles: []
     },
     bkcExtraction: {
       extracting: false,
@@ -640,6 +648,39 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
       if (!updatedBuilds[buildIndex].gpuInfo) updatedBuilds[buildIndex].gpuInfo = {};
       updatedBuilds[buildIndex].gpuInfo[field] = value;
       setBuilds(updatedBuilds);
+
+      // Real-time duplicate check for EAM S/N
+      if (field === 'eamSN' && value && value.trim()) {
+        try {
+          const duplicateCheck = await api.checkDuplicates({ eamSN: value.trim() });
+          if (duplicateCheck.hasDuplicates && duplicateCheck.duplicates.eamSN) {
+            updatedBuilds[buildIndex].errors = { ...updatedBuilds[buildIndex].errors, eamSN: 'EAM S/N already exists in the database.' };
+          } else {
+            const { eamSN: _e, ...otherErrors } = updatedBuilds[buildIndex].errors || {};
+            updatedBuilds[buildIndex].errors = otherErrors;
+          }
+          setBuilds([...updatedBuilds]);
+        } catch (error) {
+          console.error('Error checking EAM S/N duplicates:', error);
+        }
+      }
+
+      // Real-time duplicate check for PCBA S/N
+      if (field === 'pcbaSN' && value && value.trim()) {
+        try {
+          const duplicateCheck = await api.checkDuplicates({ pcbaSN: value.trim() });
+          if (duplicateCheck.hasDuplicates && duplicateCheck.duplicates.pcbaSN) {
+            updatedBuilds[buildIndex].errors = { ...updatedBuilds[buildIndex].errors, pcbaSN: 'PCBA S/N already exists in the database.' };
+          } else {
+            const { pcbaSN: _p, ...otherErrors } = updatedBuilds[buildIndex].errors || {};
+            updatedBuilds[buildIndex].errors = otherErrors;
+          }
+          setBuilds([...updatedBuilds]);
+        } catch (error) {
+          console.error('Error checking PCBA S/N duplicates:', error);
+        }
+      }
+
       return;
     } else if (section === 'systemInfo') {
       // Handle DIMM S/N separately
@@ -814,7 +855,7 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
         const duplicateCheck = await api.checkDuplicates({
           chassisSN: value.trim()
         });
-        
+
         if (duplicateCheck.hasDuplicates && duplicateCheck.duplicates.chassisSN) {
           updatedBuilds[buildIndex].errors = {
             ...updatedBuilds[buildIndex].errors,
@@ -828,6 +869,28 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
         setBuilds([...updatedBuilds]);
       } catch (error) {
         console.error('Error checking chassis S/N duplicates:', error);
+      }
+    }
+
+    // Real-time duplicate check for AMC S/N (fires on scan, paste, and manual input)
+    if (field === 'amcSN' && value && value.trim()) {
+      try {
+        const duplicateCheck = await api.checkDuplicates({
+          amcSN: value.trim()
+        });
+
+        if (duplicateCheck.hasDuplicates && duplicateCheck.duplicates.amcSN) {
+          updatedBuilds[buildIndex].errors = {
+            ...updatedBuilds[buildIndex].errors,
+            amcSN: `AMC S/N already exists in the database.`
+          };
+        } else {
+          const { amcSN: _amcSNErr, ...otherErrors } = updatedBuilds[buildIndex].errors || {};
+          updatedBuilds[buildIndex].errors = otherErrors;
+        }
+        setBuilds([...updatedBuilds]);
+      } catch (error) {
+        console.error('Error checking AMC S/N duplicates:', error);
       }
     }
   };
@@ -1083,7 +1146,10 @@ const saveCustomM2PN = async (buildIndex) => {
         dimmsDetectedPhotos: [],
         lomWorkingStatus: '',
         lomWorkingNotes: '',
-        lomWorkingPhotos: []
+        lomWorkingPhotos: [],
+        ancTestStatus: '',
+        ancTestNotes: '',
+        ancTestPhotos: []
       },
       status: 'pending',
       errors: {},
@@ -1100,7 +1166,9 @@ const saveCustomM2PN = async (buildIndex) => {
         biosVersion: '',
         scmFpgaVersion: '',
         hpmFpgaVersion: '',
-        bmcVersion: ''
+        cpldVersion: '',
+        bmcVersion: '',
+        pldmVersion: ''
       },
       bkcExtraction: {
         extracting: false,

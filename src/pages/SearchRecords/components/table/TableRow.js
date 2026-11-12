@@ -85,6 +85,7 @@ const TableRow = ({
           <td className="read-only-cell col-standard">{build.chassis_type || '-'}</td>
           <td className="read-only-cell col-standard">{build.po || '-'}</td>
           <td className="read-only-cell col-standard">{build.bmc_mac || '-'}</td>
+          <td className="read-only-cell col-standard">{build.amc_sn || '-'}</td>
           <td className="read-only-cell col-standard">{build.mb_sn || '-'}</td>
           <td className="read-only-cell col-standard">{build.ethernet_mac || '-'}</td>
           <td className="read-only-cell col-standard">{build.cpu_socket || '-'}</td>
@@ -201,9 +202,9 @@ const TableRow = ({
               </span>
             )}
           </td>
-          <td className="read-only-cell col-standard column-group-separator">
+          <td className="read-only-cell col-standard">
             {build.lom_working_status === 'No' ? (
-              <span 
+              <span
                 className="status-badge fail clickable"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -218,6 +219,27 @@ const TableRow = ({
               </span>
             )}
           </td>
+          <td className="read-only-cell col-standard column-group-separator">
+            {build.project_name === 'MI430x' ? (
+              build.anc_test_status === 'Fail' ? (
+                <span
+                  className="status-badge fail clickable"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    loadTestDetails(build.chassis_sn, 'anc_test', build.anc_test_notes);
+                  }}
+                >
+                  Fail
+                </span>
+              ) : (
+                <span className="status-badge complete">
+                  {build.anc_test_status || '-'}
+                </span>
+              )
+            ) : (
+              <span>-</span>
+            )}
+          </td>
         </>
       )}
       {collapsedSections.testing && (
@@ -230,18 +252,23 @@ const TableRow = ({
           <td className="read-only-cell col-standard">{build.bios_version || '-'}</td>
           <td className="read-only-cell col-standard">{build.scm_fpga_version || '-'}</td>
           <td className="read-only-cell col-standard">{build.hpm_fpga_version || '-'}</td>
+          <td className="read-only-cell col-standard">{build.cpld_version || '-'}</td>
           <td className="read-only-cell col-standard">{build.bmc_version || '-'}</td>
+          <td className="read-only-cell col-standard">{build.pldm_version || '-'}</td>
           <td className="read-only-cell col-standard column-group-separator">
             {build.cpu_pin_photo ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                <a
-                  href={`${BACKEND_URL}/${build.cpu_pin_photo.replace(/^\//, '')}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ fontSize: '11px', color: '#1a73e8', wordBreak: 'break-all', textAlign: 'center' }}
-                >
-                  {build.cpu_pin_photo.split('/').pop()}
-                </a>
+                {build.cpu_pin_photo.split(',').map((photoPath, idx) => (
+                  <a
+                    key={idx}
+                    href={`${BACKEND_URL}/${photoPath.trim().replace(/^\//, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ fontSize: '11px', color: '#1a73e8', wordBreak: 'break-all', textAlign: 'center' }}
+                  >
+                    {photoPath.trim().split('/').pop()}
+                  </a>
+                ))}
                 {build.cpu_pin_photo_uploaded_at && (
                   <span style={{ fontSize: '10px', color: '#888' }}>
                     {new Date(new Date(build.cpu_pin_photo_uploaded_at).getTime() + 12 * 60 * 60 * 1000).toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' })}

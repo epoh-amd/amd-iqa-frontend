@@ -182,6 +182,7 @@ useEffect(() => {
                 <th>Jira Ticket No</th>
                 <th>PO</th>
                 <th>BMC MAC</th>
+                {builds.some(b => b.systemInfo.projectName === 'MI430x') && <th>AMC S/N</th>}
                 <th>MB S/N</th>
                 <th>Ethernet MAC</th>
                 <th>CPU Socket</th>
@@ -258,6 +259,16 @@ useEffect(() => {
                     style={{ display: 'block', marginTop: '4px', fontSize: '11px', padding: '2px 8px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                   >All Pass</button>
                 </th>
+                {builds.some(b => b.systemInfo.projectName === 'MI430x') && (
+                  <th>
+                    ANC Test
+                    <button
+                      type="button"
+                      onClick={() => builds.forEach((_, i) => handleInputChange(i, 'systemInfo', 'ancTestStatus', 'Pass'))}
+                      style={{ display: 'block', marginTop: '4px', fontSize: '11px', padding: '2px 8px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    >All Pass</button>
+                  </th>
+                )}
                 <th>Extract Log</th>
               </>
             )}
@@ -437,7 +448,31 @@ useEffect(() => {
                       <div className="field-error">{build.errors.bmcMac}</div>
                     )}
                   </td>
-                  
+
+                  {build.systemInfo.projectName === 'MI430x' && (
+                    <td>
+                      <div className="scanner-input">
+                        <input
+                          ref={scannerRefs.current[`amcSN-${buildIndex}`]}
+                          type="text"
+                          value={build.systemInfo.amcSN || ''}
+                          onChange={(e) => handleScannerInput(buildIndex, 'amcSN', e.target.value, e)}
+                          onFocus={() => handleScannerFocus(buildIndex, 'amcSN')}
+                          onKeyDown={(e) => handleKeyDown(e, buildIndex, 'amcSN')}
+                          placeholder="Scan AMC S/N"
+                          className={`scanner-field ${build.errors.amcSN ? 'error' : ''}`}
+                          autoComplete="off"
+                          inputMode="text"
+                          spellCheck="false"
+                        />
+                        <FontAwesomeIcon icon={faBarcode} className="scanner-icon" />
+                      </div>
+                      {build.errors.amcSN && (
+                        <div className="field-error">{build.errors.amcSN}</div>
+                      )}
+                    </td>
+                  )}
+
                   <td>
                     <div className="scanner-input">
                       <input
@@ -1142,6 +1177,72 @@ useEffect(() => {
                       )}
                                    </div>
                   </td>
+
+                  {build.systemInfo.projectName === 'MI430x' && (
+                    <td>
+                      <div className="test-field">
+                        <select
+                          value={build.systemInfo.ancTestStatus || ''}
+                          onChange={(e) => handleInputChange(buildIndex, 'systemInfo', 'ancTestStatus', e.target.value)}
+                          className={build.errors.ancTestStatus ? 'error' : ''}
+                          disabled={isEditMode}
+                          style={isEditMode ? { backgroundColor: '#f8f9fa', cursor: 'not-allowed' } : {}}
+                        >
+                          <option value="">Select</option>
+                          <option value="Pass">Pass</option>
+                          <option value="Fail">Fail</option>
+                        </select>
+                        {build.errors.ancTestStatus && (
+                          <div className="field-error">{build.errors.ancTestStatus}</div>
+                        )}
+                        {build.systemInfo.ancTestStatus === 'Fail' && (
+                          <div className="test-fail-inputs">
+                            <textarea
+                              value={build.systemInfo.ancTestNotes || ''}
+                              onChange={(e) => handleInputChange(buildIndex, 'systemInfo', 'ancTestNotes', e.target.value)}
+                              placeholder="Notes (required)"
+                              className={build.errors.ancTestNotes ? 'error' : ''}
+                            />
+                            {build.errors.ancTestNotes && (
+                              <div className="field-error">{build.errors.ancTestNotes}</div>
+                            )}
+                            <div className="photo-upload">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={(e) => handleFileSelection(buildIndex, 'ancTest', e.target.files)}
+                                id={`ancTest-${buildIndex}`}
+                                style={{ display: 'none' }}
+                              />
+                              <label htmlFor={`ancTest-${buildIndex}`} className="upload-btn-small">
+                                <FontAwesomeIcon icon={faCamera} /> Photo
+                              </label>
+                              {build.systemInfo.ancTestPhotos && build.systemInfo.ancTestPhotos.length > 0 && (
+                                <div className="uploaded-files">
+                                  {build.systemInfo.ancTestPhotos.map((photo, idx) => (
+                                    <div key={idx} className="uploaded-file">
+                                      <span className="file-name">{photo.name}</span>
+                                      <button
+                                        type="button"
+                                        className="remove-photo-btn"
+                                        onClick={() => removePhoto(buildIndex, 'ancTest', idx)}
+                                      >
+                                        <FontAwesomeIcon icon={faTrash} />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            {build.errors.ancTestPhotos && (
+                              <div className="field-error">{build.errors.ancTestPhotos}</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  )}
 
                   <td>
                     <div className="test-field">

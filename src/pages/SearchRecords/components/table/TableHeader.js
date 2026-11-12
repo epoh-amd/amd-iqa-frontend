@@ -158,6 +158,7 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
             <th className="col-standard">Chassis Type</th>
             <th className="col-standard">PO</th>
             <th className="col-standard">BMC MAC</th>
+            <th className="col-standard">AMC S/N</th>
             <th className="col-standard">MB S/N</th>
             <th className="col-standard">Ethernet MAC</th>
             <th className="col-standard">CPU Socket</th>
@@ -198,7 +199,8 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
             <th className="col-standard">Visual Inspection</th>
             <th className="col-standard">Boot Status</th>
             <th className="col-standard">DIMMs Detected</th>
-            <th className="col-standard column-group-separator">LOM Working</th>
+            <th className="col-standard">LOM Working</th>
+            <th className="col-standard column-group-separator">ANC Test</th>
           </>
         )}
         {collapsedSections.testing && (
@@ -211,7 +213,9 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
             <th className="col-standard">BIOS Version</th>
             <th className="col-standard">SCM FPGA</th>
             <th className="col-standard">HPM FPGA</th>
+            <th className="col-standard">CPLD Version</th>
             <th className="col-standard">BMC Version</th>
+            <th className="col-standard">PLDM Version</th>
             <th className="col-standard column-group-separator">CPU Pin Condition</th>
           </>
         )}

@@ -151,9 +151,16 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
         buildErrors.biosVersion = 'BIOS Version is required';
         isValid = false;
       }
-      if (!build.bkcDetails.hpmFpgaVersion) {
-        buildErrors.hpmFpgaVersion = 'HPM FPGA Version is required';
-        isValid = false;
+      if (build.systemInfo.projectName === 'MI430x') {
+        if (!build.bkcDetails.cpldVersion) {
+          buildErrors.cpldVersion = 'CPLD Version is required';
+          isValid = false;
+        }
+      } else {
+        if (!build.bkcDetails.hpmFpgaVersion) {
+          buildErrors.hpmFpgaVersion = 'HPM FPGA Version is required';
+          isValid = false;
+        }
       }
       if (!build.bkcDetails.bmcVersion) {
         buildErrors.bmcVersion = 'BMC Version is required';
@@ -201,6 +208,17 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
         }
         if (!build.systemInfo.lomWorkingPhotos || build.systemInfo.lomWorkingPhotos.length === 0) {
           buildErrors.lomWorkingPhotos = 'Photos required when LOM not working';
+          isValid = false;
+        }
+      }
+
+      if (build.systemInfo.projectName === 'MI430x' && build.systemInfo.ancTestStatus === 'Fail') {
+        if (!build.systemInfo.ancTestNotes) {
+          buildErrors.ancTestNotes = 'Notes required when ANC Test fails';
+          isValid = false;
+        }
+        if (!build.systemInfo.ancTestPhotos || build.systemInfo.ancTestPhotos.length === 0) {
+          buildErrors.ancTestPhotos = 'Photos required when ANC Test fails';
           isValid = false;
         }
       }
@@ -292,7 +310,8 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
         ...(build.systemInfo.visualInspectionPhotos || []),
         ...(build.systemInfo.bootPhotos || []),
         ...(build.systemInfo.dimmsDetectedPhotos || []),
-        ...(build.systemInfo.lomWorkingPhotos || [])
+        ...(build.systemInfo.lomWorkingPhotos || []),
+        ...(build.systemInfo.ancTestPhotos || [])
       ];
 
       const uploadedPhotos = await uploadPhotosForBuild(allPhotos);
@@ -311,6 +330,7 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
           bootPhotos: undefined,
           dimmsDetectedPhotos: undefined,
           lomWorkingPhotos: undefined,
+          ancTestPhotos: undefined,
           uploadedPhotos: uploadedPhotos
         },
         qualityDetails: {
@@ -459,7 +479,8 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
             ...(build.systemInfo.visualInspectionPhotos || []),
             ...(build.systemInfo.bootPhotos || []),
             ...(build.systemInfo.dimmsDetectedPhotos || []),
-            ...(build.systemInfo.lomWorkingPhotos || [])
+            ...(build.systemInfo.lomWorkingPhotos || []),
+            ...(build.systemInfo.ancTestPhotos || [])
           ];
 
           const uploadedPhotos = await uploadPhotosForBuild(allPhotos);
@@ -478,6 +499,7 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
               bootPhotos: undefined,
               dimmsDetectedPhotos: undefined,
               lomWorkingPhotos: undefined,
+              ancTestPhotos: undefined,
               uploadedPhotos: uploadedPhotos
             },
             qualityDetails: {
@@ -582,7 +604,8 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
                 visualInspection: '', visualInspectionNotes: '', visualInspectionPhotos: [],
                 bootStatus: '', bootNotes: '', bootPhotos: [],
                 dimmsDetectedStatus: '', dimmsDetectedNotes: '', dimmsDetectedPhotos: [],
-                lomWorkingStatus: '', lomWorkingNotes: '', lomWorkingPhotos: []
+                lomWorkingStatus: '', lomWorkingNotes: '', lomWorkingPhotos: [],
+                ancTestStatus: '', ancTestNotes: '', ancTestPhotos: []
               },
               status: 'pending',
               errors: {},

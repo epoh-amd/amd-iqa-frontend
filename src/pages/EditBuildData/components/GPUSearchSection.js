@@ -5,8 +5,10 @@ import { faSearch, faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
 const GPUSearchSection = ({ onSearch, loading }) => {
   const [gpuSNInput, setGpuSNInput] = useState('');
   const [cpuSNInput, setCpuSNInput] = useState('');
+  const [eamSNInput, setEamSNInput] = useState('');
   const [gpuSNs, setGpuSNs] = useState([]);
   const [cpuSNs, setCpuSNs] = useState([]);
+  const [eamSNs, setEamSNs] = useState([]);
 
   const addGpuSN = () => {
     const trimmed = gpuSNInput.trim();
@@ -24,15 +26,25 @@ const GPUSearchSection = ({ onSearch, loading }) => {
     }
   };
 
+  const addEamSN = () => {
+    const trimmed = eamSNInput.trim();
+    if (trimmed && !eamSNs.includes(trimmed)) {
+      setEamSNs(prev => [...prev, trimmed]);
+      setEamSNInput('');
+    }
+  };
+
   const handleSearch = () => {
-    onSearch({ gpuSNs, cpuSNs });
+    onSearch({ gpuSNs, cpuSNs, eamSNs });
   };
 
   const clearAll = () => {
     setGpuSNs([]);
     setCpuSNs([]);
+    setEamSNs([]);
     setGpuSNInput('');
     setCpuSNInput('');
+    setEamSNInput('');
   };
 
   return (
@@ -101,6 +113,36 @@ const GPUSearchSection = ({ onSearch, loading }) => {
             </div>
           )}
         </div>
+
+        {/* EAM S/N Filter */}
+        <div className="filter-group">
+          <label>EAM S/N(s)</label>
+          <div className="multi-input-group">
+            <input
+              type="text"
+              value={eamSNInput}
+              onChange={e => setEamSNInput(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addEamSN())}
+              placeholder="Enter EAM S/N and press Enter or click Add"
+              className="filter-input"
+            />
+            <button className="btn-add-filter" onClick={addEamSN} disabled={!eamSNInput.trim()}>
+              <FontAwesomeIcon icon={faPlus} /> Add
+            </button>
+          </div>
+          {eamSNs.length > 0 && (
+            <div className="filter-tags">
+              {eamSNs.map((sn, i) => (
+                <span key={i} className="filter-tag">
+                  {sn}
+                  <button className="remove-tag" onClick={() => setEamSNs(prev => prev.filter((_, j) => j !== i))} aria-label="Remove">
+                    <FontAwesomeIcon icon={faTimes} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Action Buttons */}
@@ -108,14 +150,14 @@ const GPUSearchSection = ({ onSearch, loading }) => {
         <button
           className="btn-search"
           onClick={handleSearch}
-          disabled={loading || (gpuSNs.length === 0 && cpuSNs.length === 0)}
+          disabled={loading || (gpuSNs.length === 0 && cpuSNs.length === 0 && eamSNs.length === 0)}
         >
           <FontAwesomeIcon icon={faSearch} /> Search Builds
         </button>
         <button
           className="btn-clear"
           onClick={clearAll}
-          disabled={loading || (gpuSNs.length === 0 && cpuSNs.length === 0)}
+          disabled={loading || (gpuSNs.length === 0 && cpuSNs.length === 0 && eamSNs.length === 0)}
         >
           Reset Filters
         </button>

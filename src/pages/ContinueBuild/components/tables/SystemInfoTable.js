@@ -63,6 +63,7 @@ const SystemInfoTable = ({
                 <th>System P/N</th>
                 <th>Chassis S/N</th>
                 <th>BMC MAC</th>
+                {builds.some(b => b.systemInfo?.projectName === 'MI430x') && <th>AMC S/N</th>}
                 <th>MB S/N</th>
                 <th>Ethernet MAC</th>
                 <th>CPU Socket</th>
@@ -113,6 +114,7 @@ const SystemInfoTable = ({
                 <th>Boot to OS/Shell</th>
                 <th>DIMMs Detected</th>
                 <th>LOM Working</th>
+                {builds.some(b => b.systemInfo?.projectName === 'MI430x') && <th>ANC Test</th>}
               </>
             )}
           </tr>
@@ -144,6 +146,14 @@ const SystemInfoTable = ({
                       <FontAwesomeIcon icon={faBarcode} className="scanner-icon" style={{ opacity: 0.3 }} />
                     </div>
                   </td>
+                  {build.systemInfo.projectName === 'MI430x' && (
+                    <td>
+                      <div className="scanner-input">
+                        <div className="read-only-value">{build.systemInfo.amcSN || '-'}</div>
+                        <FontAwesomeIcon icon={faBarcode} className="scanner-icon" style={{ opacity: 0.3 }} />
+                      </div>
+                    </td>
+                  )}
                   <td>
                     <div className="scanner-input">
                       <div className="read-only-value">{build.systemInfo.mbSN || '-'}</div>
@@ -292,6 +302,23 @@ const SystemInfoTable = ({
                       )}
                     </div>
                   </td>
+                  {build.systemInfo.projectName === 'MI430x' && (
+                    <td>
+                      <div className="test-field">
+                        <div className={`read-only-value ${build.systemInfo.ancTestStatus === 'Pass' ? 'status-pass' : build.systemInfo.ancTestStatus === 'Fail' ? 'status-fail' : ''}`}>
+                          {build.systemInfo.ancTestStatus || '-'}
+                        </div>
+                        {build.systemInfo.ancTestStatus === 'Fail' && (
+                          <div className="test-fail-inputs" style={{ marginTop: '8px' }}>
+                            <div className="read-only-value" style={{ fontSize: '12px', color: '#6c757d' }}>
+                              {build.systemInfo.ancTestNotes || 'No notes'}
+                            </div>
+                            {renderPhotos(build.systemInfo.ancTestPhotos, 'ancTest')}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </>
               )}
             </tr>

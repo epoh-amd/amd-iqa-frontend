@@ -610,11 +610,12 @@ getInProgressGpuBuilds: async () => {
   }
 },
 
-getGpuBuilds: async ({ gpuSNs = [], cpuSNs = [] } = {}) => {
+getGpuBuilds: async ({ gpuSNs = [], cpuSNs = [], eamSNs = [] } = {}) => {
   try {
     const params = new URLSearchParams();
     gpuSNs.forEach(s => params.append('gpuSN', s));
     cpuSNs.forEach(s => params.append('cpuSN', s));
+    eamSNs.forEach(s => params.append('eamSN', s));
     const response = await axios.get(`${API_URL}/gpu-builds/search?${params.toString()}`);
     return response.data;
   } catch (error) {

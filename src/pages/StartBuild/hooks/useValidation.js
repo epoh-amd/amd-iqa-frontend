@@ -299,9 +299,16 @@ export const useValidation = (builds, setBuilds) => {
         buildErrors.biosVersion = 'BIOS Version is required';
         isValid = false;
       }
-      if (!build.bkcDetails.hpmFpgaVersion) {
-        buildErrors.hpmFpgaVersion = 'HPM FPGA Version is required';
-        isValid = false;
+      if (build.systemInfo.projectName === 'MI430x') {
+        if (!build.bkcDetails.cpldVersion) {
+          buildErrors.cpldVersion = 'CPLD Version is required';
+          isValid = false;
+        }
+      } else {
+        if (!build.bkcDetails.hpmFpgaVersion) {
+          buildErrors.hpmFpgaVersion = 'HPM FPGA Version is required';
+          isValid = false;
+        }
       }
       if (!build.bkcDetails.bmcVersion) {
         buildErrors.bmcVersion = 'BMC Version is required';
@@ -549,9 +556,16 @@ export const useValidation = (builds, setBuilds) => {
           stepValidationErrors.push(`${buildRef}: BIOS Version is required`);
           allValid = false;
         }
-        if (!build.bkcDetails.hpmFpgaVersion) {
-          stepValidationErrors.push(`${buildRef}: HPM FPGA Version is required`);
-          allValid = false;
+        if (build.systemInfo.projectName === 'MI430x') {
+          if (!build.bkcDetails.cpldVersion) {
+            stepValidationErrors.push(`${buildRef}: CPLD Version is required`);
+            allValid = false;
+          }
+        } else {
+          if (!build.bkcDetails.hpmFpgaVersion) {
+            stepValidationErrors.push(`${buildRef}: HPM FPGA Version is required`);
+            allValid = false;
+          }
         }
         if (!build.bkcDetails.bmcVersion) {
           stepValidationErrors.push(`${buildRef}: BMC Version is required`);
@@ -682,9 +696,16 @@ export const useValidation = (builds, setBuilds) => {
         buildErrors.biosVersion = 'BIOS Version is required';
         isValid = false;
       }
-      if (!build.bkcDetails.hpmFpgaVersion) {
-        buildErrors.hpmFpgaVersion = 'HPM FPGA Version is required';
-        isValid = false;
+      if (build.systemInfo.projectName === 'MI430x') {
+        if (!build.bkcDetails.cpldVersion) {
+          buildErrors.cpldVersion = 'CPLD Version is required';
+          isValid = false;
+        }
+      } else {
+        if (!build.bkcDetails.hpmFpgaVersion) {
+          buildErrors.hpmFpgaVersion = 'HPM FPGA Version is required';
+          isValid = false;
+        }
       }
       if (!build.bkcDetails.bmcVersion) {
         buildErrors.bmcVersion = 'BMC Version is required';

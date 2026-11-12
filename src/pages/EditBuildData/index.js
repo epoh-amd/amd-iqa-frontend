@@ -93,13 +93,10 @@ const EditBuildData = () => {
   };
 
   // Search GPU builds by gpu_sn or cpu_sn
-  const searchGpuBuilds = async ({ gpuSNs = [], cpuSNs = [] }) => {
+  const searchGpuBuilds = async ({ gpuSNs = [], cpuSNs = [], eamSNs = [] }) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      gpuSNs.forEach(s => params.append('gpuSN', s));
-      cpuSNs.forEach(s => params.append('cpuSN', s));
-      const pool = await api.getGpuBuilds({ gpuSNs, cpuSNs });
+      const pool = await api.getGpuBuilds({ gpuSNs, cpuSNs, eamSNs });
       setGpuResults(pool);
       if (pool.length === 0) {
         setMessages([{ type: 'warning', text: 'No GPU builds found.' }]);
@@ -244,7 +241,7 @@ const EditBuildData = () => {
                       className="edit-btn"
                       disabled={!selectedGpuBuild}
                       onClick={() => {
-                        const build = gpuResults.find(r => r.gpu_sn === selectedGpuBuild);
+                        const build = gpuResults.find((r, i) => (r.gpu_sn || r.eam_sn || r.pcba_sn || `row-${i}`) === selectedGpuBuild);
                         if (build) { setGpuEditData(build); setGpuEditMode(true); }
                       }}
                     >
@@ -262,17 +259,19 @@ const EditBuildData = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {gpuResults.map((r) => (
+                        {gpuResults.map((r, rowIdx) => {
+                          const rowKey = r.gpu_sn || r.eam_sn || r.pcba_sn || `row-${rowIdx}`;
+                          return (
                           <tr
-                            key={r.gpu_sn}
-                            className={selectedGpuBuild === r.gpu_sn ? 'selected' : ''}
-                            onClick={() => setSelectedGpuBuild(selectedGpuBuild === r.gpu_sn ? null : r.gpu_sn)}
+                            key={rowKey}
+                            className={selectedGpuBuild === rowKey ? 'selected' : ''}
+                            onClick={() => setSelectedGpuBuild(selectedGpuBuild === rowKey ? null : rowKey)}
                           >
                             <td>
                               <input
                                 type="radio"
-                                checked={selectedGpuBuild === r.gpu_sn}
-                                onChange={() => setSelectedGpuBuild(r.gpu_sn)}
+                                checked={selectedGpuBuild === rowKey}
+                                onChange={() => setSelectedGpuBuild(rowKey)}
                                 onClick={e => e.stopPropagation()}
                               />
                             </td>
@@ -280,7 +279,8 @@ const EditBuildData = () => {
                               <td key={j}>{val || '-'}</td>
                             ))}
                           </tr>
-                        ))}
+                        )
+                        })}
                       </tbody>
                     </table>
                   </div>

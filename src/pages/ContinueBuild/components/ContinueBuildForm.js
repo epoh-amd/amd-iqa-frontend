@@ -82,6 +82,7 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
         chassisType: buildData.chassis_type || '',
         bmcName: buildData.bmc_name || '',
         bmcMac: buildData.bmc_mac || '',
+        amcSN: buildData.amc_sn || '',
         mbSN: buildData.mb_sn || '',
         ethernetMac: buildData.ethernet_mac || '',
         cpuSocket: buildData.cpu_socket || '',
@@ -109,13 +110,18 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
         dimmsDetectedPhotos: parsePhotos(buildData.photos, 'dimms_detected'),
         lomWorkingStatus: buildData.lom_working_status || '',
         lomWorkingNotes: buildData.lom_working_notes || '',
-        lomWorkingPhotos: parsePhotos(buildData.photos, 'lom_working')
+        lomWorkingPhotos: parsePhotos(buildData.photos, 'lom_working'),
+        ancTestStatus: buildData.anc_test_status || '',
+        ancTestNotes: buildData.anc_test_notes || '',
+        ancTestPhotos: parsePhotos(buildData.photos, 'anc_test')
       },
       bkcDetails: {
         biosVersion: buildData.bios_version || '',
         scmFpgaVersion: buildData.scm_fpga_version || '',
         hpmFpgaVersion: buildData.hpm_fpga_version || '',
-        bmcVersion: buildData.bmc_version || ''
+        cpldVersion: buildData.cpld_version || '',
+        bmcVersion: buildData.bmc_version || '',
+        pldmVersion: buildData.pldm_version || ''
       },
       bkcExtraction: {
         extracting: false,
@@ -205,11 +211,14 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
         build.systemInfo.lomWorkingStatus
       ];
 
-      const allTestsPass = testingResults.every(result => 
+      const allTestsPass = testingResults.every(result =>
         result === 'Pass' || result === 'Yes'
       );
 
-      const fpyStatus = allTestsPass ? 'Pass' : 'Fail';
+      // ANC Test Fail also counts as FPY Fail for MI430x
+      const ancFail = build.systemInfo.projectName === 'MI430x' && build.systemInfo.ancTestStatus === 'Fail';
+
+      const fpyStatus = (allTestsPass && !ancFail) ? 'Pass' : 'Fail';
       
       // Only update if different
       if (build.qualityDetails.fpyStatus !== fpyStatus) {
@@ -355,7 +364,8 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
           'visualInspection': 'visual_inspection',
           'boot': 'boot',
           'dimmsDetected': 'dimms_detected',
-          'lomWorking': 'lom_working'
+          'lomWorking': 'lom_working',
+          'ancTest': 'anc_test'
         };
         return typeMap[type] || type;
       };
@@ -365,7 +375,8 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
         ...(updatedReworkBuild.systemInfo.visualInspectionPhotos || []),
         ...(updatedReworkBuild.systemInfo.bootPhotos || []),
         ...(updatedReworkBuild.systemInfo.dimmsDetectedPhotos || []),
-        ...(updatedReworkBuild.systemInfo.lomWorkingPhotos || [])
+        ...(updatedReworkBuild.systemInfo.lomWorkingPhotos || []),
+        ...(updatedReworkBuild.systemInfo.ancTestPhotos || [])
       ];
 
       const uploadedPhotos = [];

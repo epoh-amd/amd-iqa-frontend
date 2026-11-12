@@ -37,6 +37,9 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
       boardSN:              buildData.board_sn || '',
       boardManufacturer:    buildData.board_manufacturer || '',
       asicPN:               buildData.asic_pn || '',
+      eamPN:                buildData.eam_pn || '',
+      eamSN:                buildData.eam_sn || '',
+      pcbaSN:               buildData.pcba_sn || '',
       cpuSN:                buildData.cpu_sn || '',
       siliconRev:           buildData.silicon_rev || '',
       boardRev:             buildData.board_rev || '',
@@ -122,13 +125,17 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
     setSaving(true);
     setSaveResults([]);
     const g = builds[0].gpuInfo;
+    const lookupSN = buildData.gpu_sn || buildData.eam_sn || buildData.pcba_sn;
+    const lookupField = buildData.gpu_sn ? undefined : buildData.eam_sn ? 'eam_sn' : 'pcba_sn';
     try {
-      await api.updateGpuBuild(buildData.gpu_sn, {
+      await api.updateGpuBuild(lookupSN, {
+        ...(lookupField ? { lookupField } : {}),
         gpuSN: g.gpuSN,
         cpuSN: g.cpuSN,
         hostname: g.hostname || null,
         projectName: g.projectName, po: g.po, gpuPN: g.gpuPN,
         boardSN: g.boardSN, boardManufacturer: g.boardManufacturer, asicPN: g.asicPN,
+        eamPN: g.eamPN || null, eamSN: g.eamSN || null, pcbaSN: g.pcbaSN || null,
         siliconRev: g.siliconRev, boardRev: g.boardRev, gpuRev: g.gpuRev, modelName: g.modelName,
         cpuPowerRating: g.cpuPowerRating, heatsinkManufacturer: g.heatsinkManufacturer,
         heatsinkPN: g.heatsinkPN, heatsinkSN: g.heatsinkSN,
@@ -183,8 +190,11 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
     setSaving(true);
     setSaveResults([]);
     const g = builds[0].gpuInfo;
+    const lookupSN = buildData.gpu_sn || buildData.eam_sn || buildData.pcba_sn;
+    const lookupField = buildData.gpu_sn ? undefined : buildData.eam_sn ? 'eam_sn' : 'pcba_sn';
     try {
-      await api.updateGpuBuild(buildData.gpu_sn, {
+      await api.updateGpuBuild(lookupSN, {
+        ...(lookupField ? { lookupField } : {}),
         testingOnly: true,
         visualInspection: g.visualInspection, visualInspectionNotes: g.visualInspectionNotes,
         bootToOS: g.bootToOS, bootToOSNotes: g.bootToOSNotes,
@@ -227,12 +237,16 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
     setSaving(true);
     setSaveResults([]);
     const g = builds[0].gpuInfo;
+    const lookupSN = buildData.gpu_sn || buildData.eam_sn || buildData.pcba_sn;
+    const lookupField = buildData.gpu_sn ? undefined : buildData.eam_sn ? 'eam_sn' : 'pcba_sn';
     try {
-      await api.updateGpuBuild(buildData.gpu_sn, {
+      await api.updateGpuBuild(lookupSN, {
+        ...(lookupField ? { lookupField } : {}),
         gpuSN: g.gpuSN, cpuSN: g.cpuSN,
         hostname: g.hostname || null,
         projectName: g.projectName, po: g.po, gpuPN: g.gpuPN,
         boardSN: g.boardSN, boardManufacturer: g.boardManufacturer, asicPN: g.asicPN,
+        eamPN: g.eamPN || null, eamSN: g.eamSN || null, pcbaSN: g.pcbaSN || null,
         siliconRev: g.siliconRev, boardRev: g.boardRev, gpuRev: g.gpuRev,
         cpuPowerRating: g.cpuPowerRating, heatsinkManufacturer: g.heatsinkManufacturer,
         heatsinkPN: g.heatsinkPN, heatsinkSN: g.heatsinkSN,

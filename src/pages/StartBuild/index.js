@@ -247,7 +247,8 @@ const StartBuild = () => {
         ...(build.systemInfo.visualInspectionPhotos || []),
         ...(build.systemInfo.bootPhotos || []),
         ...(build.systemInfo.dimmsDetectedPhotos || []),
-        ...(build.systemInfo.lomWorkingPhotos || [])
+        ...(build.systemInfo.lomWorkingPhotos || []),
+        ...(build.systemInfo.ancTestPhotos || [])
       ];
 
       if (allPhotos.length > 0) {
@@ -258,17 +259,23 @@ const StartBuild = () => {
           visualInspectionPhotos: undefined,
           bootPhotos: undefined,
           dimmsDetectedPhotos: undefined,
-          lomWorkingPhotos: undefined
+          lomWorkingPhotos: undefined,
+          ancTestPhotos: undefined
         };
       }
 
       await api.saveBuild(buildData);
-      // Upload CPU pin photo if selected
+      // Upload CPU pin photos if selected (supports multiple)
       let bkcDetailsToSave = { ...build.bkcDetails };
-      if (build.bkcDetails.cpuPinPhotoFile) {
+      const cpuPinFiles = build.bkcDetails.cpuPinPhotoFiles || [];
+      if (cpuPinFiles.length > 0) {
         try {
-          const uploadResult = await api.uploadPhoto(build.bkcDetails.cpuPinPhotoFile, 'cpu_pin_condition');
-          bkcDetailsToSave.cpuPinPhoto = uploadResult.filePath;
+          const uploadedPaths = [];
+          for (const photoObj of cpuPinFiles) {
+            const uploadResult = await api.uploadPhoto(photoObj.file, 'cpu_pin_condition');
+            uploadedPaths.push(uploadResult.filePath);
+          }
+          bkcDetailsToSave.cpuPinPhoto = uploadedPaths.join(',');
         } catch (err) { console.error('CPU pin photo upload failed:', err); }
       }
       await api.saveBkcDetails(build.systemInfo.chassisSN, bkcDetailsToSave);
@@ -437,13 +444,14 @@ const StartBuild = () => {
     const results = [];
     for (const build of builds) {
       const g = build.gpuInfo || {};
-      if (!g.gpuSN) { results.push({ error: 'GPU S/N required' }); continue; }
+      if (!g.gpuSN && g.projectName !== 'MI430x') { results.push({ error: 'GPU S/N required' }); continue; }
       try {
         await api.saveGpuBuild({
-          gpuSN: g.gpuSN, cpuSN: g.cpuSN || null,
+          gpuSN: g.gpuSN || null, cpuSN: g.cpuSN || null,
           hostname: g.hostname || null,
           projectName: g.projectName || null, po: g.po || null, gpuPN: g.gpuPN || null,
           boardSN: g.boardSN || null, boardManufacturer: g.boardManufacturer || null, asicPN: g.asicPN || null,
+          eamPN: g.eamPN || null, eamSN: g.eamSN || null, pcbaSN: g.pcbaSN || null,
           siliconRev: g.siliconRev || null, boardRev: g.boardRev || null, gpuRev: g.gpuRev || null,
           modelName: g.modelName || null, cpuPowerRating: g.cpuPowerRating || null,
           heatsinkManufacturer: g.heatsinkManufacturer || null, heatsinkPN: g.heatsinkPN || null, heatsinkSN: g.heatsinkSN || null,
@@ -507,13 +515,13 @@ const StartBuild = () => {
     const results = [];
     for (const build of builds) {
       const g = build.gpuInfo || {};
-      if (!g.gpuSN) {
+      if (!g.gpuSN && g.projectName !== 'MI430x') {
         results.push({ error: 'GPU S/N is required', build });
         continue;
       }
       try {
         await api.saveGpuBuild({
-          gpuSN: g.gpuSN,
+          gpuSN: g.gpuSN || null,
           cpuSN: g.cpuSN || null,
           hostname: g.hostname || null,
           projectName: g.projectName || null,
@@ -522,6 +530,9 @@ const StartBuild = () => {
           boardSN: g.boardSN || null,
           boardManufacturer: g.boardManufacturer || null,
           asicPN: g.asicPN || null,
+          eamPN: g.eamPN || null,
+          eamSN: g.eamSN || null,
+          pcbaSN: g.pcbaSN || null,
           siliconRev: g.siliconRev || null,
           boardRev: g.boardRev || null,
           gpuRev: g.gpuRev || null,
@@ -669,7 +680,8 @@ const StartBuild = () => {
         ...(build.systemInfo.visualInspectionPhotos || []),
         ...(build.systemInfo.bootPhotos || []),
         ...(build.systemInfo.dimmsDetectedPhotos || []),
-        ...(build.systemInfo.lomWorkingPhotos || [])
+        ...(build.systemInfo.lomWorkingPhotos || []),
+        ...(build.systemInfo.ancTestPhotos || [])
       ];
 
       if (allPhotos.length > 0) {
@@ -680,7 +692,8 @@ const StartBuild = () => {
           visualInspectionPhotos: undefined,
           bootPhotos: undefined,
           dimmsDetectedPhotos: undefined,
-          lomWorkingPhotos: undefined
+          lomWorkingPhotos: undefined,
+          ancTestPhotos: undefined
         };
       }
 
