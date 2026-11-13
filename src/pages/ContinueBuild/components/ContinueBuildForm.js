@@ -192,8 +192,13 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
       build.systemInfo.lomWorkingStatus
     ];
 
+    // For MI430x, ANC Test failure also counts as FPY fail
+    if (build.systemInfo.projectName === 'MI430x' && build.systemInfo.ancTestStatus === 'Fail') {
+      return 'Fail';
+    }
+
     // FPY is Pass only if all tests pass
-    const allTestsPass = testingResults.every(result => 
+    const allTestsPass = testingResults.every(result =>
       result === 'Pass' || result === 'Yes'
     );
 

@@ -72,6 +72,9 @@ const ReworkMode = ({
       lomWorkingStatus: '',
       lomWorkingNotes: '',
       lomWorkingPhotos: [],
+      ancTestStatus: '',
+      ancTestNotes: '',
+      ancTestPhotos: [],
       problemDescription: ''
     },
     qualityDetails: {
@@ -327,7 +330,8 @@ const ReworkMode = ({
         'visualInspection': 'visual_inspection',
         'boot': 'boot',
         'dimmsDetected': 'dimms_detected',
-        'lomWorking': 'lom_working'
+        'lomWorking': 'lom_working',
+        'ancTest': 'anc_test'
       };
       return typeMap[type] || type;
     };
@@ -447,12 +451,27 @@ const ReworkMode = ({
       }
     }
 
+    if (reworkBuild.systemInfo.projectName === 'MI430x') {
+      if (!systemInfo.ancTestStatus) {
+        newErrors.ancTestStatus = 'ANC Test is required';
+      }
+      if (systemInfo.ancTestStatus === 'Fail') {
+        if (!systemInfo.ancTestNotes) {
+          newErrors.ancTestNotes = 'Notes required when ANC Test fails';
+        }
+        if (!systemInfo.ancTestPhotos || systemInfo.ancTestPhotos.length === 0) {
+          newErrors.ancTestPhotos = 'Photos required when ANC Test fails';
+        }
+      }
+    }
+
     // Validate problem description if any test fails
     const hasFailures = (
       systemInfo.visualInspection === 'Fail' ||
       systemInfo.bootStatus === 'No' ||
       systemInfo.dimmsDetectedStatus === 'No' ||
-      systemInfo.lomWorkingStatus === 'No'
+      systemInfo.lomWorkingStatus === 'No' ||
+      (reworkBuild.systemInfo.projectName === 'MI430x' && systemInfo.ancTestStatus === 'Fail')
     );
     
     if (hasFailures && !systemInfo.problemDescription) {
@@ -958,7 +977,8 @@ const ReworkMode = ({
           {(reworkBuild.systemInfo.visualInspection === 'Fail' ||
             reworkBuild.systemInfo.bootStatus === 'No' ||
             reworkBuild.systemInfo.dimmsDetectedStatus === 'No' ||
-            reworkBuild.systemInfo.lomWorkingStatus === 'No') && (
+            reworkBuild.systemInfo.lomWorkingStatus === 'No' ||
+            (reworkBuild.systemInfo.projectName === 'MI430x' && reworkBuild.systemInfo.ancTestStatus === 'Fail')) && (
             <>
               <div className="test-row">
                 <label>Problem Description:</label>
@@ -1234,6 +1254,65 @@ const ReworkMode = ({
               </div>
             )}
           </div>
+
+          {/* ANC Test - MI430x only */}
+          {reworkBuild.systemInfo.projectName === 'MI430x' && (
+            <div className="test-row">
+              <label>ANC Test:</label>
+              <select
+                value={reworkBuild.systemInfo.ancTestStatus}
+                onChange={(e) => handleTestingChange('ancTestStatus', e.target.value)}
+                className={errors.ancTestStatus ? 'error' : ''}
+              >
+                <option value="">Select</option>
+                <option value="Pass">Pass</option>
+                <option value="Fail">Fail</option>
+              </select>
+              {errors.ancTestStatus && <div className="field-error">{errors.ancTestStatus}</div>}
+
+              {reworkBuild.systemInfo.ancTestStatus === 'Fail' && (
+                <div className="test-fail-inputs">
+                  <textarea
+                    value={reworkBuild.systemInfo.ancTestNotes}
+                    onChange={(e) => handleTestingChange('ancTestNotes', e.target.value)}
+                    placeholder="Notes (required)"
+                    className={errors.ancTestNotes ? 'error' : ''}
+                  />
+                  {errors.ancTestNotes && <div className="field-error">{errors.ancTestNotes}</div>}
+                  <div className="photo-upload">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => handleFileSelection('ancTest', e.target.files)}
+                      id="anc-rework"
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="anc-rework" className="upload-btn-small">
+                      <FontAwesomeIcon icon={faCamera} /> Photo
+                    </label>
+                    {reworkBuild.systemInfo.ancTestPhotos && reworkBuild.systemInfo.ancTestPhotos.length > 0 && (
+                      <div className="uploaded-files">
+                        {reworkBuild.systemInfo.ancTestPhotos.map((photo, idx) => (
+                          <div key={idx} className="uploaded-file">
+                            <span className="file-name">{photo.name}</span>
+                            <button
+                              type="button"
+                              className="remove-photo-btn"
+                              onClick={() => removePhoto('ancTest', idx)}
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {errors.ancTestPhotos && <div className="field-error">{errors.ancTestPhotos}</div>}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="rework-actions">
