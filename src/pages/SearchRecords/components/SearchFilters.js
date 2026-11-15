@@ -113,7 +113,109 @@ const SearchFilters = ({
                 <option value="Austin">Austin</option>
               </select>
             </div>
-            {/* 4. Project Name */}
+            {/* 4. Build Allocation Location */}
+            <div className="filter-group">
+              <label>Build Allocation Location</label>
+              <select
+                value={filters.masterLocation}
+                onChange={(e) => onFilterChange('masterLocation', e.target.value)}
+              >
+                <option value="">All Locations</option>
+                <optgroup label="Major Locations">
+                  <option value="Austin">Austin</option>
+                  <option value="Austin : Ceva-offsite Storage">Austin : Ceva-offsite Storage</option>
+                  <option value="Bangalore">Bangalore</option>
+                  <option value="Bangalore : BLR - Engineering Room">Bangalore : BLR - Engineering Room</option>
+                  <option value="Bangalore : BLR - Lab 11">Bangalore : BLR - Lab 11</option>
+                  <option value="Bangalore : BLR - Lab 12">Bangalore : BLR - Lab 12</option>
+                  <option value="Bangalore : BLR - Server Room">Bangalore : BLR - Server Room</option>
+                  <option value="Bangalore : BLR- ODC_ServerRoom">Bangalore : BLR- ODC_ServerRoom</option>
+                  <option value="Bangalore : BLR- ODC_Workbench">Bangalore : BLR- ODC_Workbench</option>
+                  <option value="Bangalore : BLR-Server-Lab-AMD.1.1A301.1-Rack33">Bangalore : BLR-Server-Lab-AMD.1.1A301.1-Rack33</option>
+                  <option value="Bellevue">Bellevue</option>
+                  <option value="Boston">Boston</option>
+                  <option value="Dallas">Dallas</option>
+                  <option value="Dallas : Dallas-Colocation">Dallas : Dallas-Colocation</option>
+                  <option value="Dallas : Dallas-Colocation : Dallas-Colocation-SOS-Rack-118">Dallas : Dallas-Colocation : Dallas-Colocation-SOS-Rack-118</option>
+                  <option value="Dallas : Dallas-Colocation : Dallas-Colocation-SOS-Rack-120">Dallas : Dallas-Colocation : Dallas-Colocation-SOS-Rack-120</option>
+                  <option value="Dallas : Dallas-Colocation : Dallas-Colocation-SOS-Rack-122">Dallas : Dallas-Colocation : Dallas-Colocation-SOS-Rack-122</option>
+                  <option value="Dallas : Dallas-Colocation : Dallas-Colocation-SOS-Rack-222">Dallas : Dallas-Colocation : Dallas-Colocation-SOS-Rack-222</option>
+                  <option value="Dallas : Dallas-Colocation : Dallas-Colocation-SOS-Rack-232">Dallas : Dallas-Colocation : Dallas-Colocation-SOS-Rack-232</option>
+                  <option value="Dallas : Equinix">Dallas : Equinix</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Markham">Markham</option>
+                  <option value="Oregon">Oregon</option>
+                  <option value="Penang">Penang</option>
+                  <option value="Plano">Plano</option>
+                  <option value="Plano : Aligned">Plano : Aligned</option>
+                  <option value="Santa Clara">Santa Clara</option>
+                  <option value="Taiwan">Taiwan</option>
+                </optgroup>
+                <optgroup label="Greater China">
+                  <option value="Greater China">Greater China</option>
+                  <option value="Greater China : BJ">Greater China : BJ</option>
+                  <option value="Greater China : SHA">Greater China : SHA</option>
+                  <option value="Greater China : SHZ">Greater China : SHZ</option>
+                  <option value="Greater China : TPE">Greater China : TPE</option>
+                </optgroup>
+                <optgroup label="Special Locations">
+                  <option value="Customer Site">Customer Site</option>
+                  <option value="Extron">Extron</option>
+                  <option value="ODC">ODC</option>
+                  <option value="MetCenter">MetCenter</option>
+                </optgroup>
+                <optgroup label="MetCenter B800.1C.102 (001-185)">
+                  {Array.from({ length: 185 }, (_, i) => {
+                    const num = String(i + 1).padStart(3, '0');
+                    const value = `B800.1C.102.${num}`;
+                    return <option key={value} value={value}>{value}</option>;
+                  })}
+                </optgroup>
+                <optgroup label="MetCenter B800.1C.103 (001-030)">
+                  {Array.from({ length: 30 }, (_, i) => {
+                    const num = String(i + 1).padStart(3, '0');
+                    const value = `B800.1C.103.${num}`;
+                    return <option key={value} value={value}>{value}</option>;
+                  })}
+                </optgroup>
+                <optgroup label="MetCenter B800.1C.503 (001-023)">
+                  {Array.from({ length: 23 }, (_, i) => {
+                    const num = String(i + 1).padStart(3, '0');
+                    const value = `B800.1C.503.${num}`;
+                    return <option key={value} value={value}>{value}</option>;
+                  })}
+                </optgroup>
+                <optgroup label="MetCenter B800.1C.502.SR (001-040)">
+                  {Array.from({ length: 40 }, (_, i) => {
+                    const num = String(i + 1).padStart(3, '0');
+                    const value = `B800.1C.502.SR${num}`;
+                    return <option key={value} value={value}>{value}</option>;
+                  })}
+                </optgroup>
+                <optgroup label="MetCenter B800.1C.100.SR (102-243)">
+                  {Array.from({ length: 142 }, (_, i) => {
+                    const num = String(i + 102).padStart(3, '0');
+                    const value = `B800.1C.100.SR${num}`;
+                    return <option key={value} value={value}>{value}</option>;
+                  })}
+                </optgroup>
+                <optgroup label="MetCenter B800.1C.506.SR (001-040)">
+                  {Array.from({ length: 40 }, (_, i) => {
+                    const num = String(i + 1).padStart(3, '0');
+                    const value = `B800.1C.506.SR${num}`;
+                    return <option key={value} value={value}>{value}</option>;
+                  })}
+                </optgroup>
+                <optgroup label="MetCenter B800.1C.500 (001-070)">
+                  {Array.from({ length: 70 }, (_, i) => {
+                    const num = String(i + 1).padStart(3, '0');
+                    const value = `B800.1C.500.${num}`;
+                    return <option key={value} value={value}>{value}</option>;
+                  })}
+                </optgroup>
+              </select>
+            </div>
+            {/* 5. Project Name */}
             <div className="filter-group">
               <label>Project Name</label>
               <input

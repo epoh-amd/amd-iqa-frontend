@@ -34,6 +34,7 @@ export const useFiltering = (builds) => {
     dateTo: '',
     chassisSN: '',
     location: '',
+    masterLocation: '',
     projectName: '',
     systemPN: [], // Changed to array for multi-select
     platformType: '',
@@ -135,6 +136,11 @@ export const useFiltering = (builds) => {
       if (filters.location && build.location !== filters.location) {
         console.log("Filter location:", filters.location);
         console.log("Build location:", build.location);
+        return false;
+      }
+
+      // Master Location filter
+      if (filters.masterLocation && build.master_location !== filters.masterLocation) {
         return false;
       }
 
