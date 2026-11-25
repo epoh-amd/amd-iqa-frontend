@@ -65,7 +65,7 @@ const SystemInfoTable = ({
                 <th>BMC MAC</th>
                 {builds.some(b => b.systemInfo?.projectName === 'MI430x') && <th>AMC S/N</th>}
                 <th>MB S/N</th>
-                <th>Ethernet MAC</th>
+                <th>{builds.some(b => b.systemInfo?.projectName === 'MI430x') ? 'FENIC MAC' : 'Ethernet MAC'}</th>
                 <th>CPU Socket</th>
                 <th>CPU Vendor</th>
                 <th>Build Engineer</th>
@@ -95,8 +95,8 @@ const SystemInfoTable = ({
             {/* Component Information */}
             {systemInfoSubStep === 'componentInfo' && (
               <>
-                <th>M.2 P/N</th>
-                <th>M.2 S/N</th>
+                <th>{builds.some(b => b.systemInfo?.projectName === 'MI430x') ? 'E1.S P/N' : 'M.2 P/N'}</th>
+                <th>{builds.some(b => b.systemInfo?.projectName === 'MI430x') ? 'E1.S S/N' : 'M.2 S/N'}</th>
                 <th>DIMM P/N</th>
                 <th>DIMM QTY</th>
                 {/* Dynamic DIMM S/N columns */}
@@ -114,7 +114,6 @@ const SystemInfoTable = ({
                 <th>Boot to OS/Shell</th>
                 <th>DIMMs Detected</th>
                 <th>LOM Working</th>
-                {builds.some(b => b.systemInfo?.projectName === 'MI430x') && <th>ANC Test</th>}
               </>
             )}
           </tr>
@@ -302,23 +301,6 @@ const SystemInfoTable = ({
                       )}
                     </div>
                   </td>
-                  {build.systemInfo.projectName === 'MI430x' && (
-                    <td>
-                      <div className="test-field">
-                        <div className={`read-only-value ${build.systemInfo.ancTestStatus === 'Pass' ? 'status-pass' : build.systemInfo.ancTestStatus === 'Fail' ? 'status-fail' : ''}`}>
-                          {build.systemInfo.ancTestStatus || '-'}
-                        </div>
-                        {build.systemInfo.ancTestStatus === 'Fail' && (
-                          <div className="test-fail-inputs" style={{ marginTop: '8px' }}>
-                            <div className="read-only-value" style={{ fontSize: '12px', color: '#6c757d' }}>
-                              {build.systemInfo.ancTestNotes || 'No notes'}
-                            </div>
-                            {renderPhotos(build.systemInfo.ancTestPhotos, 'ancTest')}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  )}
                 </>
               )}
             </tr>

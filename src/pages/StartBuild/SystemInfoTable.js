@@ -184,7 +184,12 @@ useEffect(() => {
                 <th>BMC MAC</th>
                 {builds.some(b => b.systemInfo.projectName === 'MI430x') && <th>AMC S/N</th>}
                 <th>MB S/N</th>
-                <th>Ethernet MAC</th>
+                <th>{builds.some(b => b.systemInfo.projectName === 'MI430x') ? 'FENIC MAC' : 'Ethernet MAC'}</th>
+                {builds.some(b => b.systemInfo.projectName === 'MI430x') && <th>BENIC MAC Qty</th>}
+                {builds.some(b => b.systemInfo.projectName === 'MI430x') && builds.length > 0 && Array.from(
+                  { length: Math.max(...builds.map(b => parseInt(b.systemInfo.benicMacQty) || 0)) },
+                  (_, i) => <th key={`benic-mac-header-${i}`}>BENIC MAC #{i + 1}</th>
+                )}
                 <th>CPU Socket</th>
                 <th>CPU Vendor</th>
                 {showReview && (
@@ -212,8 +217,8 @@ useEffect(() => {
             {/* Component Information */}
             {systemInfoSubStep === 'componentInfo' && (
               <>
-                <th>M.2 P/N</th>
-                <th>M.2 S/N</th>
+                <th>{builds.some(b => b.systemInfo.projectName === 'MI430x') ? 'E1.S P/N' : 'M.2 P/N'}</th>
+                <th>{builds.some(b => b.systemInfo.projectName === 'MI430x') ? 'E1.S S/N' : 'M.2 S/N'}</th>
                 {showReview && <th>DIMM P/N</th>}
                 <th>DIMM QTY</th>
                 {/* Dynamic DIMM S/N headers based on quantity */}
@@ -259,16 +264,6 @@ useEffect(() => {
                     style={{ display: 'block', marginTop: '4px', fontSize: '11px', padding: '2px 8px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                   >All Pass</button>
                 </th>
-                {builds.some(b => b.systemInfo.projectName === 'MI430x') && (
-                  <th>
-                    ANC Test
-                    <button
-                      type="button"
-                      onClick={() => builds.forEach((_, i) => handleInputChange(i, 'systemInfo', 'ancTestStatus', 'Pass'))}
-                      style={{ display: 'block', marginTop: '4px', fontSize: '11px', padding: '2px 8px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                    >All Pass</button>
-                  </th>
-                )}
                 <th>Extract Log</th>
               </>
             )}
@@ -504,7 +499,7 @@ useEffect(() => {
                         onChange={(e) => handleScannerInput(buildIndex, 'ethernetMac', e.target.value, e)}
                         onFocus={() => handleScannerFocus(buildIndex, 'ethernetMac')}
                         onKeyDown={(e) => handleKeyDown(e, buildIndex, 'ethernetMac')}
-                        placeholder="Scan Ethernet MAC"
+                        placeholder={build.systemInfo.projectName === 'MI430x' ? 'Scan FENIC MAC' : 'Scan Ethernet MAC'}
                         className={`scanner-field ${build.errors.ethernetMac ? 'error' : ''}`}
                         autoComplete="off"
                         inputMode="text"
@@ -515,62 +510,110 @@ useEffect(() => {
                     {build.errors.ethernetMac && (
                       <div className="field-error">{build.errors.ethernetMac}</div>
                     )}
-                    {/* IP input + Match button for Ethernet MAC */}
-                    <input
-                      type="text"
-                      placeholder="Enter IP to match"
-                      value={build.systemInfo.ethernetMatchIp || ''}
-                      onChange={e => handleInputChange(buildIndex, 'systemInfo', 'ethernetMatchIp', e.target.value)}
-                      style={{ marginTop: '4px', width: '100%', fontSize: '11px', padding: '2px 6px', border: '1px solid #ccc', borderRadius: '4px' }}
-                      autoComplete="off"
-                      spellCheck="false"
-                    />
-                    {(() => {
-                      const ms = ethMatchState[buildIndex] || {};
-                      return (
-                        <>
-                          <button
-                            type="button"
-                            className="btn-secondary"
-                            style={{
-                              marginTop: '4px', padding: '2px 8px', fontSize: '11px',
-                              ...(ms.success   ? { backgroundColor: '#2e7d32', borderColor: '#2e7d32', color: '#fff' } :
-                                  ms.notMatch ? { backgroundColor: '#c62828', borderColor: '#c62828', color: '#fff' } : {})
-                            }}
-                            disabled={ms.loading}
-                            onClick={async () => {
-                              if (!build.systemInfo.ethernetMac || !build.systemInfo.ethernetMac.trim()) {
-                                setEthMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'Please input Ethernet MAC before matching.' });
-                                return;
-                              }
-                              if (!build.systemInfo.ethernetMatchIp || !build.systemInfo.ethernetMatchIp.trim()) {
-                                setEthMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'Please input IP address before matching.' });
-                                return;
-                              }
-                              setEthMatch(buildIndex, { loading: true, success: false, notMatch: false, error: '' });
-                              try {
-                                const result = await api.matchEthernetMac(build.systemInfo.ethernetMatchIp);
-                                const userInput = (build.systemInfo.ethernetMac || '').trim().toLowerCase();
-                                const sshMac   = (result.ethernetMac || '').trim().toLowerCase();
-                                const isMatch  = userInput === sshMac;
-                                setEthMatch(buildIndex, { loading: false, success: isMatch, notMatch: !isMatch, error: '' });
-                              } catch (err) {
-                                setEthMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'SSH failed. Check IP & connectivity.' });
-                              }
-                            }}
-                          >
-                            {ms.loading
-                              ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 4 }} />Matching...</>
-                              : ms.success
-                                ? <><FontAwesomeIcon icon={faCheck} style={{ marginRight: 4 }} />Matched</>
-                                : ms.notMatch ? 'Not Matched' : 'Match'}
-                          </button>
-                          {ms.error && <div className="field-error">{ms.error}</div>}
-                        </>
-                      );
-                    })()}
+                    {build.systemInfo.projectName !== 'MI430x' && (
+                      <>
+                        <input
+                          type="text"
+                          placeholder="Enter IP to match"
+                          value={build.systemInfo.ethernetMatchIp || ''}
+                          onChange={e => handleInputChange(buildIndex, 'systemInfo', 'ethernetMatchIp', e.target.value)}
+                          style={{ marginTop: '4px', width: '100%', fontSize: '11px', padding: '2px 6px', border: '1px solid #ccc', borderRadius: '4px' }}
+                          autoComplete="off"
+                          spellCheck="false"
+                        />
+                        {(() => {
+                          const ms = ethMatchState[buildIndex] || {};
+                          return (
+                            <>
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                style={{
+                                  marginTop: '4px', padding: '2px 8px', fontSize: '11px',
+                                  ...(ms.success   ? { backgroundColor: '#2e7d32', borderColor: '#2e7d32', color: '#fff' } :
+                                      ms.notMatch ? { backgroundColor: '#c62828', borderColor: '#c62828', color: '#fff' } : {})
+                                }}
+                                disabled={ms.loading}
+                                onClick={async () => {
+                                  if (!build.systemInfo.ethernetMac || !build.systemInfo.ethernetMac.trim()) {
+                                    setEthMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'Please input Ethernet MAC before matching.' });
+                                    return;
+                                  }
+                                  if (!build.systemInfo.ethernetMatchIp || !build.systemInfo.ethernetMatchIp.trim()) {
+                                    setEthMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'Please input IP address before matching.' });
+                                    return;
+                                  }
+                                  setEthMatch(buildIndex, { loading: true, success: false, notMatch: false, error: '' });
+                                  try {
+                                    const result = await api.matchEthernetMac(build.systemInfo.ethernetMatchIp);
+                                    const userInput = (build.systemInfo.ethernetMac || '').trim().toLowerCase();
+                                    const sshMac   = (result.ethernetMac || '').trim().toLowerCase();
+                                    const isMatch  = userInput === sshMac;
+                                    setEthMatch(buildIndex, { loading: false, success: isMatch, notMatch: !isMatch, error: '' });
+                                  } catch (err) {
+                                    setEthMatch(buildIndex, { loading: false, success: false, notMatch: false, error: 'SSH failed. Check IP & connectivity.' });
+                                  }
+                                }}
+                              >
+                                {ms.loading
+                                  ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 4 }} />Matching...</>
+                                  : ms.success
+                                    ? <><FontAwesomeIcon icon={faCheck} style={{ marginRight: 4 }} />Matched</>
+                                    : ms.notMatch ? 'Not Matched' : 'Match'}
+                              </button>
+                              {ms.error && <div className="field-error">{ms.error}</div>}
+                            </>
+                          );
+                        })()}
+                      </>
+                    )}
                   </td>
-                  
+
+                  {/* BENIC MAC Qty + dynamic BENIC MAC inputs — MI430x only */}
+                  {build.systemInfo.projectName === 'MI430x' && (
+                    <td>
+                      <input
+                        type="number"
+                        value={build.systemInfo.benicMacQty}
+                        onChange={(e) => handleInputChange(buildIndex, 'systemInfo', 'benicMacQty', e.target.value)}
+                        min="1"
+                        max="8"
+                        placeholder="QTY"
+                        className={build.errors.benicMacQty ? 'error' : ''}
+                      />
+                      {build.errors.benicMacQty && (
+                        <div className="field-error">{build.errors.benicMacQty}</div>
+                      )}
+                    </td>
+                  )}
+
+                  {build.systemInfo.projectName === 'MI430x' && Array.from(
+                    { length: parseInt(build.systemInfo.benicMacQty) || 0 },
+                    (_, i) => (
+                      <td key={`benic-mac-${buildIndex}-${i}`}>
+                        <div className="scanner-input">
+                          <input
+                            ref={scannerRefs.current[`benicMac-${buildIndex}-${i}`]}
+                            type="text"
+                            value={build.systemInfo.benicMacs[i] || ''}
+                            onChange={(e) => handleScannerInput(buildIndex, 'benicMac', e.target.value, e, i)}
+                            onFocus={() => handleScannerFocus(buildIndex, 'benicMac', i)}
+                            onKeyDown={(e) => handleKeyDown(e, buildIndex, 'benicMac', i)}
+                            placeholder={`BENIC MAC #${i + 1}`}
+                            className={`scanner-field ${build.errors[`benicMac${i}`] ? 'error' : ''}`}
+                            autoComplete="off"
+                            inputMode="text"
+                            spellCheck="false"
+                          />
+                          <FontAwesomeIcon icon={faBarcode} className="scanner-icon" />
+                        </div>
+                        {build.errors[`benicMac${i}`] && (
+                          <div className="field-error">{build.errors[`benicMac${i}`]}</div>
+                        )}
+                      </td>
+                    )
+                  )}
+
                   <td>
                     <select
                       value={build.systemInfo.cpuSocket}
@@ -604,6 +647,9 @@ useEffect(() => {
                           <option value="Ironwood">Ironwood</option>
                           <option value="N/A">N/A</option>
                         </>
+                      )}
+                      {build.systemInfo.projectName === 'MI430x' && (
+                        <option value="N/A">N/A</option>
                       )}
                     </select>
                     {build.errors.cpuVendor && (
@@ -779,7 +825,7 @@ useEffect(() => {
                                   handleKeyDown(e, buildIndex, 'm2PNCustom');
                                 }
                               }}
-                              placeholder="Scan or type custom M.2 P/N..."
+                              placeholder={`Scan or type custom ${build.systemInfo.projectName === 'MI430x' ? 'E1.S' : 'M.2'} P/N...`}
                               className={`scanner-field ${build.errors.m2PN ? 'error' : ''}`}
                               autoComplete="off"
                               inputMode="text"
@@ -810,7 +856,7 @@ useEffect(() => {
                             onChange={(e) => handleInputChangeWithPosition(buildIndex, 'm2PN', e.target.value, e)}
                             onFocus={(e) => handleDropdownFocus(buildIndex, 'm2PN', e)}
                             onBlur={() => handleDropdownBlur(buildIndex, 'm2PN')}
-                            placeholder="Type M.2 P/N..."
+                            placeholder={`Type ${build.systemInfo.projectName === 'MI430x' ? 'E1.S' : 'M.2'} P/N...`}
                             className={build.errors.m2PN ? 'error' : ''}
                           />
                           {build.errors.m2PN && <div className="field-error">{build.errors.m2PN}</div>}
@@ -844,7 +890,7 @@ useEffect(() => {
                         onChange={(e) => handleScannerInput(buildIndex, 'm2SN', e.target.value, e)}
                         onFocus={() => handleScannerFocus(buildIndex, 'm2SN')}
                         onKeyDown={(e) => handleKeyDown(e, buildIndex, 'm2SN')}
-                        placeholder="Scan M.2 S/N"
+                        placeholder={`Scan ${build.systemInfo.projectName === 'MI430x' ? 'E1.S' : 'M.2'} S/N`}
                         className={`scanner-field ${build.errors.m2SN ? 'error' : ''}`}
                         autoComplete="off"
                         inputMode="text"
@@ -1177,72 +1223,6 @@ useEffect(() => {
                       )}
                                    </div>
                   </td>
-
-                  {build.systemInfo.projectName === 'MI430x' && (
-                    <td>
-                      <div className="test-field">
-                        <select
-                          value={build.systemInfo.ancTestStatus || ''}
-                          onChange={(e) => handleInputChange(buildIndex, 'systemInfo', 'ancTestStatus', e.target.value)}
-                          className={build.errors.ancTestStatus ? 'error' : ''}
-                          disabled={isEditMode}
-                          style={isEditMode ? { backgroundColor: '#f8f9fa', cursor: 'not-allowed' } : {}}
-                        >
-                          <option value="">Select</option>
-                          <option value="Pass">Pass</option>
-                          <option value="Fail">Fail</option>
-                        </select>
-                        {build.errors.ancTestStatus && (
-                          <div className="field-error">{build.errors.ancTestStatus}</div>
-                        )}
-                        {build.systemInfo.ancTestStatus === 'Fail' && (
-                          <div className="test-fail-inputs">
-                            <textarea
-                              value={build.systemInfo.ancTestNotes || ''}
-                              onChange={(e) => handleInputChange(buildIndex, 'systemInfo', 'ancTestNotes', e.target.value)}
-                              placeholder="Notes (required)"
-                              className={build.errors.ancTestNotes ? 'error' : ''}
-                            />
-                            {build.errors.ancTestNotes && (
-                              <div className="field-error">{build.errors.ancTestNotes}</div>
-                            )}
-                            <div className="photo-upload">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                onChange={(e) => handleFileSelection(buildIndex, 'ancTest', e.target.files)}
-                                id={`ancTest-${buildIndex}`}
-                                style={{ display: 'none' }}
-                              />
-                              <label htmlFor={`ancTest-${buildIndex}`} className="upload-btn-small">
-                                <FontAwesomeIcon icon={faCamera} /> Photo
-                              </label>
-                              {build.systemInfo.ancTestPhotos && build.systemInfo.ancTestPhotos.length > 0 && (
-                                <div className="uploaded-files">
-                                  {build.systemInfo.ancTestPhotos.map((photo, idx) => (
-                                    <div key={idx} className="uploaded-file">
-                                      <span className="file-name">{photo.name}</span>
-                                      <button
-                                        type="button"
-                                        className="remove-photo-btn"
-                                        onClick={() => removePhoto(buildIndex, 'ancTest', idx)}
-                                      >
-                                        <FontAwesomeIcon icon={faTrash} />
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            {build.errors.ancTestPhotos && (
-                              <div className="field-error">{build.errors.ancTestPhotos}</div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  )}
 
                   <td>
                     <div className="test-field">

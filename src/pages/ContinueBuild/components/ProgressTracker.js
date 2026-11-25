@@ -5,11 +5,11 @@ import { faCheck, faCircle, faLock } from '@fortawesome/free-solid-svg-icons';
 
 const ProgressTracker = ({ currentStep, systemInfoSubStep, builds }) => {
   const build = builds[0];
-  
+
   const steps = [
     { id: 'generalInfo', label: 'General Information', completed: build?.stepCompleted?.generalInfo },
-    { 
-      id: 'systemInfo', 
+    {
+      id: 'systemInfo',
       label: 'System Information',
       subSteps: [
         { id: 'chassisInfo', label: 'Chassis Info', completed: build?.stepCompleted?.chassisInfo },

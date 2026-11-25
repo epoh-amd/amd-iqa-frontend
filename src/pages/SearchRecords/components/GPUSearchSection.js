@@ -31,7 +31,7 @@ const td     = { padding: '8px 10px', border: '1px solid #dee2e6', whiteSpace: '
 const GPU_SECTIONS = {
   gpuInfo:   { label: 'GPU Information',              cols: ['Project','PO','GPU P/N','GPU S/N','Board S/N','Board Mfr','ASIC P/N','CPU S/N','Silicon Rev','Board Rev','GPU Rev','Model Name','Power Rating','Heatsink Mfr'] },
   component: { label: 'Component/Rework Information', cols: ['Heatsink P/N','Heatsink S/N','Heatsink Mfr'] },
-  testing:   { label: 'Testing',                      cols: ['Visual Insp','Boot to OS','GPU Detected','F-Audit','F-Audit Val','AGFHC lvl3','Roccrush','HBM','TransferBench','FPY Status','Final Status'] },
+  testing:   { label: 'Testing',                      cols: ['Visual Insp','Boot to OS','GPU Detected','F-Audit','F-Audit Val','AGFHC lvl3','Roccrush','HBM','TransferBench','ANC Test','FPY Status','Final Status'] },
   firmware:  { label: 'Firmware Details',             cols: ['IFWI Version','IFWI Build','RM Version'] },
 };
 
@@ -39,13 +39,14 @@ const GPU_SECTIONS = {
 const FAIL_TRIGGERS = {
   visual_inspection: 'Fail', boot_to_os: 'No', gpu_detected: 'No',
   f_audit_enablement: 'No', agfhc_lvl3: 'Fail', rocc_rush_test: 'Fail',
-  hbm_test: 'Fail', transfer_bench: 'Fail',
+  hbm_test: 'Fail', transfer_bench: 'Fail', anc_test: 'Fail',
 };
 const NOTES_MAP = {
   visual_inspection: 'visual_inspection_notes', boot_to_os: 'boot_to_os_notes',
   gpu_detected: 'gpu_detected_notes', f_audit_enablement: 'f_audit_enablement_notes',
   agfhc_lvl3: 'agfhc_lvl3_notes', rocc_rush_test: 'rocc_rush_test_notes',
   hbm_test: 'hbm_test_notes', transfer_bench: 'transfer_bench_notes',
+  anc_test: 'anc_test_notes',
 };
 // Map DB snake_case field to camelCase field_name stored in gpu_build_photos
 const PHOTO_FIELD_MAP = {
@@ -57,6 +58,7 @@ const PHOTO_FIELD_MAP = {
   rocc_rush_test:     'roccRushTest',
   hbm_test:           'hbmTest',
   transfer_bench:     'transferBench',
+  anc_test:           'ancTest',
 };
 const TESTING_DB_FIELDS = [
   'visual_inspection','boot_to_os','gpu_detected','f_audit_enablement',
@@ -85,16 +87,19 @@ const TestDetailsModal = ({ detail, onClose }) => {
           <div>
             <div style={{ fontSize:'12px', fontWeight:600, color:'#555', marginBottom:'6px' }}>Photos</div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
-              {detail.photos.map((p, i) => (
-                <a key={i} href={toFileUrl(p.file_path)} target="_blank" rel="noreferrer">
-                  <img
-                    src={toFileUrl(p.file_path)}
-                    alt={displayName(p.file_path)}
-                    style={{ width:'100px', height:'80px', objectFit:'cover', borderRadius:'5px', border:'1px solid #ddd', cursor:'pointer' }}
-                    onError={e => { e.target.style.display='none'; }}
-                  />
-                </a>
-              ))}
+              {detail.photos.map((p, i) => {
+                const photoUrl = api.getPhotoUrl(p.file_path);
+                return (
+                  <a key={i} href={photoUrl} target="_blank" rel="noreferrer">
+                    <img
+                      src={photoUrl}
+                      alt={displayName(p.file_path)}
+                      style={{ width:'100px', height:'80px', objectFit:'cover', borderRadius:'5px', border:'1px solid #ddd', cursor:'pointer' }}
+                      onError={e => { e.target.style.display='none'; }}
+                    />
+                  </a>
+                );
+              })}
             </div>
           </div>
         )}
@@ -135,13 +140,19 @@ const GPUSearchSection = ({ onSearch, loading, results = [], exporting, onExport
 
   const openTestDetail = async (r, dbField, label, value) => {
     const notes = r[NOTES_MAP[dbField]] || '';
-    // Fetch photos — match by camelCase field_name stored in gpu_build_photos
     const camelField = PHOTO_FIELD_MAP[dbField];
+
     let photos = [];
-    try {
-      const allPhotos = await api.getGpuBuildPhotos(r.gpu_sn);
-      photos = allPhotos.filter(p => p.field_name === camelField);
-    } catch {}
+    // Try each available SN as the photo key; use the first one that returns photos
+    const candidateKeys = [r.gpu_sn, r.eam_sn, r.pcba_sn, r.cpu_sn, r.server_reference].filter(Boolean);
+    for (const key of candidateKeys) {
+      try {
+        const allPhotos = await api.getGpuBuildPhotos(key);
+        const matched = allPhotos.filter(p => p.field_name === camelField);
+        if (matched.length > 0) { photos = matched; break; }
+      } catch {}
+    }
+
     setTestDetail({ label, value, notes, photos });
   };
 
@@ -240,7 +251,7 @@ const GPUSearchSection = ({ onSearch, loading, results = [], exporting, onExport
             <tbody>
               {results.map((r, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={tdRef}>{r.build_reference || '-'}</td>
+                  <td style={tdRef}>{r.server_reference || '-'}</td>
                   <td style={td}>{r.status || '-'}</td>
                   <td style={td}>{r.build_engineer || '-'}</td>
 
@@ -269,6 +280,7 @@ const GPUSearchSection = ({ onSearch, loading, results = [], exporting, onExport
                     <TestCell r={r} dbField="rocc_rush_test"     label="Roccrush Test" />
                     <TestCell r={r} dbField="hbm_test"           label="HBM Test" />
                     <TestCell r={r} dbField="transfer_bench"     label="TransferBench" />
+                    <TestCell r={r} dbField="anc_test"           label="ANC Test" />
                     <td style={td}>
                       {r.fpy_status ? (
                         <span className={`status-badge ${r.fpy_status === 'Pass' ? 'complete' : 'fail'}`}>{r.fpy_status}</span>

@@ -72,9 +72,6 @@ const ReworkMode = ({
       lomWorkingStatus: '',
       lomWorkingNotes: '',
       lomWorkingPhotos: [],
-      ancTestStatus: '',
-      ancTestNotes: '',
-      ancTestPhotos: [],
       problemDescription: ''
     },
     qualityDetails: {
@@ -96,7 +93,8 @@ const ReworkMode = ({
     cpuP1SocketDateCode: false,
     m2PN: false,
     m2SN: false,
-    dimmSNs: []
+    dimmSNs: [],
+    benicMacs: []
   });
 
   const [reworkHistory, setReworkHistory] = useState([]);
@@ -317,6 +315,50 @@ const ReworkMode = ({
     }
   };
 
+  // Handle BENIC MAC change toggle
+  const toggleBenicMacChange = (index) => {
+    const newBenicChanges = [...changedFields.benicMacs];
+    newBenicChanges[index] = !newBenicChanges[index];
+    setChangedFields(prev => ({
+      ...prev,
+      benicMacs: newBenicChanges
+    }));
+
+    // If unchecking, restore original value
+    if (newBenicChanges[index] === false) {
+      const newBenicMacs = [...(reworkBuild.systemInfo.benicMacs || [])];
+      newBenicMacs[index] = (originalBuild.systemInfo.benicMacs || [])[index];
+      setReworkBuild(prev => ({
+        ...prev,
+        systemInfo: {
+          ...prev.systemInfo,
+          benicMacs: newBenicMacs
+        }
+      }));
+    }
+  };
+
+  // Handle BENIC MAC value change
+  const handleBenicMacChange = (index, value) => {
+    const newBenicMacs = [...(reworkBuild.systemInfo.benicMacs || [])];
+    newBenicMacs[index] = value;
+    setReworkBuild(prev => ({
+      ...prev,
+      systemInfo: {
+        ...prev.systemInfo,
+        benicMacs: newBenicMacs
+      }
+    }));
+
+    if (errors[`benicMac${index}`]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[`benicMac${index}`];
+        return newErrors;
+      });
+    }
+  };
+
   // Handle testing field change
   const handleTestingChange = (field, value) => {
     handleInputChange(field, value);
@@ -330,8 +372,7 @@ const ReworkMode = ({
         'visualInspection': 'visual_inspection',
         'boot': 'boot',
         'dimmsDetected': 'dimms_detected',
-        'lomWorking': 'lom_working',
-        'ancTest': 'anc_test'
+        'lomWorking': 'lom_working'
       };
       return typeMap[type] || type;
     };
@@ -385,11 +426,11 @@ const ReworkMode = ({
       newErrors.cpuP1SN = 'CPU P1 S/N is required';
     }
     if (changedFields.m2PN && !systemInfo.m2PN) {
-      newErrors.m2PN = 'M.2 P/N is required';
+      newErrors.m2PN = `${systemInfo.projectName === 'MI430x' ? 'E1.S P/N' : 'M.2 P/N'} is required`;
     }
     if (changedFields.m2SN) {
       if (!systemInfo.m2SN) {
-        newErrors.m2SN = 'M.2 S/N is required';
+        newErrors.m2SN = `${systemInfo.projectName === 'MI430x' ? 'E1.S S/N' : 'M.2 S/N'} is required`;
       }
     }
 
@@ -397,6 +438,13 @@ const ReworkMode = ({
     changedFields.dimmSNs.forEach((changed, index) => {
       if (changed && !systemInfo.dimmSNs[index]) {
         newErrors[`dimmSN${index}`] = `DIMM S/N #${index + 1} is required`;
+      }
+    });
+
+    // Validate BENIC MACs
+    changedFields.benicMacs.forEach((changed, index) => {
+      if (changed && !systemInfo.benicMacs[index]) {
+        newErrors[`benicMac${index}`] = `BENIC MAC #${index + 1} is required`;
       }
     });
 
@@ -451,27 +499,13 @@ const ReworkMode = ({
       }
     }
 
-    if (reworkBuild.systemInfo.projectName === 'MI430x') {
-      if (!systemInfo.ancTestStatus) {
-        newErrors.ancTestStatus = 'ANC Test is required';
-      }
-      if (systemInfo.ancTestStatus === 'Fail') {
-        if (!systemInfo.ancTestNotes) {
-          newErrors.ancTestNotes = 'Notes required when ANC Test fails';
-        }
-        if (!systemInfo.ancTestPhotos || systemInfo.ancTestPhotos.length === 0) {
-          newErrors.ancTestPhotos = 'Photos required when ANC Test fails';
-        }
-      }
-    }
 
     // Validate problem description if any test fails
     const hasFailures = (
       systemInfo.visualInspection === 'Fail' ||
       systemInfo.bootStatus === 'No' ||
       systemInfo.dimmsDetectedStatus === 'No' ||
-      systemInfo.lomWorkingStatus === 'No' ||
-      (reworkBuild.systemInfo.projectName === 'MI430x' && systemInfo.ancTestStatus === 'Fail')
+      systemInfo.lomWorkingStatus === 'No'
     );
     
     if (hasFailures && !systemInfo.problemDescription) {
@@ -669,12 +703,12 @@ const ReworkMode = ({
               </td>
             </tr>
 
-            {/* Ethernet MAC */}
+            {/* Ethernet MAC / FENIC MAC */}
             <tr>
-              <td>Ethernet MAC</td>
+              <td>{reworkBuild.systemInfo.projectName === 'MI430x' ? 'FENIC MAC' : 'Ethernet MAC'}</td>
               <td className="original-value">{originalBuild.systemInfo.ethernetMac}</td>
               <td>
-                <button 
+                <button
                   className={`change-btn ${changedFields.ethernetMac ? 'active' : ''}`}
                   onClick={() => toggleFieldChange('ethernetMac')}
                 >
@@ -688,7 +722,7 @@ const ReworkMode = ({
                       type="text"
                       value={reworkBuild.systemInfo.ethernetMac}
                       onChange={(e) => handleInputChange('ethernetMac', e.target.value)}
-                      placeholder="Enter new Ethernet MAC"
+                      placeholder={reworkBuild.systemInfo.projectName === 'MI430x' ? 'Enter new FENIC MAC' : 'Enter new Ethernet MAC'}
                       className={errors.ethernetMac ? 'error' : ''}
                     />
                     {errors.ethernetMac && <div className="field-error">{errors.ethernetMac}</div>}
@@ -821,7 +855,7 @@ const ReworkMode = ({
 
             {/* M.2 P/N */}
             <tr>
-              <td>M.2 P/N</td>
+              <td>{originalBuild.systemInfo?.projectName === 'MI430x' ? 'E1.S P/N' : 'M.2 P/N'}</td>
               <td className="original-value">{originalBuild.systemInfo.m2PN}</td>
               <td>
                 <button 
@@ -908,7 +942,7 @@ const ReworkMode = ({
 
             {/* M.2 S/N */}
             <tr>
-              <td>M.2 S/N</td>
+              <td>{originalBuild.systemInfo?.projectName === 'MI430x' ? 'E1.S S/N' : 'M.2 S/N'}</td>
               <td className="original-value">{originalBuild.systemInfo.m2SN}</td>
               <td>
                 <button 
@@ -943,7 +977,7 @@ const ReworkMode = ({
                 <td>DIMM S/N #{index + 1}</td>
                 <td className="original-value">{dimmSN}</td>
                 <td>
-                  <button 
+                  <button
                     className={`change-btn ${changedFields.dimmSNs[index] ? 'active' : ''}`}
                     onClick={() => toggleDimmChange(index)}
                   >
@@ -968,6 +1002,38 @@ const ReworkMode = ({
                 </td>
               </tr>
             ))}
+
+            {/* BENIC MACs — MI430x only */}
+            {originalBuild.systemInfo.projectName === 'MI430x' && (originalBuild.systemInfo.benicMacs || []).map((benicMac, index) => (
+              <tr key={`benic-${index}`}>
+                <td>BENIC MAC #{index + 1}</td>
+                <td className="original-value">{benicMac}</td>
+                <td>
+                  <button
+                    className={`change-btn ${changedFields.benicMacs[index] ? 'active' : ''}`}
+                    onClick={() => toggleBenicMacChange(index)}
+                  >
+                    <FontAwesomeIcon icon={faExchangeAlt} /> Change?
+                  </button>
+                </td>
+                <td>
+                  {changedFields.benicMacs[index] ? (
+                    <>
+                      <input
+                        type="text"
+                        value={reworkBuild.systemInfo.benicMacs[index] || ''}
+                        onChange={(e) => handleBenicMacChange(index, e.target.value)}
+                        placeholder={`Enter new BENIC MAC #${index + 1}`}
+                        className={errors[`benicMac${index}`] ? 'error' : ''}
+                      />
+                      {errors[`benicMac${index}`] && <div className="field-error">{errors[`benicMac${index}`]}</div>}
+                    </>
+                  ) : (
+                    <span className="no-change">No change</span>
+                  )}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
 
@@ -977,8 +1043,7 @@ const ReworkMode = ({
           {(reworkBuild.systemInfo.visualInspection === 'Fail' ||
             reworkBuild.systemInfo.bootStatus === 'No' ||
             reworkBuild.systemInfo.dimmsDetectedStatus === 'No' ||
-            reworkBuild.systemInfo.lomWorkingStatus === 'No' ||
-            (reworkBuild.systemInfo.projectName === 'MI430x' && reworkBuild.systemInfo.ancTestStatus === 'Fail')) && (
+            reworkBuild.systemInfo.lomWorkingStatus === 'No') && (
             <>
               <div className="test-row">
                 <label>Problem Description:</label>
@@ -1255,64 +1320,6 @@ const ReworkMode = ({
             )}
           </div>
 
-          {/* ANC Test - MI430x only */}
-          {reworkBuild.systemInfo.projectName === 'MI430x' && (
-            <div className="test-row">
-              <label>ANC Test:</label>
-              <select
-                value={reworkBuild.systemInfo.ancTestStatus}
-                onChange={(e) => handleTestingChange('ancTestStatus', e.target.value)}
-                className={errors.ancTestStatus ? 'error' : ''}
-              >
-                <option value="">Select</option>
-                <option value="Pass">Pass</option>
-                <option value="Fail">Fail</option>
-              </select>
-              {errors.ancTestStatus && <div className="field-error">{errors.ancTestStatus}</div>}
-
-              {reworkBuild.systemInfo.ancTestStatus === 'Fail' && (
-                <div className="test-fail-inputs">
-                  <textarea
-                    value={reworkBuild.systemInfo.ancTestNotes}
-                    onChange={(e) => handleTestingChange('ancTestNotes', e.target.value)}
-                    placeholder="Notes (required)"
-                    className={errors.ancTestNotes ? 'error' : ''}
-                  />
-                  {errors.ancTestNotes && <div className="field-error">{errors.ancTestNotes}</div>}
-                  <div className="photo-upload">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={(e) => handleFileSelection('ancTest', e.target.files)}
-                      id="anc-rework"
-                      style={{ display: 'none' }}
-                    />
-                    <label htmlFor="anc-rework" className="upload-btn-small">
-                      <FontAwesomeIcon icon={faCamera} /> Photo
-                    </label>
-                    {reworkBuild.systemInfo.ancTestPhotos && reworkBuild.systemInfo.ancTestPhotos.length > 0 && (
-                      <div className="uploaded-files">
-                        {reworkBuild.systemInfo.ancTestPhotos.map((photo, idx) => (
-                          <div key={idx} className="uploaded-file">
-                            <span className="file-name">{photo.name}</span>
-                            <button
-                              type="button"
-                              className="remove-photo-btn"
-                              onClick={() => removePhoto('ancTest', idx)}
-                            >
-                              <FontAwesomeIcon icon={faTrash} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {errors.ancTestPhotos && <div className="field-error">{errors.ancTestPhotos}</div>}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="rework-actions">

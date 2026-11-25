@@ -108,6 +108,8 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
           ? buildData.dimmSNs.length.toString()
           : (buildData.dimm_qty || ''),
         dimmSNs: buildData.dimmSNs || [],
+        benicMacQty: buildData.benic_mac_qty || '',
+        benicMacs: buildData.benicMacs || [],
         visualInspection: buildData.visual_inspection_status || '',
         visualInspectionNotes: buildData.visual_inspection_notes || '',
         visualInspectionPhotos: parsePhotos(buildData.photos, 'visual_inspection'),
@@ -120,9 +122,6 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
         lomWorkingStatus: buildData.lom_working_status || '',
         lomWorkingNotes: buildData.lom_working_notes || '',
         lomWorkingPhotos: parsePhotos(buildData.photos, 'lom_working'),
-        ancTestStatus: buildData.anc_test_status || '',
-        ancTestNotes: buildData.anc_test_notes || '',
-        ancTestPhotos: parsePhotos(buildData.photos, 'anc_test')
       },
       bkcDetails: {
         biosVersion: buildData.bios_version || '',
@@ -312,6 +311,11 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
         build.systemInfo.dimmSNs = [];
       }
       build.systemInfo.dimmSNs[dimmIndex] = value;
+    } else if (fieldName === 'benicMac' && dimmIndex !== null) {
+      if (!build.systemInfo.benicMacs) {
+        build.systemInfo.benicMacs = [];
+      }
+      build.systemInfo.benicMacs[dimmIndex] = value;
     } else if (section) {
       // Update nested field (e.g., build.systemInfo.bmcMac)
       build[section][fieldName] = value;
@@ -334,7 +338,6 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
       dimmsDetected: 'dimms_detected',
       boot: 'boot',
       lomWorking: 'lom_working',
-      ancTest: 'anc_test',
     };
     return map[type] || type;
   };
@@ -498,8 +501,7 @@ const EditBuildDataForm = ({ buildData, onComplete, onCancel }) => {
         ...(updatedReworkBuild.systemInfo.visualInspectionPhotos || []),
         ...(updatedReworkBuild.systemInfo.bootPhotos || []),
         ...(updatedReworkBuild.systemInfo.dimmsDetectedPhotos || []),
-        ...(updatedReworkBuild.systemInfo.lomWorkingPhotos || []),
-        ...(updatedReworkBuild.systemInfo.ancTestPhotos || [])
+        ...(updatedReworkBuild.systemInfo.lomWorkingPhotos || [])
       ];
 
       const uploadedPhotos = [];

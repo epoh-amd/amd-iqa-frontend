@@ -6,8 +6,12 @@ import { useState } from 'react';
 export const useValidation = (builds, setBuilds) => {
   const [detailedErrors, setDetailedErrors] = useState({});
 
+  const isMI430xBuild = () =>
+    builds.some(b => b.gpuInfo?.projectName === 'MI430x' || b.systemInfo?.projectName === 'MI430x');
+
   // STRICT VALIDATION: Validate General Information - BLOCKS navigation if incomplete
   const validateGeneralInfo = () => {
+    if (isMI430xBuild()) return true;
     const errors = {};
     let isValid = true;
 
@@ -46,6 +50,7 @@ export const useValidation = (builds, setBuilds) => {
 
   // STRICT VALIDATION: Validate Chassis Info - BLOCKS navigation if incomplete
   const validateChassisInfo = () => {
+    if (isMI430xBuild()) return true;
     // IMPORTANT: Check cross-build duplicates first (RESTORED)
     const hasNoCrossBuildDuplicates = checkCrossBuildDuplicates(builds, setBuilds);
     
@@ -110,6 +115,7 @@ export const useValidation = (builds, setBuilds) => {
 
   // STRICT VALIDATION: Validate CPU Info - BLOCKS navigation if incomplete
   const validateCpuInfo = () => {
+    if (isMI430xBuild()) return true;
     // IMPORTANT: Check cross-build duplicates first (RESTORED)
     const hasNoCrossBuildDuplicates = checkCrossBuildDuplicates(builds, setBuilds);
     
@@ -146,6 +152,7 @@ export const useValidation = (builds, setBuilds) => {
 
   // STRICT VALIDATION: Validate Component Info - BLOCKS navigation if incomplete
   const validateComponentInfo = () => {
+    if (isMI430xBuild()) return true;
     // IMPORTANT: Check cross-build duplicates first (RESTORED)
     const hasNoCrossBuildDuplicates = checkCrossBuildDuplicates(builds, setBuilds);
     
@@ -202,12 +209,13 @@ export const useValidation = (builds, setBuilds) => {
 
   // STRICT VALIDATION: Validate Testing - BLOCKS navigation if incomplete
   const validateTesting = () => {
+    if (isMI430xBuild()) return true;
     const errors = {};
     let isValid = true;
 
     builds.forEach((build, index) => {
       const buildErrors = {};
-      
+
       // ALL TESTING FIELDS ARE REQUIRED - cannot proceed without these
       if (!build.systemInfo.visualInspection) {
         buildErrors.visualInspection = 'Visual Inspection is required';
@@ -288,6 +296,7 @@ export const useValidation = (builds, setBuilds) => {
   // STRICT VALIDATION: Validate BKC Details - NEWLY ADDED
   // Previously had no validation, now enforces required fields
   const validateBkcDetails = () => {
+    if (isMI430xBuild()) return true;
     const errors = {};
     let isValid = true;
 
@@ -332,6 +341,7 @@ export const useValidation = (builds, setBuilds) => {
 
   // STRICT VALIDATION: Validate Quality Indicators - BLOCKS final save if incomplete
   const validateQualityIndicators = () => {
+    if (isMI430xBuild()) return true;
     const errors = {};
     let isValid = true;
 
@@ -378,6 +388,7 @@ export const useValidation = (builds, setBuilds) => {
 
   // COMPREHENSIVE: Validate all steps before Quality Indicator
   const validateBeforeQualityIndicator = () => {
+    if (isMI430xBuild()) return true;
     console.log('Validating all steps before Quality Indicator...');
 
     // Check cross-build duplicates first
@@ -591,6 +602,7 @@ export const useValidation = (builds, setBuilds) => {
       console.error('No build provided for validation');
       return false;
     }
+    if (build.gpuInfo?.projectName === 'MI430x' || build.systemInfo?.projectName === 'MI430x') return true;
 
     const buildErrors = {};
     let isValid = true;

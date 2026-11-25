@@ -47,6 +47,7 @@ const TableRow = ({
   getCpuQty,
   showCpuDetails,
   showDimmDetails,
+  showBenicDetails,
   loadTestDetails,
   loadFailureDetails,
   loadReworkHistory,
@@ -89,7 +90,22 @@ const TableRow = ({
           <td className="read-only-cell col-standard">{build.mb_sn || '-'}</td>
           <td className="read-only-cell col-standard">{build.ethernet_mac || '-'}</td>
           <td className="read-only-cell col-standard">{build.cpu_socket || '-'}</td>
-          <td className="read-only-cell col-standard column-group-separator">{build.cpu_vendor || '-'}</td>
+          <td className="read-only-cell col-standard">{build.cpu_vendor || '-'}</td>
+          <td className="read-only-cell col-standard column-group-separator">
+            {build.benic_mac_qty > 0 ? (
+              <span
+                className="qty-link"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  showBenicDetails(build);
+                }}
+              >
+                {build.benic_mac_qty}
+              </span>
+            ) : (
+              '0'
+            )}
+          </td>
         </>
       )}
       {collapsedSections.systemInfo && (
@@ -129,7 +145,7 @@ const TableRow = ({
           <td className="read-only-cell col-standard">{build.dimm_pn || '-'}</td>
           <td className="read-only-cell col-standard column-group-separator">
             {build.dimm_qty > 0 ? (
-              <span 
+              <span
                 className="qty-link"
                 onClick={(e) => {
                   e.stopPropagation();

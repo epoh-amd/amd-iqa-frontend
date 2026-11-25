@@ -10,6 +10,7 @@ const TableBody = ({
   getCpuQty,
   showCpuDetails,
   showDimmDetails,
+  showBenicDetails,
   loadTestDetails,
   loadFailureDetails,
   loadReworkHistory,
@@ -27,6 +28,7 @@ const TableBody = ({
           getCpuQty={getCpuQty}
           showCpuDetails={showCpuDetails}
           showDimmDetails={showDimmDetails}
+          showBenicDetails={showBenicDetails}
           loadTestDetails={loadTestDetails}
           loadFailureDetails={loadFailureDetails}
           loadReworkHistory={loadReworkHistory}

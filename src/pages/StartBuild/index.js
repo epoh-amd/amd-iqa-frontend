@@ -248,7 +248,6 @@ const StartBuild = () => {
         ...(build.systemInfo.bootPhotos || []),
         ...(build.systemInfo.dimmsDetectedPhotos || []),
         ...(build.systemInfo.lomWorkingPhotos || []),
-        ...(build.systemInfo.ancTestPhotos || [])
       ];
 
       if (allPhotos.length > 0) {
@@ -260,7 +259,6 @@ const StartBuild = () => {
           bootPhotos: undefined,
           dimmsDetectedPhotos: undefined,
           lomWorkingPhotos: undefined,
-          ancTestPhotos: undefined
         };
       }
 
@@ -464,13 +462,14 @@ const StartBuild = () => {
           roccRushTest: g.roccRushTest || null, roccRushTestNotes: g.roccRushTestNotes || null,
           hbmTest: g.hbmTest || null, hbmTestNotes: g.hbmTestNotes || null,
           transferBench: g.transferBench || null, transferBenchNotes: g.transferBenchNotes || null,
+          ancTest: g.ancTest || null, ancTestNotes: g.ancTestNotes || null,
           ifwiVersion: g.ifwiVersion || null, ifwiBuild: g.ifwiBuild || null, rmVersion: g.rmVersion || null,
           status: 'In Progress', buildEngineer: build.generalInfo?.buildEngineer || null,
         });
 
         // Upload photos
         const photoPayload = [];
-        const photoFields = ['visualInspection','bootToOS','gpuDetected','fAuditEnablement','agfhcLvl3','roccRushTest','hbmTest','transferBench'];
+        const photoFields = ['visualInspection','bootToOS','gpuDetected','fAuditEnablement','agfhcLvl3','roccRushTest','hbmTest','transferBench','ancTest'];
         for (const field of photoFields) {
           const photos = g[`${field}Photos`] || [];
           for (const photo of photos) {
@@ -483,8 +482,9 @@ const StartBuild = () => {
             }
           }
         }
-        if (photoPayload.length > 0) {
-          try { await api.saveGpuPhotos(g.gpuSN, photoPayload); } catch (err) {
+        const photoKey = g.gpuSN || g.eamSN || g.pcbaSN || g.cpuSN || g.hostname;
+        if (photoPayload.length > 0 && photoKey) {
+          try { await api.saveGpuPhotos(photoKey, photoPayload); } catch (err) {
             console.error('Failed to save GPU photo paths:', err);
           }
         }
@@ -513,7 +513,8 @@ const StartBuild = () => {
   const handleSaveGPU = async () => {
     setGpuSaving(true);
     const results = [];
-    for (const build of builds) {
+    const savedIndices = new Set();
+    for (const [idx, build] of builds.entries()) {
       const g = build.gpuInfo || {};
       if (!g.gpuSN && g.projectName !== 'MI430x') {
         results.push({ error: 'GPU S/N is required', build });
@@ -558,29 +559,33 @@ const StartBuild = () => {
           hbmTestNotes: g.hbmTestNotes || null,
           transferBench: g.transferBench || null,
           transferBenchNotes: g.transferBenchNotes || null,
+          ancTest: g.ancTest || null,
+          ancTestNotes: g.ancTestNotes || null,
           ifwiVersion: g.ifwiVersion || null,
           ifwiBuild: g.ifwiBuild || null,
           rmVersion: g.rmVersion || null,
           status: 'Completed',
           buildEngineer: build.generalInfo?.buildEngineer || null,
         });
+        savedIndices.add(idx);
         results.push({ success: true, gpuSN: g.gpuSN });
       } catch (err) {
         results.push({ error: err.response?.data?.error || err.message, gpuSN: g.gpuSN });
       }
     }
-    // Upload photos for each build
-    for (const build of builds) {
+    // Upload photos only for successfully saved builds
+    for (const [idx, build] of builds.entries()) {
+      if (!savedIndices.has(idx)) continue;
       const g = build.gpuInfo || {};
-      const gpuSN = g.gpuSN;
-      if (!gpuSN) continue;
+      const photoKey = g.gpuSN || g.eamSN || g.pcbaSN || g.cpuSN || g.hostname;
+      if (!photoKey) continue;
 
       const photoPayload = [];
-      const photoFields = ['visualInspection','bootToOS','gpuDetected','fAuditEnablement','agfhcLvl3','roccRushTest','hbmTest','transferBench'];
+      const photoFields = ['visualInspection','bootToOS','gpuDetected','fAuditEnablement','agfhcLvl3','roccRushTest','hbmTest','transferBench','ancTest'];
       for (const field of photoFields) {
         const photos = g[`${field}Photos`] || [];
         for (const photo of photos) {
-          if (!photo.file) continue; // already uploaded (has path not file)
+          if (!photo.file) continue;
           try {
             const result = await api.uploadPhoto(photo.file, `gpu_${field}`);
             photoPayload.push({ fieldName: field, filePath: result.filePath });
@@ -590,7 +595,7 @@ const StartBuild = () => {
         }
       }
       if (photoPayload.length > 0) {
-        try { await api.saveGpuPhotos(gpuSN, photoPayload); } catch (err) {
+        try { await api.saveGpuPhotos(photoKey, photoPayload); } catch (err) {
           console.error('Failed to save GPU photo paths:', err);
         }
       }
@@ -681,7 +686,6 @@ const StartBuild = () => {
         ...(build.systemInfo.bootPhotos || []),
         ...(build.systemInfo.dimmsDetectedPhotos || []),
         ...(build.systemInfo.lomWorkingPhotos || []),
-        ...(build.systemInfo.ancTestPhotos || [])
       ];
 
       if (allPhotos.length > 0) {
@@ -693,7 +697,6 @@ const StartBuild = () => {
           bootPhotos: undefined,
           dimmsDetectedPhotos: undefined,
           lomWorkingPhotos: undefined,
-          ancTestPhotos: undefined
         };
       }
 
@@ -937,7 +940,7 @@ const StartBuild = () => {
       projectName: '', systemPN: '', platformType: '', manufacturer: '',
       chassisSN: '', chassisType: '', bmcName: '', bmcMac: '', mbSN: '',
       ethernetMac: '', cpuSocket: '', cpuProgramName: '', cpuP0SN: '',
-      cpuP0SocketDateCode: '', cpuP1SN: '', cpuP1SocketDateCode: '', m2PN: '', m2SN: '', dimmPN: '', dimmQty: '', dimmSNs: [],
+      cpuP0SocketDateCode: '', cpuP1SN: '', cpuP1SocketDateCode: '', m2PN: '', m2SN: '', dimmPN: '', dimmQty: '', dimmSNs: [], benicMacQty: '', benicMacs: [],
       visualInspection: '', visualInspectionNotes: '', visualInspectionPhotos: [],
       bootStatus: '', bootNotes: '', bootPhotos: [],
       dimmsDetectedStatus: '', dimmsDetectedNotes: '', dimmsDetectedPhotos: [],
@@ -1120,6 +1123,7 @@ const StartBuild = () => {
         onReworkClick={() => setCurrentStep('rework')}
         showGPUInfo={showGPUInfo}
         gpuSubStep={gpuSubStep}
+        builds={builds}
       />
 
       <SaveResults saveResults={navigation.saveResults.concat(save.saveResults)} />

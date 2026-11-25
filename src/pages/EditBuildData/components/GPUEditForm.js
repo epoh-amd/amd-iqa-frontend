@@ -15,8 +15,11 @@ import api from '../../../services/api';
 import '../../../assets/css/startBuild.css';
 
 const GPU_SUB_STEPS = ['gpuInfo', 'gpuSilicon', 'gpuComponent', 'gpuTesting', 'gpuFirmware'];
+const GPU_SUB_STEPS_MI430x = ['gpuInfo', 'gpuSilicon', 'gpuComponent', 'gpuTesting'];
 
 const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false, testingAlwaysEditable = false, showFirmwareSaveActions = true }) => {
+  const isMI430x = buildData?.project_name === 'MI430x';
+  const activeSubSteps = isMI430x ? GPU_SUB_STEPS_MI430x : GPU_SUB_STEPS;
   const [gpuSubStep, setGpuSubStep] = useState('gpuInfo');
   const [saving, setSaving] = useState(false);
   const [saveResults, setSaveResults] = useState([]);
@@ -66,6 +69,8 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
       hbmTestNotes:         buildData.hbm_test_notes || '',
       transferBench:        buildData.transfer_bench || '',
       transferBenchNotes:   buildData.transfer_bench_notes || '',
+      ancTest:              buildData.anc_test || '',
+      ancTestNotes:         buildData.anc_test_notes || '',
       ifwiVersion:          buildData.ifwi_version || '',
       ifwiBuild:            buildData.ifwi_build || '',
       rmVersion:            buildData.rm_version || '',
@@ -73,11 +78,13 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
     errors: {},
   }]);
 
+  const photoSN = buildData.gpu_sn || buildData.eam_sn || buildData.pcba_sn || buildData.cpu_sn;
+
   // Load existing photos from gpu_build_photos table
   useEffect(() => {
     const loadPhotos = async () => {
       try {
-        const photos = await api.getGpuBuildPhotos(buildData.gpu_sn);
+        const photos = await api.getGpuBuildPhotos(photoSN);
         if (!photos.length) return;
         // Group photos by field_name and convert to { name, path } format
         const grouped = {};
@@ -99,7 +106,7 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
       }
     };
     loadPhotos();
-  }, [buildData.gpu_sn]);
+  }, [photoSN]);
 
   const handleInputChange = (buildIndex, section, field, value) => {
     if (section !== 'gpuInfo') return;
@@ -111,14 +118,14 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
   };
 
   const navigatePrevious = () => {
-    const idx = GPU_SUB_STEPS.indexOf(gpuSubStep);
-    if (idx > 0) setGpuSubStep(GPU_SUB_STEPS[idx - 1]);
+    const idx = activeSubSteps.indexOf(gpuSubStep);
+    if (idx > 0) setGpuSubStep(activeSubSteps[idx - 1]);
     else onCancel();
   };
 
   const navigateNext = () => {
-    const idx = GPU_SUB_STEPS.indexOf(gpuSubStep);
-    if (idx < GPU_SUB_STEPS.length - 1) setGpuSubStep(GPU_SUB_STEPS[idx + 1]);
+    const idx = activeSubSteps.indexOf(gpuSubStep);
+    if (idx < activeSubSteps.length - 1) setGpuSubStep(activeSubSteps[idx + 1]);
   };
 
   const handleSave = async () => {
@@ -148,6 +155,7 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
         roccRushTest: g.roccRushTest, roccRushTestNotes: g.roccRushTestNotes,
         hbmTest: g.hbmTest, hbmTestNotes: g.hbmTestNotes,
         transferBench: g.transferBench, transferBenchNotes: g.transferBenchNotes,
+        ancTest: g.ancTest, ancTestNotes: g.ancTestNotes,
         ifwiVersion: g.ifwiVersion, ifwiBuild: g.ifwiBuild, rmVersion: g.rmVersion,
         status: completesOnSave ? 'Completed' : undefined,
         buildEngineer: buildData.build_engineer || null,
@@ -156,7 +164,7 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
 
       // Sync photos: upload new ones, delete removed ones via replace-all on gpu_build_photos
       const photoFields = ['visualInspection','bootToOS','gpuDetected','fAuditEnablement',
-                           'agfhcLvl3','roccRushTest','hbmTest','transferBench'];
+                           'agfhcLvl3','roccRushTest','hbmTest','transferBench','ancTest'];
       const photoPayload = [];
       for (const field of photoFields) {
         const photos = g[`${field}Photos`] || [];
@@ -174,7 +182,7 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
         }
       }
       // saveGpuPhotos does DELETE + INSERT so removed photos are dropped
-      await api.saveGpuPhotos(buildData.gpu_sn, photoPayload);
+      await api.saveGpuPhotos(photoSN, photoPayload);
 
       setSaveResults([{ type: 'success', message: `GPU build ${g.gpuSN} updated successfully.` }]);
       setTimeout(() => onComplete({ ...buildData, gpu_sn: g.gpuSN }), 1200);
@@ -205,11 +213,12 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
         roccRushTest: g.roccRushTest, roccRushTestNotes: g.roccRushTestNotes,
         hbmTest: g.hbmTest, hbmTestNotes: g.hbmTestNotes,
         transferBench: g.transferBench, transferBenchNotes: g.transferBenchNotes,
+        ancTest: g.ancTest, ancTestNotes: g.ancTestNotes,
       });
 
       // Sync photos
       const photoFields = ['visualInspection','bootToOS','gpuDetected','fAuditEnablement',
-                           'agfhcLvl3','roccRushTest','hbmTest','transferBench'];
+                           'agfhcLvl3','roccRushTest','hbmTest','transferBench','ancTest'];
       const photoPayload = [];
       for (const field of photoFields) {
         const photos = g[`${field}Photos`] || [];
@@ -221,7 +230,7 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
           }
         }
       }
-      await api.saveGpuPhotos(buildData.gpu_sn, photoPayload);
+      await api.saveGpuPhotos(photoSN, photoPayload);
 
       setSaveResults([{ type: 'success', message: `GPU build ${g.gpuSN} rework saved.` }]);
       setTimeout(() => onComplete({ ...buildData, gpu_sn: g.gpuSN }), 1200);
@@ -262,7 +271,8 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
     }
   };
 
-  const currentIdx  = GPU_SUB_STEPS.indexOf(gpuSubStep);
+  const currentIdx  = activeSubSteps.indexOf(gpuSubStep);
+  const isLastStep  = currentIdx === activeSubSteps.length - 1;
   const subStepTitles = {
     gpuInfo:      'GPU Information',
     gpuSilicon:   'Silicon Details',
@@ -281,7 +291,7 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
         <div className="page-header">
           <h1>Rework Testing: {buildData.gpu_sn}</h1>
           <div className="header-actions">
-            <button className="btn-secondary" onClick={() => setReworkPage(false)}>← Back to Firmware</button>
+            <button className="btn-secondary" onClick={() => setReworkPage(false)}>{isMI430x ? '← Back' : '← Back to Firmware'}</button>
           </div>
         </div>
 
@@ -327,6 +337,7 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
         currentStep="systemInfo"
         showGPUInfo={true}
         gpuSubStep={gpuSubStep}
+        builds={builds}
       />
 
       <SaveResults saveResults={saveResults} />
@@ -368,14 +379,23 @@ const GPUEditForm = ({ buildData, onComplete, onCancel, completesOnSave = false,
           <button className="btn-secondary" onClick={navigatePrevious} disabled={saving}>
             Previous
           </button>
-          {gpuSubStep !== 'gpuFirmware' ? (
+          {!isLastStep ? (
             <button className="btn-primary" onClick={navigateNext} disabled={saving}>
               Next
             </button>
-          ) : completesOnSave && (
+          ) : completesOnSave ? (
             <button className="btn-primary" onClick={handleSave} disabled={saving}>
               {saving ? 'Saving...' : 'Save'}
             </button>
+          ) : isMI430x && (
+            <>
+              <button className="btn-secondary" onClick={() => setReworkPage(true)} disabled={saving}>
+                Save &amp; Rework
+              </button>
+              <button className="btn-primary" onClick={handleUpdateBuild} disabled={saving}>
+                {saving ? 'Saving...' : 'Continue Later'}
+              </button>
+            </>
           )}
         </div>
       </div>

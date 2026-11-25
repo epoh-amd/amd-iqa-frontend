@@ -14,7 +14,9 @@ const GPU_STEPS = [
 
 const GPU_ORDER = GPU_STEPS.map(s => s.key);
 
-const ProgressTracker = ({ progressStatus, currentStep, onReworkClick, showGPUInfo = false, gpuSubStep = 'gpuInfo' }) => {
+const ProgressTracker = ({ progressStatus, currentStep, onReworkClick, showGPUInfo = false, gpuSubStep = 'gpuInfo', builds = [] }) => {
+  const isMI430x = showGPUInfo && builds.some(b => b.gpuInfo?.projectName === 'MI430x');
+  const visibleGpuSteps = isMI430x ? GPU_STEPS.filter(s => s.key !== 'gpuFirmware') : GPU_STEPS;
 
   const Step = ({ label, status }) => (
     <div className={`progress-step ${status}`}>
@@ -29,13 +31,14 @@ const ProgressTracker = ({ progressStatus, currentStep, onReworkClick, showGPUIn
 
   if (showGPUInfo) {
     const isOnGeneral = currentStep === 'generalInfo';
-    const currentIdx = isOnGeneral ? -1 : GPU_ORDER.indexOf(gpuSubStep);
+    const visibleOrder = visibleGpuSteps.map(s => s.key);
+    const currentIdx = isOnGeneral ? -1 : visibleOrder.indexOf(gpuSubStep);
     const generalStatus = isOnGeneral ? 'active' : 'completed';
 
     return (
       <div className="progress-tracker">
         <Step label="General Information" status={generalStatus} />
-        {GPU_STEPS.map((step, i) => {
+        {visibleGpuSteps.map((step, i) => {
           const status = i < currentIdx ? 'completed' : i === currentIdx ? 'active' : 'pending';
           return (
             <React.Fragment key={step.key}>

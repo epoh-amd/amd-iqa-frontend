@@ -212,16 +212,6 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
         }
       }
 
-      if (build.systemInfo.projectName === 'MI430x' && build.systemInfo.ancTestStatus === 'Fail') {
-        if (!build.systemInfo.ancTestNotes) {
-          buildErrors.ancTestNotes = 'Notes required when ANC Test fails';
-          isValid = false;
-        }
-        if (!build.systemInfo.ancTestPhotos || build.systemInfo.ancTestPhotos.length === 0) {
-          buildErrors.ancTestPhotos = 'Photos required when ANC Test fails';
-          isValid = false;
-        }
-      }
     }
 
     return { isValid, buildErrors };
@@ -310,8 +300,7 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
         ...(build.systemInfo.visualInspectionPhotos || []),
         ...(build.systemInfo.bootPhotos || []),
         ...(build.systemInfo.dimmsDetectedPhotos || []),
-        ...(build.systemInfo.lomWorkingPhotos || []),
-        ...(build.systemInfo.ancTestPhotos || [])
+        ...(build.systemInfo.lomWorkingPhotos || [])
       ];
 
       const uploadedPhotos = await uploadPhotosForBuild(allPhotos);
@@ -330,7 +319,6 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
           bootPhotos: undefined,
           dimmsDetectedPhotos: undefined,
           lomWorkingPhotos: undefined,
-          ancTestPhotos: undefined,
           uploadedPhotos: uploadedPhotos
         },
         qualityDetails: {
@@ -479,8 +467,7 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
             ...(build.systemInfo.visualInspectionPhotos || []),
             ...(build.systemInfo.bootPhotos || []),
             ...(build.systemInfo.dimmsDetectedPhotos || []),
-            ...(build.systemInfo.lomWorkingPhotos || []),
-            ...(build.systemInfo.ancTestPhotos || [])
+            ...(build.systemInfo.lomWorkingPhotos || [])
           ];
 
           const uploadedPhotos = await uploadPhotosForBuild(allPhotos);
@@ -499,7 +486,6 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
               bootPhotos: undefined,
               dimmsDetectedPhotos: undefined,
               lomWorkingPhotos: undefined,
-              ancTestPhotos: undefined,
               uploadedPhotos: uploadedPhotos
             },
             qualityDetails: {
@@ -605,7 +591,7 @@ export const useSave = (builds, setBuilds, allStepsCompleted, clearDraft) => {
                 bootStatus: '', bootNotes: '', bootPhotos: [],
                 dimmsDetectedStatus: '', dimmsDetectedNotes: '', dimmsDetectedPhotos: [],
                 lomWorkingStatus: '', lomWorkingNotes: '', lomWorkingPhotos: [],
-                ancTestStatus: '', ancTestNotes: '', ancTestPhotos: []
+                benicMacQty: '', benicMacs: []
               },
               status: 'pending',
               errors: {},

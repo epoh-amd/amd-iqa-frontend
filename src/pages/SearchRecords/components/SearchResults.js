@@ -10,6 +10,7 @@ import TableBody from './table/TableBody';
 // Import modals
 import CpuDetailsModal from '../modals/CpuDetailsModal';
 import DimmDetailsModal from '../modals/DimmDetailsModal';
+import BenicDetailsModal from '../modals/BenicDetailsModal';
 import ReworkHistoryModal from '../modals/ReworkHistoryModal';
 import TestNotesModal from '../modals/TestNotesModal';
 import ReworkPhotosModal from '../modals/ReworkPhotosModal';
@@ -64,6 +65,8 @@ const SearchResults = ({ results, loading }) => {
     setCpuModal,
     dimmModal,
     setDimmModal,
+    benicModal,
+    setBenicModal,
     loadingRework,
     loadingPhotos,
     loadingFailures,
@@ -78,9 +81,10 @@ const SearchResults = ({ results, loading }) => {
     getColumnCount,
     showCpuDetails,
     showDimmDetails,
+    showBenicDetails,
     getCpuQty,
     getStatusBadgeClass
-  } = useTableUtils(results, collapsedSections, setCpuModal, setDimmModal);
+  } = useTableUtils(results, collapsedSections, setCpuModal, setDimmModal, setBenicModal);
 
   // Toggle section collapse
   const toggleSection = (section) => {
@@ -135,6 +139,7 @@ const SearchResults = ({ results, loading }) => {
               getCpuQty={getCpuQty}
               showCpuDetails={showCpuDetails}
               showDimmDetails={showDimmDetails}
+              showBenicDetails={showBenicDetails}
               loadTestDetails={loadTestDetails}
               loadFailureDetails={loadFailureDetails}
               loadReworkHistory={loadReworkHistory}
@@ -151,9 +156,14 @@ const SearchResults = ({ results, loading }) => {
         setCpuModal={setCpuModal}
       />
 
-      <DimmDetailsModal 
+      <DimmDetailsModal
         dimmModal={dimmModal}
         setDimmModal={setDimmModal}
+      />
+
+      <BenicDetailsModal
+        benicModal={benicModal}
+        setBenicModal={setBenicModal}
       />
 
       <ReworkHistoryModal

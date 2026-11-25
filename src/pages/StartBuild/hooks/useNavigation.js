@@ -50,6 +50,7 @@ export const useNavigation = (
 
   // STRICT VALIDATION: Validate General Information
   const validateGeneralInfo = () => {
+    if (builds.some(b => b.systemInfo?.projectName === 'MI430x' || b.gpuInfo?.projectName === 'MI430x')) return [];
     const errors = [];
     
     for (let i = 0; i < builds.length; i++) {
@@ -72,6 +73,7 @@ export const useNavigation = (
 
   // Validate chassis information step including duplicate check
   const validateChassisInfo = async () => {
+    if (builds.some(b => b.systemInfo?.projectName === 'MI430x')) return [];
     // IMPORTANT: Check cross-build duplicates first (RESTORED)
     const { checkCrossBuildDuplicates } = await import('./useValidation');
     const hasNoCrossBuildDuplicates = checkCrossBuildDuplicates(builds, setBuilds);
@@ -156,6 +158,7 @@ export const useNavigation = (
 
   // STRICT VALIDATION: Validate CPU information step
   const validateCpuInfo = async () => {
+    if (builds.some(b => b.systemInfo?.projectName === 'MI430x')) return [];
     // IMPORTANT: First check cross-build duplicates (RESTORED)
     const { checkCrossBuildDuplicates } = await import('./useValidation');
     const hasNoCrossBuildDuplicates = checkCrossBuildDuplicates(builds, setBuilds);
@@ -184,6 +187,7 @@ export const useNavigation = (
 
   // STRICT VALIDATION: Validate component information step
   const validateComponentInfo = async () => {
+    if (builds.some(b => b.systemInfo?.projectName === 'MI430x')) return [];
     // IMPORTANT: First check cross-build duplicates (RESTORED)
     const { checkCrossBuildDuplicates } = await import('./useValidation');
     const hasNoCrossBuildDuplicates = checkCrossBuildDuplicates(builds, setBuilds);
@@ -228,6 +232,7 @@ export const useNavigation = (
 
   // STRICT VALIDATION: Validate testing step - UPDATED TO BE MANDATORY
   const validateTesting = async () => {
+    if (builds.some(b => b.systemInfo?.projectName === 'MI430x')) return [];
     const errors = [];
     
     for (let i = 0; i < builds.length; i++) {
@@ -278,6 +283,7 @@ export const useNavigation = (
 
   // STRICT VALIDATION: Validate BKC Details step - NEWLY ADDED
   const validateBkcDetails = async () => {
+    if (builds.some(b => b.systemInfo?.projectName === 'MI430x')) return [];
     const errors = [];
     
     for (let i = 0; i < builds.length; i++) {
@@ -313,11 +319,6 @@ export const useNavigation = (
       build.systemInfo.dimmsDetectedStatus,
       build.systemInfo.lomWorkingStatus
     ];
-
-    // For MI430x, ANC Test failure also counts as FPY fail
-    if (build.systemInfo.projectName === 'MI430x' && build.systemInfo.ancTestStatus === 'Fail') {
-      return 'Fail';
-    }
 
     // FPY is Pass only if all tests pass
     const allTestsPass = testingResults.every(result =>
@@ -389,15 +390,17 @@ export const useNavigation = (
 
     // IMPORTANT: Rest of navigation logic is IDENTICAL to original
     if (currentStep === 'generalInfo') {
-      // ADDED: Validate General Info before proceeding (NEW REQUIREMENT)
-      const generalInfoErrors = validateGeneralInfo();
-      if (generalInfoErrors.length > 0) {
-        setSaveResults(generalInfoErrors.map(error => ({
-          type: 'error',
-          message: error
-        })));
-        setTimeout(() => setSaveResults([]), 7000);
-        return;
+      // Skip validation entirely for GPU builds (MI430x and others)
+      if (!showGPUInfo) {
+        const generalInfoErrors = validateGeneralInfo();
+        if (generalInfoErrors.length > 0) {
+          setSaveResults(generalInfoErrors.map(error => ({
+            type: 'error',
+            message: error
+          })));
+          setTimeout(() => setSaveResults([]), 7000);
+          return;
+        }
       }
 
       // Filter builds to selected only if a subset is selected
@@ -434,7 +437,8 @@ export const useNavigation = (
         } else if (gpuSubStep === 'gpuComponent') {
           setGpuSubStep('gpuTesting');
         } else if (gpuSubStep === 'gpuTesting') {
-          setGpuSubStep('gpuFirmware');
+          const isMI430x = builds.some(b => b.gpuInfo?.projectName === 'MI430x');
+          if (!isMI430x) setGpuSubStep('gpuFirmware');
         }
         return;
       }

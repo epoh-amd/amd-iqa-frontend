@@ -30,7 +30,7 @@ export const useContinueNavigation = (
       }
       return null;
     };
-  
+
     // Get previous navigation step
     const getPreviousStep = () => {
       if (currentStep === 'qualityIndicator') {

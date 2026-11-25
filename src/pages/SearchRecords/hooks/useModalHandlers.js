@@ -10,6 +10,7 @@ const useModalHandlers = () => {
   const [reworkPhotosModal, setReworkPhotosModal] = useState({ show: false, photos: [] });
   const [cpuModal, setCpuModal] = useState({ show: false, chassisSN: null, cpus: [] });
   const [dimmModal, setDimmModal] = useState({ show: false, chassisSN: null, dimms: [] });
+  const [benicModal, setBenicModal] = useState({ show: false, chassisSN: null, benics: [] });
   const [loadingRework, setLoadingRework] = useState(false);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
   const [loadingFailures, setLoadingFailures] = useState(false);
@@ -109,6 +110,8 @@ const useModalHandlers = () => {
     setCpuModal,
     dimmModal,
     setDimmModal,
+    benicModal,
+    setBenicModal,
     loadingRework,
     loadingPhotos,
     loadingFailures,

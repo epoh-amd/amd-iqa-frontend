@@ -19,6 +19,9 @@ const StepNavigation = ({
   onContinueLaterGPU,
 }) => {
   
+  const isMI430x = showGPUInfo && builds.some(b => b.gpuInfo?.projectName === 'MI430x');
+  const isLastGpuStep = gpuSubStep === 'gpuFirmware' || (isMI430x && gpuSubStep === 'gpuTesting');
+
   return (
     <div className="step-navigation">
       <div className="nav-left">
@@ -39,8 +42,8 @@ const StepNavigation = ({
           </button>
         )}
         
-        {/* Continue Later + Save buttons on Firmware Details page */}
-        {showGPUInfo && gpuSubStep === 'gpuFirmware' && (
+        {/* Continue Later + Save buttons on last GPU page (Firmware Details, or Testing for MI430x) */}
+        {isLastGpuStep && (
           <>
             <button
               className="btn-secondary"
@@ -59,9 +62,9 @@ const StepNavigation = ({
           </>
         )}
 
-        {/* Hide Next on final GPU page (Firmware Details) and on Quality Indicator */}
+        {/* Hide Next on final GPU page and on Quality Indicator */}
         {currentStep !== 'qualityIndicator' &&
-         !(showGPUInfo && gpuSubStep === 'gpuFirmware') && (
+         !isLastGpuStep && (
           <button
             className="btn-primary"
             onClick={navigateNext}

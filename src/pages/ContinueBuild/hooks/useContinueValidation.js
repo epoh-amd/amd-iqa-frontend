@@ -72,8 +72,8 @@ export const useContinueValidation = (builds, setBuilds) => {
 
   // Check if all steps are completed (for continue build, previous steps are done)
   const allStepsCompleted = () => {
-    return builds.every(build => 
-      build.stepCompleted.generalInfo && 
+    return builds.every(build =>
+      build.stepCompleted.generalInfo &&
       build.stepCompleted.chassisInfo &&
       build.stepCompleted.cpuInfo &&
       build.stepCompleted.componentInfo &&

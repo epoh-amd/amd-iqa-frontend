@@ -23,7 +23,7 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
         )}
         {/* System Information header now covers from Project Name to CPU Vendor */}
         {!collapsedSections.systemInfo && (
-          <th colSpan={getColumnCount('systemInfo') + 1} className="section-header" onClick={() => toggleSection('systemInfo')}>
+          <th colSpan={getColumnCount('systemInfo')} className="section-header" onClick={() => toggleSection('systemInfo')}>
             <FontAwesomeIcon icon={faChevronDown} />
             System Information
           </th>
@@ -160,9 +160,10 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
             <th className="col-standard">BMC MAC</th>
             <th className="col-standard">AMC S/N</th>
             <th className="col-standard">MB S/N</th>
-            <th className="col-standard">Ethernet MAC</th>
+            <th className="col-standard">Ethernet MAC / BENIC MAC</th>
             <th className="col-standard">CPU Socket</th>
-            <th className="col-standard column-group-separator">CPU Vendor</th>
+            <th className="col-standard">CPU Vendor</th>
+            <th className="col-standard column-group-separator">BENIC QTY</th>
           </>
         )}
         {collapsedSections.systemInfo && (
@@ -183,8 +184,8 @@ const TableHeader = ({ collapsedSections, toggleSection, getColumnCount }) => {
         {/* Component Information */}
         {!collapsedSections.componentInfo && (
           <>
-            <th className="col-standard">M.2 P/N</th>
-            <th className="col-standard">M.2 S/N</th>
+            <th className="col-standard">M.2/E1.S P/N</th>
+            <th className="col-standard">M.2/E1.S S/N</th>
             <th className="col-standard">DIMM P/N</th>
             <th className="col-standard column-group-separator">DIMM QTY</th>
           </>

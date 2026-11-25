@@ -61,8 +61,7 @@ export const useEditSave = (builds, setBuilds, allStepsCompleted, onComplete, re
         ...(build.systemInfo.visualInspectionPhotos || []),
         ...(build.systemInfo.bootPhotos || []),
         ...(build.systemInfo.dimmsDetectedPhotos || []),
-        ...(build.systemInfo.lomWorkingPhotos || []),
-        ...(build.systemInfo.ancTestPhotos || [])
+        ...(build.systemInfo.lomWorkingPhotos || [])
       ];
 
       const uploadedPhotos = await uploadPhotosForBuild(allPhotos);
@@ -96,6 +95,8 @@ export const useEditSave = (builds, setBuilds, allStepsCompleted, onComplete, re
         dimmPN: build.systemInfo.dimmPN,
         dimmQty: build.systemInfo.dimmQty,
         dimmSNs: build.systemInfo.dimmSNs,
+        benicMacQty: build.systemInfo.benicMacQty,
+        benicMacs: build.systemInfo.benicMacs,
 
         // Testing (editable)
         visualInspection: build.systemInfo.visualInspection,
@@ -110,10 +111,6 @@ export const useEditSave = (builds, setBuilds, allStepsCompleted, onComplete, re
         lomWorkingStatus: build.systemInfo.lomWorkingStatus,
         lomWorkingNotes: build.systemInfo.lomWorkingNotes,
         lomWorkingPhotos: uploadedPhotos.filter(p => p.type === 'lom_working'),
-        ancTestStatus: build.systemInfo.ancTestStatus,
-        ancTestNotes: build.systemInfo.ancTestNotes,
-        ancTestPhotos: uploadedPhotos.filter(p => p.type === 'anc_test'),
-
         // BKC Details (editable)
         biosVersion: build.bkcDetails.biosVersion,
         bmcVersion: build.bkcDetails.bmcVersion,

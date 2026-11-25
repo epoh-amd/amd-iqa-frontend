@@ -152,7 +152,7 @@ const ContinueBuild = () => {
       setMessages([{ type: 'warning', text: 'Please select a GPU build to continue.' }]);
       return;
     }
-    const build = gpuBuilds.find(b => b.gpu_sn === selectedGpuBuild);
+    const build = gpuBuilds.find(b => (b.gpu_sn || b.eam_sn || b.pcba_sn || b.cpu_sn) === selectedGpuBuild);
     if (build) { setGpuBuildData(build); setGpuContinueMode(true); setMessages([]); }
   };
 
@@ -261,25 +261,28 @@ const ContinueBuild = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredGpuBuilds.map(b => (
+                      {filteredGpuBuilds.map(b => {
+                        const buildKey = b.gpu_sn || b.eam_sn || b.pcba_sn || b.cpu_sn;
+                        return (
                         <tr
-                          key={b.gpu_sn}
-                          className={selectedGpuBuild === b.gpu_sn ? 'selected' : ''}
-                          onClick={() => setSelectedGpuBuild(selectedGpuBuild === b.gpu_sn ? null : b.gpu_sn)}
+                          key={buildKey}
+                          className={selectedGpuBuild === buildKey ? 'selected' : ''}
+                          onClick={() => setSelectedGpuBuild(selectedGpuBuild === buildKey ? null : buildKey)}
                         >
                           <td>
-                            <input type="radio" checked={selectedGpuBuild === b.gpu_sn}
-                              onChange={() => setSelectedGpuBuild(b.gpu_sn)} onClick={e => e.stopPropagation()} />
+                            <input type="radio" checked={selectedGpuBuild === buildKey}
+                              onChange={() => setSelectedGpuBuild(buildKey)} onClick={e => e.stopPropagation()} />
                           </td>
                           <td>{b.build_engineer || '-'}</td>
                           <td>{b.project_name || '-'}</td>
-                          <td>{b.gpu_sn}</td>
+                          <td>{b.gpu_sn || '-'}</td>
                           <td>{b.cpu_sn || '-'}</td>
                           <td>{b.gpu_pn || '-'}</td>
                           <td>{b.asic_pn || '-'}</td>
                           <td>{b.updated_at ? new Date(b.updated_at).toLocaleDateString() : '-'}</td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

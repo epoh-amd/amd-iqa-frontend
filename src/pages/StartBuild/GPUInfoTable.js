@@ -25,14 +25,14 @@ const GPUInfoTable = ({ builds, handleInputChange, removeBuild, isEditMode = fal
             {builds.some(b => (b.gpuInfo?.projectName) === 'MI430x') && <th>EAM P/N</th>}
             {builds.some(b => (b.gpuInfo?.projectName) === 'MI430x') && <th>EAM S/N</th>}
             {builds.some(b => (b.gpuInfo?.projectName) === 'MI430x') && <th>PCBA S/N</th>}
-            <th>PO</th>
-            <th>GPU P/N</th>
-            <th>GPU S/N</th>
-            <th>Board S/N</th>
-            <th>Board Manufacturer</th>
-            <th>ASIC P/N</th>
-            <th>Board Rev</th>
-            <th>GPU Rev</th>
+            {builds.some(b => b.gpuInfo?.projectName !== 'MI430x') && <th>PO</th>}
+            {builds.some(b => b.gpuInfo?.projectName !== 'MI430x') && <th>GPU P/N</th>}
+            {builds.some(b => b.gpuInfo?.projectName !== 'MI430x') && <th>GPU S/N</th>}
+            {builds.some(b => b.gpuInfo?.projectName !== 'MI430x') && <th>Board S/N</th>}
+            {builds.some(b => b.gpuInfo?.projectName !== 'MI430x') && <th>Board Manufacturer</th>}
+            {builds.some(b => b.gpuInfo?.projectName !== 'MI430x') && <th>ASIC P/N</th>}
+            {builds.some(b => b.gpuInfo?.projectName !== 'MI430x') && <th>Board Rev</th>}
+            {builds.some(b => b.gpuInfo?.projectName !== 'MI430x') && <th>GPU Rev</th>}
           </tr>
         </thead>
         <tbody>
@@ -122,15 +122,16 @@ const GPUInfoTable = ({ builds, handleInputChange, removeBuild, isEditMode = fal
                   </td>
                 )}
                 {[
-                  { field: 'po',           placeholder: 'Enter PO' },
-                  { field: 'gpuPN',             placeholder: 'Scan GPU P/N' },
-                  { field: 'gpuSN',             placeholder: 'Scan GPU S/N' },
-                  { field: 'boardSN',           placeholder: 'Enter Board S/N' },
-                  { field: 'boardManufacturer', placeholder: 'Enter Board Manufacturer' },
-                  { field: 'asicPN',            placeholder: 'Scan ASIC P/N' },
-                  { field: 'boardRev',     placeholder: 'Enter Board Rev' },
-                  { field: 'gpuRev',       placeholder: 'Enter GPU Rev' },
-                ].map(({ field, placeholder }) => (
+                  { field: 'po',                placeholder: 'Enter PO',                   hideForMI430x: true },
+                  { field: 'gpuPN',             placeholder: 'Scan GPU P/N',               hideForMI430x: true },
+                  { field: 'gpuSN',             placeholder: 'Scan GPU S/N',               hideForMI430x: true },
+                  { field: 'boardSN',           placeholder: 'Enter Board S/N',            hideForMI430x: true },
+                  { field: 'boardManufacturer', placeholder: 'Enter Board Manufacturer',   hideForMI430x: true },
+                  { field: 'asicPN',            placeholder: 'Scan ASIC P/N',              hideForMI430x: true },
+                  { field: 'boardRev',          placeholder: 'Enter Board Rev',            hideForMI430x: true },
+                  { field: 'gpuRev',            placeholder: 'Enter GPU Rev',              hideForMI430x: true },
+                ].filter(({ hideForMI430x }) => !(hideForMI430x && gpu.projectName === 'MI430x'))
+                 .map(({ field, placeholder }) => (
                   <td key={field}>
                     <div className="scanner-input">
                       <input

@@ -99,6 +99,8 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
         dimmPN: buildData.dimm_pn || '',
         dimmQty: buildData.dimm_qty || '',
         dimmSNs: buildData.dimmSNs || [],
+        benicMacQty: buildData.benic_mac_qty || '',
+        benicMacs: buildData.benicMacs || [],
         visualInspection: buildData.visual_inspection_status || '',
         visualInspectionNotes: buildData.visual_inspection_notes || '',
         visualInspectionPhotos: parsePhotos(buildData.photos, 'visual_inspection'),
@@ -111,9 +113,6 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
         lomWorkingStatus: buildData.lom_working_status || '',
         lomWorkingNotes: buildData.lom_working_notes || '',
         lomWorkingPhotos: parsePhotos(buildData.photos, 'lom_working'),
-        ancTestStatus: buildData.anc_test_status || '',
-        ancTestNotes: buildData.anc_test_notes || '',
-        ancTestPhotos: parsePhotos(buildData.photos, 'anc_test')
       },
       bkcDetails: {
         biosVersion: buildData.bios_version || '',
@@ -192,10 +191,6 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
       build.systemInfo.lomWorkingStatus
     ];
 
-    // For MI430x, ANC Test failure also counts as FPY fail
-    if (build.systemInfo.projectName === 'MI430x' && build.systemInfo.ancTestStatus === 'Fail') {
-      return 'Fail';
-    }
 
     // FPY is Pass only if all tests pass
     const allTestsPass = testingResults.every(result =>
@@ -220,10 +215,7 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
         result === 'Pass' || result === 'Yes'
       );
 
-      // ANC Test Fail also counts as FPY Fail for MI430x
-      const ancFail = build.systemInfo.projectName === 'MI430x' && build.systemInfo.ancTestStatus === 'Fail';
-
-      const fpyStatus = (allTestsPass && !ancFail) ? 'Pass' : 'Fail';
+      const fpyStatus = allTestsPass ? 'Pass' : 'Fail';
       
       // Only update if different
       if (build.qualityDetails.fpyStatus !== fpyStatus) {
@@ -369,8 +361,7 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
           'visualInspection': 'visual_inspection',
           'boot': 'boot',
           'dimmsDetected': 'dimms_detected',
-          'lomWorking': 'lom_working',
-          'ancTest': 'anc_test'
+          'lomWorking': 'lom_working'
         };
         return typeMap[type] || type;
       };
@@ -380,8 +371,7 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
         ...(updatedReworkBuild.systemInfo.visualInspectionPhotos || []),
         ...(updatedReworkBuild.systemInfo.bootPhotos || []),
         ...(updatedReworkBuild.systemInfo.dimmsDetectedPhotos || []),
-        ...(updatedReworkBuild.systemInfo.lomWorkingPhotos || []),
-        ...(updatedReworkBuild.systemInfo.ancTestPhotos || [])
+        ...(updatedReworkBuild.systemInfo.lomWorkingPhotos || [])
       ];
 
       const uploadedPhotos = [];
@@ -583,7 +573,7 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
 
       {/* System Information Table */}
       {currentStep === 'systemInfo' && (
-        <div style={{ pointerEvents: 'none', opacity: 0.8 }}>
+        <div style={{ opacity: 0.8 }}>
           <SystemInfoTable
             builds={builds}
             setBuilds={setBuilds}
@@ -609,7 +599,7 @@ const ContinueBuildForm = ({ buildData, onComplete, onCancel }) => {
 
       {/* BKC Details Table */}
       {currentStep === 'bkcDetails' && (
-        <div style={{ pointerEvents: 'none', opacity: 0.8 }}>
+        <div style={{ opacity: 0.8 }}>
           <BkcDetailsTable
             builds={builds}
             extractFirmwareVersions={() => {}}

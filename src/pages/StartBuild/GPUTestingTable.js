@@ -15,6 +15,7 @@ const TRIGGER_FIELDS = {
   roccRushTest:     'Fail',
   hbmTest:          'Fail',
   transferBench:    'Fail',
+  ancTest:          'Fail',
 };
 
 const PhotoUpload = ({ buildIndex, field, photos = [], onAdd, onRemove }) => {
@@ -64,6 +65,7 @@ const getGpuFpyStatus = (gpu) => {
     { field: 'roccRushTest',     failVal: 'Fail' },
     { field: 'hbmTest',          failVal: 'Fail' },
     { field: 'transferBench',    failVal: 'Fail' },
+    { field: 'ancTest',          failVal: 'Fail' },
   ];
   const anyFilled  = testFields.some(({ field }) => gpu[field]);
   if (!anyFilled) return '';
@@ -121,6 +123,9 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog,
                   <th>Roccrush Test{apBtn('roccRushTest', 'Pass')}</th>
                   <th>HBM Test{apBtn('hbmTest', 'Pass')}</th>
                   <th>TransferBench{apBtn('transferBench', 'Pass')}</th>
+                  {builds.some(b => b.gpuInfo?.projectName === 'MI430x') && (
+                    <th>ANC Test{apBtn('ancTest', 'Pass')}</th>
+                  )}
                 </>
               );
             })()}
@@ -235,6 +240,9 @@ const GPUTestingTable = ({ builds, handleInputChange, removeBuild, onExtractLog,
                 <td>{renderTestField('roccRushTest', PASS_FAIL)}</td>
                 <td>{renderTestField('hbmTest', PASS_FAIL)}</td>
                 <td>{renderTestField('transferBench', PASS_FAIL)}</td>
+                {gpu.projectName === 'MI430x' && (
+                  <td>{renderTestField('ancTest', PASS_FAIL)}</td>
+                )}
                 <td>
                   <button
                     className="btn-secondary"

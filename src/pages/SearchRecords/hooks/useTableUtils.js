@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 
-const useTableUtils = (results, collapsedSections, setCpuModal, setDimmModal) => {
+const useTableUtils = (results, collapsedSections, setCpuModal, setDimmModal, setBenicModal) => {
   
   // Check if any sections are collapsed
   const hasCollapsedSections = useMemo(() => {
@@ -13,7 +13,7 @@ const useTableUtils = (results, collapsedSections, setCpuModal, setDimmModal) =>
   const getColumnCount = (section) => {
     switch (section) {
       case 'general': return 2;
-      case 'systemInfo': return 12;
+      case 'systemInfo': return 13;
       case 'cpuInfo': return 2;
       case 'componentInfo': return 4;
       case 'testing': return 5;
@@ -75,6 +75,21 @@ const useTableUtils = (results, collapsedSections, setCpuModal, setDimmModal) =>
     });
   };
 
+  // Show BENIC details
+  const showBenicDetails = (build) => {
+    let benics = [];
+    if (Array.isArray(build.benicMacs)) {
+      benics = build.benicMacs.filter(mac => mac && mac.trim());
+    } else if (build.benic_macs) {
+      benics = build.benic_macs.split(',').map(mac => mac.trim()).filter(Boolean);
+    }
+    setBenicModal({
+      show: true,
+      chassisSN: build.chassis_sn,
+      benics
+    });
+  };
+
   // Calculate CPU quantity
   const getCpuQty = (build) => {
     let count = 0;
@@ -101,6 +116,7 @@ const useTableUtils = (results, collapsedSections, setCpuModal, setDimmModal) =>
     getColumnCount,
     showCpuDetails,
     showDimmDetails,
+    showBenicDetails,
     getCpuQty,
     getStatusBadgeClass
   };

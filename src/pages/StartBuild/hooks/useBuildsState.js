@@ -66,6 +66,7 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
       roccRushTest: '', roccRushTestNotes: '',
       hbmTest: '', hbmTestNotes: '',
       transferBench: '', transferBenchNotes: '',
+      ancTestStatus: '', ancTestNotes: '', ancTestPhotos: [],
       ifwiVersion: '',
       ifwiBuild: '',
       rmVersion: '',
@@ -100,6 +101,8 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
       dimmPN: '',
       dimmQty: '',
       dimmSNs: [],
+      benicMacQty: '',
+      benicMacs: [],
       // Testing
       visualInspection: '',
       visualInspectionNotes: '',
@@ -113,9 +116,6 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
       lomWorkingStatus: '',
       lomWorkingNotes: '',
       lomWorkingPhotos: [],
-      ancTestStatus: '',
-      ancTestNotes: '',
-      ancTestPhotos: []
     },
     status: 'pending',
     errors: {},
@@ -264,6 +264,15 @@ export const useBuildsState = (systemInfoSubStep = 'chassisInfo') => {
           scannerRefs.current[refKey] = React.createRef();
         }
       }
+
+      // BENIC MAC refs
+      const benicMacQty = parseInt(build.systemInfo.benicMacQty) || 0;
+      for (let i = 0; i < Math.max(benicMacQty, 8); i++) {
+        const refKey = `benicMac-${index}-${i}`;
+        if (!scannerRefs.current[refKey]) {
+          scannerRefs.current[refKey] = React.createRef();
+        }
+      }
     });
   }, [builds]);
 
@@ -359,12 +368,17 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
       });
     }
   } else if (section === 'systemInfo') {
-    // Handle DIMM S/N separately
+    // Handle array fields separately
     if (field === 'dimmSN' && dimmIndex !== null) {
       if (!updatedBuilds[buildIndex].systemInfo.dimmSNs) {
         updatedBuilds[buildIndex].systemInfo.dimmSNs = [];
       }
       updatedBuilds[buildIndex].systemInfo.dimmSNs[dimmIndex] = value;
+    } else if (field === 'benicMac' && dimmIndex !== null) {
+      if (!updatedBuilds[buildIndex].systemInfo.benicMacs) {
+        updatedBuilds[buildIndex].systemInfo.benicMacs = [];
+      }
+      updatedBuilds[buildIndex].systemInfo.benicMacs[dimmIndex] = value;
     } else {
       updatedBuilds[buildIndex].systemInfo[field] = value;
     }
@@ -494,10 +508,13 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
    */
   const focusField = (buildIndex, field, dimmIndex = null) => {
     let refKey;
-    
-    if (field.startsWith('dimmSN-') || dimmIndex !== null) {
-      const index = dimmIndex !== null ? dimmIndex : parseInt(field.split('-')[1]);
-      refKey = `dimmSN-${buildIndex}-${index}`;
+
+    if (dimmIndex !== null) {
+      // Array field (dimmSN, benicMac, etc.)
+      const baseField = field.includes('-') ? field.split('-')[0] : field;
+      refKey = `${baseField}-${buildIndex}-${dimmIndex}`;
+    } else if (field.startsWith('dimmSN-')) {
+      refKey = `dimmSN-${buildIndex}-${parseInt(field.split('-')[1])}`;
     } else {
       refKey = `${field}-${buildIndex}`;
     }
@@ -558,7 +575,7 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
    */
   const handleInputChange = async (buildIndex, section, field, value, dimmIndex = null) => {
   const fieldKey = dimmIndex !== null ? `${field}-${buildIndex}-${dimmIndex}` : `${field}-${buildIndex}`;
-  const isScannerField = ['systemPN', 'chassisSN', 'bmcMac', 'mbSN', 'ethernetMac', 'cpuP0SN', 'cpuP1SN', 'm2SN', 'dimmSN'].includes(field);
+  const isScannerField = ['systemPN', 'chassisSN', 'bmcMac', 'mbSN', 'ethernetMac', 'cpuP0SN', 'cpuP1SN', 'm2SN', 'dimmSN', 'benicMac'].includes(field);
   
   if (isScannerField) {
     // FIXED: Clear any existing timeouts immediately to prevent double processing
@@ -683,13 +700,13 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
 
       return;
     } else if (section === 'systemInfo') {
-      // Handle DIMM S/N separately
+      // Handle array fields separately
       if (field === 'dimmSN' && dimmIndex !== null) {
         if (!updatedBuilds[buildIndex].systemInfo.dimmSNs) {
           updatedBuilds[buildIndex].systemInfo.dimmSNs = [];
         }
         updatedBuilds[buildIndex].systemInfo.dimmSNs[dimmIndex] = value;
-        
+
         // Auto-populate DIMM P/N from first DIMM S/N
         if (dimmIndex === 0 && value) {
           const extractedPN = extractDimmPNFromSN(value);
@@ -698,6 +715,11 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
             console.log(`Auto-populated DIMM P/N: ${extractedPN} from DIMM S/N`);
           }
         }
+      } else if (field === 'benicMac' && dimmIndex !== null) {
+        if (!updatedBuilds[buildIndex].systemInfo.benicMacs) {
+          updatedBuilds[buildIndex].systemInfo.benicMacs = [];
+        }
+        updatedBuilds[buildIndex].systemInfo.benicMacs[dimmIndex] = value;
       } else {
         updatedBuilds[buildIndex].systemInfo[field] = value;
       }
@@ -782,6 +804,21 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
         }
       }
 
+      // For MI430x: auto-fill bmcName as "heliosr-{bmcMac}" when bmcMac changes
+      if (field === 'bmcMac' && updatedBuilds[buildIndex].systemInfo.projectName === 'MI430x') {
+        const cleanMac = value.toLowerCase();
+        updatedBuilds[buildIndex].systemInfo.bmcName = cleanMac ? `heliosr-${cleanMac}` : '';
+      }
+
+      // For MI430x: if project changes to MI430x and bmcMac is already set, fill bmcName
+      if (field === 'projectName' && value === 'MI430x') {
+        const existingMac = updatedBuilds[buildIndex].systemInfo.bmcMac;
+        if (existingMac) {
+          const cleanMac = existingMac.replace(/[^a-fA-F0-9]/g, '').toLowerCase();
+          updatedBuilds[buildIndex].systemInfo.bmcName = `heliosr-${cleanMac}`;
+        }
+      }
+
       // ENHANCED: Handle DIMM quantity change - PRESERVE existing DIMM S/Ns
       if (field === 'dimmQty') {
         const newQty = parseInt(value) || 0;
@@ -789,17 +826,27 @@ const updateBuildStateOnly = (buildIndex, section, field, value, dimmIndex = nul
         const oldQty = existingDimmSNs.length;
 
         if (newQty > oldQty) {
-          // INCREASING quantity: Keep existing data, add empty slots
           const newDimmSNs = [...existingDimmSNs];
           for (let i = existingDimmSNs.length; i < newQty; i++) {
             newDimmSNs.push('');
           }
           updatedBuilds[buildIndex].systemInfo.dimmSNs = newDimmSNs;
         } else if (newQty < oldQty) {
-          // DECREASING quantity: Keep first N items, discard rest
           updatedBuilds[buildIndex].systemInfo.dimmSNs = existingDimmSNs.slice(0, newQty);
         }
-        // If newQty === oldQty, no change needed - data is already preserved
+      }
+
+      // Handle BENIC MAC quantity change
+      if (field === 'benicMacQty') {
+        const newQty = parseInt(value) || 0;
+        const existing = updatedBuilds[buildIndex].systemInfo.benicMacs || [];
+        if (newQty > existing.length) {
+          const updated = [...existing];
+          for (let i = existing.length; i < newQty; i++) updated.push('');
+          updatedBuilds[buildIndex].systemInfo.benicMacs = updated;
+        } else if (newQty < existing.length) {
+          updatedBuilds[buildIndex].systemInfo.benicMacs = existing.slice(0, newQty);
+        }
       }
 
       // Auto-calculate FPY status when testing fields change
@@ -1135,6 +1182,8 @@ const saveCustomM2PN = async (buildIndex) => {
         dimmPN: '',
         dimmQty: '',
         dimmSNs: [],
+        benicMacQty: '',
+        benicMacs: [],
         visualInspection: '',
         visualInspectionNotes: '',
         visualInspectionPhotos: [],
@@ -1147,9 +1196,6 @@ const saveCustomM2PN = async (buildIndex) => {
         lomWorkingStatus: '',
         lomWorkingNotes: '',
         lomWorkingPhotos: [],
-        ancTestStatus: '',
-        ancTestNotes: '',
-        ancTestPhotos: []
       },
       status: 'pending',
       errors: {},
